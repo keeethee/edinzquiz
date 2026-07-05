@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Index } from 'typeorm';
 import { QuizSubmissionEntity } from './quiz-submission.entity';
 import { QuestionEntity } from './question.entity';
 import { OptionEntity } from './option.entity';
@@ -17,9 +17,11 @@ export class StudentAnswerEntity {
   @Column({ type: 'float', nullable: true })
   awardedMarks: number | null; // Null represents 'Pending Evaluation' (for Subjective items)
 
+  @Index()
   @ManyToOne(() => QuizSubmissionEntity, (sub) => sub.studentAnswers, { onDelete: 'CASCADE' })
   submission: QuizSubmissionEntity;
 
+  @Index()
   @ManyToOne(() => QuestionEntity, (q) => q.studentAnswers, { onDelete: 'CASCADE' })
   question: QuestionEntity;
 

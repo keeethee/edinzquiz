@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, Index } from 'typeorm';
 import { QuizEntity } from './quiz.entity';
 import { OptionEntity } from './option.entity';
 import { StudentAnswerEntity } from './student-answer.entity';
@@ -32,6 +32,7 @@ export class QuestionEntity {
   @Column({ type: 'text', nullable: true })
   sampleAnswer: string | null;
 
+  @Index()
   @ManyToOne(() => QuizEntity, (quiz) => quiz.questions, { onDelete: 'CASCADE' })
   quiz: QuizEntity;
 

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, OneToOne, Index } from 'typeorm';
 import { CourseEntity } from './course.entity';
 import { QuestionEntity } from './question.entity';
 import { QuizSubmissionEntity } from './quiz-submission.entity';
@@ -52,9 +52,11 @@ export class QuizEntity {
   @Column({ default: false })
   resultsPublished: boolean;
 
+  @Index()
   @ManyToOne(() => CourseEntity, (course) => course.quizzes, { onDelete: 'CASCADE' })
   course: CourseEntity;
 
+  @Index()
   @ManyToOne(() => CategoryEntity, (cat) => cat.quizzes, { nullable: true, onDelete: 'SET NULL', eager: true })
   category: CategoryEntity | null;
 

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, OneToMany, Index } from 'typeorm';
 import { QuizEntity } from './quiz.entity';
 import { StudentAnswerEntity } from './student-answer.entity';
 import { StudentEntity } from './student.entity';
@@ -44,9 +44,11 @@ export class QuizSubmissionEntity {
   @CreateDateColumn()
   submittedAt: Date;
 
+  @Index()
   @ManyToOne(() => QuizEntity, (quiz) => quiz.submissions, { onDelete: 'CASCADE' })
   quiz: QuizEntity;
 
+  @Index()
   @ManyToOne(() => StudentEntity, (student) => student.submissions, { onDelete: 'SET NULL', nullable: true })
   student: StudentEntity | null;
 

@@ -19,13 +19,13 @@ import { AuthService } from '../services/auth.service';
 
         <form (ngSubmit)="onSubmit()">
           <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email Address</label>
-            <input type="email" class="neo-input" [(ngModel)]="email" name="email" placeholder="admin@edinz.com" required>
+            <label for="adminEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email Address</label>
+            <input id="adminEmail" type="email" class="neo-input" [(ngModel)]="email" name="email" placeholder="admin@edinz.com" required>
           </div>
 
           <div style="margin-bottom: 2rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
-            <input type="password" class="neo-input" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+            <label for="adminPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
+            <input id="adminPassword" type="password" class="neo-input" [(ngModel)]="password" name="password" placeholder="••••••••" required>
           </div>
 
           <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 1rem;">

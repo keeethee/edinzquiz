@@ -93,11 +93,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .logo-orange {
-  color: var(--orange-accent);
+  color: #9a3412;
   font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
   vertical-align: middle;
-  background-color: rgba(234, 88, 12, 0.1);
+  background-color: rgba(154, 52, 18, 0.1);
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
 }

@@ -56,13 +56,13 @@
         
         <form (ngSubmit)="onStudentLogin()">
           <div style="margin-bottom: 1.25rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
-            <input type="email" class="neo-input" [(ngModel)]="loginEmail" name="email" placeholder="student@college.edu" required />
+            <label for="studentLoginEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
+            <input id="studentLoginEmail" type="email" class="neo-input" [(ngModel)]="loginEmail" name="email" placeholder="student@college.edu" required />
           </div>
 
           <div style="margin-bottom: 2rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
-            <input type="password" class="neo-input" [(ngModel)]="loginPassword" name="password" placeholder="••••••••" required />
+            <label for="studentLoginPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
+            <input id="studentLoginPassword" type="password" class="neo-input" [(ngModel)]="loginPassword" name="password" placeholder="••••••••" required />
           </div>
 
           <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
@@ -83,23 +83,23 @@
         
         <form (ngSubmit)="onStudentRegister()">
           <div style="margin-bottom: 1.25rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Full Name</label>
-            <input type="text" class="neo-input" [(ngModel)]="regName" name="name" placeholder="John Doe" required />
+            <label for="studentRegName" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Full Name</label>
+            <input id="studentRegName" type="text" class="neo-input" [(ngModel)]="regName" name="name" placeholder="John Doe" required />
           </div>
 
           <div style="margin-bottom: 1.25rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
-            <input type="email" class="neo-input" [(ngModel)]="regEmail" name="email" placeholder="student@college.edu" required />
+            <label for="studentRegEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
+            <input id="studentRegEmail" type="email" class="neo-input" [(ngModel)]="regEmail" name="email" placeholder="student@college.edu" required />
           </div>
 
           <div style="margin-bottom: 1.25rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">College Name</label>
-            <input type="text" class="neo-input" [(ngModel)]="regCollege" name="collegeName" placeholder="Harvard University" required />
+            <label for="studentRegCollege" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">College Name</label>
+            <input id="studentRegCollege" type="text" class="neo-input" [(ngModel)]="regCollege" name="collegeName" placeholder="Harvard University" required />
           </div>
 
           <div style="margin-bottom: 2rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
-            <input type="password" class="neo-input" [(ngModel)]="regPassword" name="password" placeholder="••••••••" required />
+            <label for="studentRegPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
+            <input id="studentRegPassword" type="password" class="neo-input" [(ngModel)]="regPassword" name="password" placeholder="••••••••" required />
           </div>
 
           <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
@@ -124,10 +124,12 @@
       
       <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
         <input 
+          id="courseSearchInput"
           type="text" 
           class="neo-input" 
           placeholder="e.g. CS-101 or 412" 
           [(ngModel)]="searchCourseIdCode"
+          aria-label="Alphanumeric course ID code search"
           style="max-width: 300px; text-transform: uppercase;"
           (keyup.enter)="onCourseSearch()"
         />
@@ -281,14 +283,14 @@
 
             <!-- Render Fill in the Blank option -->
             <div *ngIf="q.questionType === 'FillBlank' || q.questionType === 'FILL_BLANK' || q.questionType === 'SHORT_ANSWER'">
-              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Type your answer below:</label>
-              <input type="text" class="neo-input" placeholder="Your typed answer..." [(ngModel)]="typedAnswers[q.id!]" />
+              <label [attr.for]="'fill_ans_' + q.id" style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Type your answer below:</label>
+              <input [id]="'fill_ans_' + q.id" type="text" class="neo-input" placeholder="Your typed answer..." [(ngModel)]="typedAnswers[q.id!]" />
             </div>
 
             <!-- Render Subjective option -->
             <div *ngIf="q.questionType === 'Subjective' || q.questionType === 'ESSAY'">
-              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Type your essay/explanation below:</label>
-              <textarea class="neo-input" rows="5" placeholder="Write your full response here..." [(ngModel)]="typedAnswers[q.id!]"></textarea>
+              <label [attr.for]="'subj_ans_' + q.id" style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Type your essay/explanation below:</label>
+              <textarea [id]="'subj_ans_' + q.id" class="neo-input" rows="5" placeholder="Write your full response here..." [(ngModel)]="typedAnswers[q.id!]"></textarea>
             </div>
           </div>
         </div>
