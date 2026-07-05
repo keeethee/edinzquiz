@@ -1,0 +1,985 @@
+<!-- Full Width Header Navigation Bar -->
+<div class="header-bar">
+  <div style="display: flex; align-items: center; gap: 1.5rem;">
+    <div class="logo-pill">
+      <span class="logo-blue">edinz</span>
+      <span class="logo-orange">TECH</span>
+    </div>
+    <h2 style="font-size: 1.1rem; margin: 0; color: #94a3b8; font-weight: 500; letter-spacing: 0.1em;">ADMIN CONSOLE</h2>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'courses'" (click)="switchTab('courses')">Courses</button>
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">Quizzes</button>
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignments'" (click)="switchTab('assignments')">Assignments</button>
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">Quiz Submissions</button>
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">Homework grading</button>
+    
+    <button class="neo-btn neo-btn-danger" style="padding: 0.6rem 1.2rem;" (click)="logout()">
+      Logout
+    </button>
+  </div>
+</div>
+
+<div class="app-container">
+  <!-- Messages -->
+  <div *ngIf="errorMsg" class="neo-card" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+    {{ errorMsg }}
+  </div>
+  <div *ngIf="successMsg" class="neo-card" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+    {{ successMsg }}
+  </div>
+
+  <!-- ==================== COURSES TAB ==================== -->
+  <div *ngIf="activeTab === 'courses'">
+    <div class="grid-2">
+      <!-- Create Course Card -->
+      <div class="neo-card">
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Create Course</h3>
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Display ID (Unique Code)</label>
+            <input type="text" class="neo-input" placeholder="e.g. CS-101 or 412" [(ngModel)]="newCourseIdCode" name="courseIdCode" style="text-transform: uppercase;" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Name</label>
+            <input type="text" class="neo-input" placeholder="e.g. Data Structures and Algorithms" [(ngModel)]="newCourseName" name="courseName" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Duration (Optional)</label>
+            <input type="text" class="neo-input" placeholder="e.g. 12 Weeks" [(ngModel)]="newCourseDuration" name="duration" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Portal Status</label>
+            <select class="neo-select" [(ngModel)]="newCourseStatus" name="status">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <button class="neo-btn neo-btn-primary" style="margin-top: 1rem;" (click)="createCourse()">Publish Course</button>
+        </div>
+      </div>
+
+      <!-- Course List -->
+      <div class="neo-card">
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Active Courses</h3>
+        <div *ngIf="courses.length === 0" style="color: var(--text-muted); text-align: center; padding: 2rem;">No courses created yet.</div>
+        
+        <div *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div *ngFor="let c of courses" class="neo-card-inset flex-between" style="padding: 1rem 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h4 style="font-size: 1.05rem;">
+                <span style="color: var(--accent-color); font-weight: 700; margin-right: 0.5rem;">{{ c.courseId }}</span>
+                {{ c.courseName }}
+              </h4>
+              <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 1.5rem;" *ngIf="c.duration">⏳ {{ c.duration }}</span>
+              <span class="badge" [class.badge-completed]="c.status === 'Active'" [class.badge-overdue]="c.status === 'Inactive'">{{ c.status }}</span>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="neo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="editCourse(c)">Edit</button>
+              <button class="neo-btn neo-btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="deleteCourse(c.id)">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Course Edit Modal Overlay -->
+    <div *ngIf="editingCourse" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; backdrop-filter: blur(4px);">
+      <div class="neo-card" style="max-width: 500px; width: 100%; padding: 2.5rem;">
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.3rem;">Edit Course Details</h3>
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Course ID</label>
+            <input type="text" class="neo-input" [(ngModel)]="editingCourse.courseId" name="editCourseId" style="text-transform: uppercase;" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Course Name</label>
+            <input type="text" class="neo-input" [(ngModel)]="editingCourse.courseName" name="editCourseName" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Duration</label>
+            <input type="text" class="neo-input" [(ngModel)]="editingCourse.duration" name="editDuration" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Status</label>
+            <select class="neo-select" [(ngModel)]="editingCourse.status" name="editStatus">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          
+          <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button class="neo-btn" style="flex: 1;" (click)="editingCourse = null">Cancel</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="saveCourseEdit()">Save Details</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== QUIZZES TAB ==================== -->
+  <div *ngIf="activeTab === 'quizzes'">
+    <!-- 1. QUIZ DASHBOARD VIEW -->
+    <div *ngIf="!isQuizEditorOpen">
+      <!-- Course Selector Header -->
+      <div class="neo-card flex-between" style="padding: 1.25rem 2rem; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+          <h3 style="font-size: 1.2rem; margin: 0;">Select Target Course:</h3>
+          <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="onCourseChangeForQuiz()" style="max-width: 350px;">
+            <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+          </select>
+        </div>
+        <button *ngIf="selectedCourseId" class="neo-btn neo-btn-primary" (click)="openQuizEditor()">
+          + Create New Quiz
+        </button>
+      </div>
+
+      <div *ngIf="selectedCourseId">
+        <!-- Advanced Filters Bar -->
+        <div class="neo-card" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: center;">
+            <div>
+              <label style="display: block; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--text-secondary);">Search</label>
+              <input type="text" class="neo-input" placeholder="Search by title..." [(ngModel)]="quizSearchText" (input)="quizCurrentPage = 1" />
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--text-secondary);">Category</label>
+              <select class="neo-select" [(ngModel)]="quizFilterCategory" (change)="quizCurrentPage = 1">
+                <option [value]="null">All Categories</option>
+                <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--text-secondary);">Difficulty</label>
+              <select class="neo-select" [(ngModel)]="quizFilterDifficulty" (change)="quizCurrentPage = 1">
+                <option value="">All Difficulties</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--text-secondary);">Status</label>
+              <select class="neo-select" [(ngModel)]="quizFilterStatus" (change)="quizCurrentPage = 1">
+                <option value="">All Statuses</option>
+                <option value="Draft">Draft</option>
+                <option value="Published">Published</option>
+                <option value="Archived">Archived</option>
+                <option value="Closed">Closed</option>
+                <option value="Force stopped">Force stopped</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz List Card -->
+        <div class="neo-card">
+          <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Course Quiz Repository</h3>
+          
+          <div *ngIf="filteredQuizzes.length === 0" style="color: var(--text-muted); text-align: center; padding: 3rem;">
+            No quizzes found matching the selected filters.
+          </div>
+          
+          <div *ngIf="filteredQuizzes.length > 0" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div *ngFor="let q of paginatedQuizzes" class="neo-card-inset" style="padding: 1.5rem; transition: border-color 0.2s;">
+              <div class="flex-between" style="margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                  <h4 style="font-size: 1.25rem; color: var(--text-primary); font-weight: 600; display: inline-block; margin-right: 0.75rem;">
+                    {{ q.quizTitle }}
+                  </h4>
+                  <!-- Badges -->
+                  <span class="badge" style="background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.25); color: var(--accent-color);">
+                    {{ q.category?.name || 'General' }}
+                  </span>
+                  <span class="badge" [class.badge-completed]="q.difficulty === 'Easy'" [class.badge-pending]="q.difficulty === 'Medium'" [class.badge-overdue]="q.difficulty === 'Hard'">
+                    {{ q.difficulty || 'Medium' }}
+                  </span>
+                </div>
+                
+                <span class="badge" 
+                      [class.badge-completed]="q.status === 'Published'" 
+                      [class.badge-pending]="q.status === 'Draft'" 
+                      [class.badge-overdue]="q.status === 'Force stopped' || q.status === 'Closed' || q.status === 'Archived'">
+                  {{ q.status }}
+                </span>
+              </div>
+
+              <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;" *ngIf="q.description">
+                {{ q.description }}
+              </p>
+
+              <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
+                <span>📅 Open: {{ q.startTime | date:'medium' }}</span>
+                <span>⌛ Close: {{ q.endTime | date:'medium' }}</span>
+                <span>⏱️ {{ q.duration }} mins</span>
+                <span>🎯 Passing: {{ q.settings?.passingPercentage || 40 }}% ({{ q.passingMarks }} pts)</span>
+                <span>🔄 Max Attempts: {{ q.settings?.maxAttempts || 1 }}</span>
+                <span>💯 Total Marks: {{ q.totalMarks }}</span>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="neo-btn neo-btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" (click)="openQuizEditor(q)">
+                  📝 Edit Quiz
+                </button>
+                <button class="neo-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;" (click)="duplicateQuiz(q)">
+                  👥 Duplicate
+                </button>
+                <button class="neo-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;" (click)="openLeaderboard(q)">
+                  🏆 Leaderboard
+                </button>
+                <button class="neo-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;" (click)="openAnalytics(q)">
+                  📊 Analytics
+                </button>
+                <button class="neo-btn neo-btn-danger" style="padding: 0.5rem 1rem; font-size: 0.85rem;" (click)="deleteQuiz(q.id)">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Pagination Controls -->
+          <div class="pagination-container" *ngIf="totalQuizPages > 1">
+            <button class="pagination-btn" [disabled]="quizCurrentPage === 1" (click)="setPage(quizCurrentPage - 1)">
+              Previous
+            </button>
+            <button *ngFor="let page of [].constructor(totalQuizPages); let idx = index" 
+                    class="pagination-btn" 
+                    [class.active-page]="quizCurrentPage === (idx + 1)"
+                    (click)="setPage(idx + 1)">
+              {{ idx + 1 }}
+            </button>
+            <button class="pagination-btn" [disabled]="quizCurrentPage === totalQuizPages" (click)="setPage(quizCurrentPage + 1)">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. COMPREHENSIVE VISUAL QUIZ EDITOR VIEW -->
+    <div *ngIf="isQuizEditorOpen" class="neo-card" style="border-color: var(--accent-color); padding: 1.5rem 2rem; position: relative;">
+      <!-- Sticky Top Editor Bar -->
+      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <button class="neo-btn" style="padding: 0.45rem 1rem; margin-right: 1.25rem;" (click)="closeQuizEditor()">
+            ← Back to Dashboard
+          </button>
+          <span style="font-size: 1.15rem; font-weight: 600; color: #fff;">
+            {{ quizForm.get('quizTitle')?.value || 'New Quiz Assessment' }}
+          </span>
+          <span *ngIf="lastAutosavedTime" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--success-color); font-weight: 550;">
+            {{ lastAutosavedTime }}
+          </span>
+          <span *ngIf="isAutosaving" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--warning-color); font-weight: 550;">
+            Saving draft...
+          </span>
+        </div>
+
+        <div style="display: flex; gap: 0.6rem; align-items: center;">
+          <span style="font-size: 0.85rem; color: var(--text-secondary); margin-right: 0.5rem;">
+            Total weight: <strong style="color: var(--accent-color);">{{ editorTotalMarks }} marks</strong>
+          </span>
+          <button class="neo-btn" (click)="saveQuizDraft()" [disabled]="isSaving || isAutosaving">
+            {{ isSaving ? 'Saving...' : 'Save Draft' }}
+          </button>
+          <button class="neo-btn neo-btn-primary" (click)="publishQuiz()" [disabled]="isSaving || isAutosaving">
+            {{ isSaving ? 'Publishing...' : 'Publish' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor validation feedback list -->
+      <div *ngIf="validationErrors.length > 0" class="neo-card" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.25); padding: 1rem; margin-bottom: 1rem; color: var(--danger-color); border-radius: 8px;">
+        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--danger-color);">Cannot publish. Please resolve issues:</h4>
+        <ul style="padding-left: 1.25rem; font-size: 0.85rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.25rem;">
+          <li *ngFor="let err of validationErrors">{{ err }}</li>
+        </ul>
+      </div>
+
+      <!-- Two-column responsive split grid -->
+      <div class="editor-grid">
+        <!-- A. SIDEBAR: drag-and-drop question lists -->
+        <div class="editor-sidebar">
+          <button class="neo-card-inset flex-center" 
+                  style="width:100%; text-align:left; border: 1px solid var(--glass-border); padding: 0.85rem; cursor:pointer;"
+                  [class.active-card]="activeQuestionIndex === null"
+                  (click)="activeQuestionIndex = null">
+            <span style="font-weight:600; font-size: 0.95rem; color: #fff;">⚙️ Quiz Settings & Meta</span>
+          </button>
+
+          <h4 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0.5rem 0 0.25rem 0;">
+            Questions Flow
+          </h4>
+
+          <div cdkDropList 
+               (cdkDropListDropped)="onQuestionDropped($event)" 
+               style="display: flex; flex-direction: column; gap: 0.5rem; min-height: 100px;">
+            <div *ngFor="let q of questionsFormArray.controls; let idx = index" 
+                 cdkDrag 
+                 class="question-drag-card"
+                 [class.active-card]="activeQuestionIndex === idx"
+                 (click)="activeQuestionIndex = idx">
+              
+              <div style="display:flex; align-items:center; gap: 0.5rem; width: 75%; overflow: hidden;">
+                <div cdkDragHandle class="drag-handle">
+                  ⣿
+                </div>
+                <span style="font-size:0.85rem; color: var(--text-muted); font-weight:700;">
+                  Q{{ idx + 1 }}
+                </span>
+                <span class="badge" style="font-size:0.65rem; padding: 0.15rem 0.35rem; white-space: nowrap;">
+                  {{ q.get('questionType')?.value }}
+                </span>
+                <span style="font-size: 0.85rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--text-primary);">
+                  {{ q.get('questionText')?.value || '[Empty question]' }}
+                </span>
+              </div>
+
+              <div style="display:flex; gap:0.25rem; align-items:center;">
+                <span style="font-size:0.75rem; color:var(--text-muted); margin-right: 0.25rem;">
+                  {{ q.get('mark')?.value }} pt
+                </span>
+                <button class="neo-btn" style="padding: 0.2rem 0.4rem; font-size:0.75rem;" (click)="duplicateQuestion(idx); $event.stopPropagation();" title="Duplicate">
+                  📄
+                </button>
+                <button class="neo-btn neo-btn-danger" style="padding: 0.2rem 0.4rem; font-size:0.75rem;" (click)="deleteQuestion(idx); $event.stopPropagation();" title="Delete">
+                  ✕
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Add question choices block -->
+          <div style="border-top:1px solid var(--glass-border); padding-top: 1rem; margin-top: 1rem;">
+            <h5 style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.6rem;">+ Add Question Type</h5>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem;">
+              <button class="neo-btn" style="font-size: 0.75rem; padding: 0.4rem 0.2rem;" (click)="addQuestion('MCQ_SINGLE')">MCQ Single</button>
+              <button class="neo-btn" style="font-size: 0.75rem; padding: 0.4rem 0.2rem;" (click)="addQuestion('MCQ_MULTIPLE')">MCQ Multiple</button>
+              <button class="neo-btn" style="font-size: 0.75rem; padding: 0.4rem 0.2rem;" (click)="addQuestion('TF')">True/False</button>
+              <button class="neo-btn" style="font-size: 0.75rem; padding: 0.4rem 0.2rem;" (click)="addQuestion('FILL_BLANK')">Fill in Blank</button>
+              <button class="neo-btn" style="font-size: 0.75rem; padding: 0.4rem 0.2rem;" (click)="addQuestion('SHORT_ANSWER')">Short Answer</button>
+              <button class="neo-btn" style="font-size: 0.75rem; padding: 0.4rem 0.2rem;" (click)="addQuestion('ESSAY')">Essay</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- B. EDITOR WORKSPACE -->
+        <div class="editor-workspace" [formGroup]="quizForm">
+          
+          <!-- Case 1: Edit Quiz General settings -->
+          <div *ngIf="activeQuestionIndex === null" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <h3 style="font-size:1.25rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+              ⚙️ Quiz Details & Configuration
+            </h3>
+
+            <div>
+              <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Title</label>
+              <input type="text" class="neo-input" formControlName="quizTitle" placeholder="e.g. Mid-term Assessment" />
+            </div>
+
+            <div>
+              <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Description / Guidelines</label>
+              <textarea class="neo-input" formControlName="description" rows="3" placeholder="Enter instructions for students..."></textarea>
+            </div>
+
+            <div class="grid-2">
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Category</label>
+                <select class="neo-select" formControlName="categoryId">
+                  <option value="">Select Category</option>
+                  <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+                </select>
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Difficulty Level</label>
+                <select class="neo-select" formControlName="difficulty">
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Start Window Date & Time</label>
+                <input type="datetime-local" class="neo-input" formControlName="startTime" />
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">End Window Date & Time</label>
+                <input type="datetime-local" class="neo-input" formControlName="endTime" />
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Duration (Minutes)</label>
+                <input type="number" class="neo-input" formControlName="duration" min="1" />
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Passing Percentage (%)</label>
+                <input type="number" class="neo-input" formControlName="passingPercentage" min="0" max="100" />
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Max Attempts Limit</label>
+                <input type="number" class="neo-input" formControlName="maxAttempts" min="1" />
+              </div>
+            </div>
+
+            <div class="grid-2" style="background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1.25rem; border: 1px solid var(--glass-border); gap: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" formControlName="shuffleQuestions" />
+                  <span style="font-size: 0.9rem;">Shuffle Questions list on start</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" formControlName="shuffleOptions" />
+                  <span style="font-size: 0.9rem;">Shuffle MCQ Options list</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" formControlName="showResultsImmediately" />
+                  <span style="font-size: 0.9rem;">Show detailed results immediately after submission</span>
+                </label>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" formControlName="negativeMarkingEnabled" />
+                  <span style="font-size: 0.9rem;">Enable Negative marking</span>
+                </label>
+                <div *ngIf="quizForm.get('negativeMarkingEnabled')?.value" style="margin-top: 0.25rem;">
+                  <label style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:0.2rem;">Negative marks value</label>
+                  <input type="number" class="neo-input" step="0.25" min="0" formControlName="negativeMarkingValue" style="max-width:120px; padding: 0.4rem;" />
+                </div>
+                
+                <div>
+                  <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:0.25rem; font-weight:550;">Draft/Publish Status</label>
+                  <select class="neo-select" formControlName="status" style="max-width:200px; padding: 0.4rem;">
+                    <option value="Draft">Draft</option>
+                    <option value="Published">Published</option>
+                    <option value="Archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Case 2: Edit Selected Question details -->
+          <div *ngIf="activeQuestionIndex !== null" formArrayName="questions">
+            <div [formGroupName]="activeQuestionIndex" style="display: flex; flex-direction: column; gap: 1.25rem;">
+              
+              <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+                <h3 style="font-size: 1.2rem; margin: 0;">
+                  ✏️ Edit Question #{{ activeQuestionIndex + 1 }}
+                </h3>
+                <span class="badge" style="background: var(--accent-light); border-color: var(--glass-border); color: var(--accent-color); font-size: 0.85rem; padding: 0.25rem 0.6rem;">
+                  {{ questionsFormArray.at(activeQuestionIndex).get('questionType')?.value }}
+                </span>
+              </div>
+
+              <!-- Question Text and upload -->
+              <div>
+                <div class="flex-between" style="margin-bottom: 0.4rem;">
+                  <label style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 550;">Question Text (LaTeX & Markdown supported)</label>
+                  <label class="neo-btn" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; cursor: pointer; display: inline-block;">
+                    📎 Upload Image/Audio/Video
+                    <input type="file" style="display: none;" (change)="onQuestionFileSelected($event, activeQuestionIndex)" />
+                  </label>
+                </div>
+                <textarea class="neo-input" formControlName="questionText" rows="4" placeholder="Enter question text here..."></textarea>
+                
+                <!-- Instant LaTeX rendering preview -->
+                <div class="rich-preview-box" *ngIf="questionsFormArray.at(activeQuestionIndex).get('questionText')?.value">
+                  <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.35rem; margin-bottom: 0.5rem; font-weight: 700;">
+                    Live Formula / Content Preview
+                  </div>
+                  <div [innerHTML]="getParsedPreview(questionsFormArray.at(activeQuestionIndex).get('questionText')?.value)"></div>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div>
+                  <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Marks / Weight</label>
+                  <input type="number" class="neo-input" formControlName="mark" min="1" />
+                </div>
+                <div>
+                  <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Explanation (Shown after completion)</label>
+                  <input type="text" class="neo-input" formControlName="explanation" placeholder="Provide answer explanation..." />
+                </div>
+              </div>
+
+              <!-- TYPE DEPENDENT INPUTS -->
+              
+              <!-- 1. MCQ Single / Multiple Options -->
+              <div *ngIf="questionsFormArray.at(activeQuestionIndex).get('questionType')?.value === 'MCQ_SINGLE' || 
+                          questionsFormArray.at(activeQuestionIndex).get('questionType')?.value === 'MCQ_MULTIPLE'" 
+                   style="border-top: 1px solid var(--glass-border); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;">
+                
+                <div class="flex-between">
+                  <span style="font-size: 0.9rem; font-weight: 550;">Choices List (Minimum 2, Maximum 8)</span>
+                  <button class="neo-btn" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" 
+                          [disabled]="getOptionsFormArray(activeQuestionIndex).length >= 8"
+                          (click)="addOption(activeQuestionIndex)">
+                    + Add Option Choice
+                  </button>
+                </div>
+
+                <div formArrayName="options" style="display: flex; flex-direction: column; gap: 0.6rem;">
+                  <div *ngFor="let opt of getOptionsFormArray(activeQuestionIndex).controls; let oIdx = index" 
+                       [formGroupName]="oIdx" 
+                       style="display: flex; gap: 0.6rem; align-items: center; width: 100%;">
+                    
+                    <span style="font-weight: 700; color: var(--text-muted); width: 20px;">
+                      {{ String.fromCharCode(65 + oIdx) }}
+                    </span>
+
+                    <!-- Correct answers selections buttons -->
+                    <button *ngIf="questionsFormArray.at(activeQuestionIndex!).get('questionType')?.value === 'MCQ_SINGLE'" 
+                            class="neo-btn" 
+                            [class.neo-btn-toggle]="opt.get('isCorrect')?.value"
+                            style="padding: 0.45rem 0.8rem; font-size: 0.8rem; white-space: nowrap;"
+                            (click)="selectSingleCorrectOption(activeQuestionIndex!, oIdx)">
+                      {{ opt.get('isCorrect')?.value ? '✓ Correct' : 'Correct key' }}
+                    </button>
+
+                    <button *ngIf="questionsFormArray.at(activeQuestionIndex!).get('questionType')?.value === 'MCQ_MULTIPLE'" 
+                            class="neo-btn" 
+                            [class.neo-btn-toggle]="opt.get('isCorrect')?.value"
+                            style="padding: 0.45rem 0.8rem; font-size: 0.8rem; white-space: nowrap;"
+                            (click)="toggleMultipleCorrectOption(activeQuestionIndex!, oIdx)">
+                      {{ opt.get('isCorrect')?.value ? '✓ Correct' : 'Select key' }}
+                    </button>
+
+                    <input type="text" class="neo-input" formControlName="optionText" placeholder="Option text choice..." style="flex: 1;" />
+
+                    <button class="neo-btn neo-btn-danger" 
+                            style="padding: 0.45rem 0.8rem;" 
+                            [disabled]="getOptionsFormArray(activeQuestionIndex!).length <= 2"
+                            (click)="removeOption(activeQuestionIndex!, oIdx)">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. True / False Options -->
+              <div *ngIf="questionsFormArray.at(activeQuestionIndex).get('questionType')?.value === 'TF'" 
+                   style="border-top: 1px solid var(--glass-border); padding-top: 1.25rem;"
+                   formArrayName="options">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 550;">
+                  Set Correct Option Key:
+                </label>
+                <div style="display: flex; gap: 1rem;">
+                  <button *ngFor="let opt of getOptionsFormArray(activeQuestionIndex).controls; let oIdx = index"
+                          class="neo-btn"
+                          [class.neo-btn-toggle]="opt.get('isCorrect')?.value"
+                          style="flex: 1; padding: 0.75rem; text-align: center;"
+                          (click)="selectSingleCorrectOption(activeQuestionIndex!, oIdx)">
+                    {{ opt.get('optionText')?.value }} {{ opt.get('isCorrect')?.value ? '✓' : '' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 3. Fill in the Blank / Short Answer -->
+              <div *ngIf="questionsFormArray.at(activeQuestionIndex).get('questionType')?.value === 'FILL_BLANK' || 
+                          questionsFormArray.at(activeQuestionIndex).get('questionType')?.value === 'SHORT_ANSWER'" 
+                   style="border-top: 1px solid var(--glass-border); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+                
+                <div>
+                  <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 550;">
+                    Accepted Key Answers (Use vertical bar | to divide multiple accepted patterns)
+                  </label>
+                  <input type="text" class="neo-input" formControlName="correctAnswerText" placeholder="e.g. Python|Guido|Guido van Rossum" />
+                  <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; display: block;">
+                    Students will receive correct marks if their trimmed response matches any of the split values.
+                  </span>
+                </div>
+
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; max-width: 250px;">
+                  <input type="checkbox" formControlName="caseSensitive" />
+                  <span style="font-size: 0.9rem;">Enable Case-Sensitive exact match</span>
+                </label>
+              </div>
+
+              <!-- 4. Essay / Subjective -->
+              <div *ngIf="questionsFormArray.at(activeQuestionIndex).get('questionType')?.value === 'ESSAY'" 
+                   style="border-top: 1px solid var(--glass-border); padding-top: 1.25rem;">
+                
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 550;">
+                  Sample Reference Answer (Shown to evaluators / students after completion)
+                </label>
+                <textarea class="neo-input" formControlName="sampleAnswer" rows="4" placeholder="Enter reference answer key instructions..."></textarea>
+                
+                <!-- Sample LaTeX Preview -->
+                <div class="rich-preview-box" *ngIf="questionsFormArray.at(activeQuestionIndex).get('sampleAnswer')?.value" style="margin-top: 0.75rem;">
+                  <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.35rem; margin-bottom: 0.5rem; font-weight: 700;">
+                    Live Reference Preview
+                  </div>
+                  <div [innerHTML]="getParsedPreview(questionsFormArray.at(activeQuestionIndex).get('sampleAnswer')?.value)"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ASSIGNMENTS TAB ==================== -->
+  <div *ngIf="activeTab === 'assignments'">
+    <!-- Course Selector Header -->
+    <div class="neo-card flex-between" style="padding: 1.25rem 2rem; margin-bottom: 2rem;">
+      <h3 style="font-size: 1.2rem;">Select Target Course:</h3>
+      <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="onCourseChangeForAssignment()" style="max-width: 350px;">
+        <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+      </select>
+    </div>
+
+    <div *ngIf="selectedCourseId" class="grid-2">
+      <!-- Create Homework Form -->
+      <div class="neo-card">
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Homework</h3>
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Assignment Title</label>
+            <input type="text" class="neo-input" placeholder="e.g. Lab assignment 1: Arrays" [(ngModel)]="newAssignTitle" name="assignTitle" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Short Description / Specs</label>
+            <textarea class="neo-input" rows="3" placeholder="Define assignment goals, format requirements..." [(ngModel)]="newAssignDesc" name="assignDesc"></textarea>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Deadline Limit</label>
+            <input type="datetime-local" class="neo-input" [(ngModel)]="newAssignDeadline" name="assignDeadline" />
+          </div>
+          <button class="neo-btn neo-btn-primary" style="margin-top: 1rem;" (click)="createAssignment()">Publish Homework</button>
+        </div>
+      </div>
+
+      <!-- Published list -->
+      <div class="neo-card">
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Published Assignments</h3>
+        <div *ngIf="publishedAssignments.length === 0" style="color: var(--text-muted); text-align: center; padding: 2rem;">No assignments published for this course.</div>
+        
+        <div *ngIf="publishedAssignments.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div *ngFor="let a of publishedAssignments" class="neo-card-inset flex-between" style="padding: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h4 style="font-weight: 600; font-size: 1.05rem;">{{ a.title }}</h4>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">{{ a.description }}</p>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Deadline: {{ a.deadline | date:'medium' }}</span>
+            </div>
+            <button class="neo-btn neo-btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="deleteAssignment(a.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== QUIZ SUBMISSIONS TAB ==================== -->
+  <div *ngIf="activeTab === 'quiz-sub'">
+    <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="font-size: 1.4rem; margin: 0;">Student Quiz Submissions</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.2rem;">Track scores, view answers breakdown, and evaluate subjective questions.</p>
+      </div>
+      <button class="neo-btn neo-btn-primary" (click)="exportSubmissions()">Download CSV Report</button>
+    </div>
+
+    <!-- Submissions list -->
+    <div class="neo-card">
+      <div *ngIf="quizSubmissions.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">No quiz submissions received yet.</div>
+      
+      <div *ngIf="quizSubmissions.length > 0" class="neo-card-inset" style="padding: 0; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--glass-border); background: rgba(255,255,255,0.02);">
+              <th style="padding: 1rem 1.5rem;">Student Info</th>
+              <th style="padding: 1rem 1.5rem;">Course / Quiz</th>
+              <th style="padding: 1rem 1.5rem;">Marks</th>
+              <th style="padding: 1rem 1.5rem;">Status</th>
+              <th style="padding: 1rem 1.5rem;">Submitted At</th>
+              <th style="padding: 1rem 1.5rem; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of quizSubmissions" style="border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.15s;" hover="background: rgba(255,255,255,0.01)">
+              <td style="padding: 1rem 1.5rem;">
+                <strong style="display: block;">{{ s.studentName }}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ s.collegeName }}</span>
+              </td>
+              <td style="padding: 1rem 1.5rem;">
+                <span style="font-size: 0.8rem; color: var(--accent-color); font-weight: 600; display: block;">{{ s.courseId }} - {{ s.courseName }}</span>
+                <span style="font-size: 0.9rem; font-weight: 550;">{{ s.quiz?.quizTitle }}</span>
+              </td>
+              <td style="padding: 1rem 1.5rem;">
+                <strong style="color: var(--accent-color);">{{ s.score }} / {{ s.totalMarks }}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">({{ s.percentage | number:'1.0-1' }}%)</span>
+              </td>
+              <td style="padding: 1rem 1.5rem;">
+                <span *ngIf="s.status === 'Pass'" class="badge badge-completed">Passed</span>
+                <span *ngIf="s.status === 'Fail'" class="badge badge-overdue">Failed</span>
+                <span *ngIf="s.status === 'Pending Evaluation'" class="badge badge-pending">Pending Grading</span>
+              </td>
+              <td style="padding: 1rem 1.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                {{ s.submittedAt | date:'medium' }}
+              </td>
+              <td style="padding: 1rem 1.5rem; text-align: right;">
+                <button class="neo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="viewQuizSubmissionDetail(s.id)">
+                  {{ s.status === 'Pending Evaluation' ? 'Grade Answer' : 'Details' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Detailed Submission answers overlay (includes manual evaluation panel for subjective) -->
+    <div *ngIf="detailedSubmission" class="neo-card" style="margin-top: 2rem; border-color: var(--accent-color);">
+      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 2rem;">
+        <div>
+          <h2 style="font-size: 1.4rem; margin-bottom: 0.2rem;">Submission Detail: {{ detailedSubmission.studentName }}</h2>
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Quiz: {{ detailedSubmission.quiz?.quizTitle }} | Score: <strong>{{ detailedSubmission.score }}/{{ detailedSubmission.totalMarks }}</strong></span>
+        </div>
+        <button class="neo-btn" (click)="detailedSubmission = null">Close Details</button>
+      </div>
+
+      <!-- Question breakdown lists -->
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div *ngFor="let sa of detailedSubmission.studentAnswers; let idx = index" class="neo-card-inset">
+          
+          <div class="flex-between" style="border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 550;">
+              Q{{ idx + 1 }}. [{{ sa.question.questionType }}] - {{ sa.question.questionText }}
+            </h4>
+            
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">Points: {{ sa.awardedMarks !== null ? sa.awardedMarks : 'Pending' }}/{{ sa.question.mark }}</span>
+              <!-- Auto correct status badges -->
+              <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks > 0" class="badge badge-completed">Correct</span>
+              <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks <= 0" class="badge badge-overdue">Incorrect</span>
+              <span *ngIf="sa.awardedMarks === null" class="badge badge-pending">Pending Grade</span>
+            </div>
+          </div>
+
+          <!-- MCQ/TF choice highlights -->
+          <div *ngIf="sa.question.questionType === 'MCQ' || sa.question.questionType === 'TF' || sa.question.questionType === 'MCQ_SINGLE' || sa.question.questionType === 'MCQ_MULTIPLE'" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+            <div 
+              *ngFor="let opt of sa.question.options" 
+              style="padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.9rem;"
+              [style.background]="opt.isCorrect ? 'rgba(16,185,129,0.06)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.15)')"
+              [style.border]="opt.isCorrect ? '1px solid var(--success-color)' : (isOptionSelectedInSubmission(sa, opt.id) ? '1px solid var(--danger-color)' : '1px solid var(--glass-border)')">
+              
+              <span>{{ opt.optionText }}</span>
+              <span *ngIf="opt.isCorrect" style="color: var(--success-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Correct key</span>
+              <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && !opt.isCorrect" style="color: var(--danger-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Student Answer</span>
+              <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && opt.isCorrect" style="color: var(--success-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Student Answer (Correct)</span>
+            </div>
+          </div>
+
+          <!-- Fill in the blank typed response review -->
+          <div *ngIf="sa.question.questionType === 'FillBlank' || sa.question.questionType === 'FILL_BLANK' || sa.question.questionType === 'SHORT_ANSWER'" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <p style="font-size: 0.9rem;">Student typed answer: <strong style="font-style: italic; color: var(--accent-color);">"{{ sa.typedAnswerText || '[Empty]' }}"</strong></p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Correct answer pattern: <strong style="color: var(--success-color);">{{ sa.question.correctAnswerText }}</strong></p>
+          </div>
+
+          <!-- Subjective typed response manual grading panel -->
+          <div *ngIf="sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY'" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 1rem 1.5rem; border-radius: 8px; font-style: italic; white-space: pre-wrap; font-size: 0.95rem;">
+              "{{ sa.typedAnswerText || '[No Answer Submitted]' }}"
+            </div>
+            
+            <!-- Manual grade inputs -->
+            <div class="flex-center" style="justify-content: flex-start; gap: 1rem; margin-top: 0.5rem;">
+              <span style="font-size: 0.9rem; font-weight: 550;">Award marks (0 - {{ sa.question.mark }}):</span>
+              <input 
+                type="number" 
+                class="neo-input" 
+                style="max-width: 100px; padding: 0.4rem 0.8rem;" 
+                min="0" 
+                [max]="sa.question.mark" 
+                step="0.5" 
+                [(ngModel)]="subjectiveGrades[sa.question.id]" 
+              />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Save evaluations button (if has subjective) -->
+      <div style="margin-top: 2rem; text-align: right;">
+        <button class="neo-btn neo-btn-primary" style="padding: 0.8rem 2rem;" (click)="saveSubjectiveGrades()">
+          Save Evaluated Grades & Update Score
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== HOMEWORK GRADING TAB ==================== -->
+  <div *ngIf="activeTab === 'assign-sub'">
+    <h2 style="font-size: 1.4rem; margin-bottom: 1.5rem;">Student Homework Submissions</h2>
+    
+    <div class="neo-card">
+      <div *ngIf="assignSubmissions.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">No homework files uploaded yet.</div>
+      
+      <div *ngIf="assignSubmissions.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div *ngFor="let sub of assignSubmissions" class="neo-card-inset flex-between" style="padding: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h4 style="font-size: 1.05rem; font-weight: 600;">{{ sub.studentName }}</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Course: {{ sub.courseName }} | File: <a href="javascript:void(0)" (click)="downloadHomework(sub)" style="color: var(--accent-color); font-weight: 550;">{{ sub.fileName }}</a></p>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Uploaded on: {{ sub.submittedAt | date:'medium' }}</p>
+          </div>
+
+          <div class="flex-center" style="gap: 1.5rem;">
+            <!-- Grade badges -->
+            <div *ngIf="sub.marks !== null" style="text-align: right;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Marks Awarded</span>
+              <strong style="color: var(--success-color); font-size: 1.1rem;">{{ sub.marks }}</strong>
+              <span style="font-size: 0.8rem; color: var(--text-secondary); display: block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">"{{ sub.feedback }}"</span>
+            </div>
+            
+            <button class="neo-btn neo-btn-primary" (click)="selectSubmissionToGrade(sub)">
+              {{ sub.marks === null ? 'Evaluate' : 'Re-grade' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Homework Grade Modal Overlay -->
+    <div *ngIf="selectedSubToGrade" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; backdrop-filter: blur(4px);">
+      <div class="neo-card" style="max-width: 500px; width: 100%; padding: 2.5rem;">
+        <h3 style="margin-bottom: 1rem; font-size: 1.3rem;">Evaluate Homework Submission</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Student: <strong>{{ selectedSubToGrade.studentName }}</strong> | File: {{ selectedSubToGrade.fileName }}</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Marks (0 - 100)</label>
+            <input type="number" class="neo-input" [(ngModel)]="gradeMarks" name="gradeMarks" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Feedback Comments</label>
+            <textarea class="neo-input" rows="4" placeholder="Enter evaluator feedback..." [(ngModel)]="gradeFeedback" name="gradeFeedback"></textarea>
+          </div>
+          
+          <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button class="neo-btn" style="flex: 1;" (click)="selectedSubToGrade = null">Cancel</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="submitGrade()">Save Grade</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LEADERBOARD MODAL OVERLAY ==================== -->
+  <div *ngIf="showLeaderboardModal" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; backdrop-filter: blur(4px);">
+    <div class="neo-card" style="max-width: 700px; width: 100%; padding: 2.5rem; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.3rem;">🏆 Quiz Leaderboard: {{ leaderboardQuizTitle }}</h3>
+        <button class="neo-btn" style="padding: 0.3rem 0.6rem;" (click)="closeModals()">Close</button>
+      </div>
+
+      <div style="flex: 1; overflow-y: auto;">
+        <div *ngIf="leaderboardSubmissions.length === 0" style="text-align: center; color: var(--text-muted); padding: 2rem;">No attempts logged for this quiz yet.</div>
+        
+        <table *ngIf="leaderboardSubmissions.length > 0" style="width: 100%; border-collapse: collapse; font-size: 0.95rem; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--glass-border); color: var(--text-secondary);">
+              <th style="padding: 0.8rem 1rem;">Rank</th>
+              <th style="padding: 0.8rem 1rem;">Student Name</th>
+              <th style="padding: 0.8rem 1rem;">College Name</th>
+              <th style="padding: 0.8rem 1rem;">Score</th>
+              <th style="padding: 0.8rem 1rem;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sub of leaderboardSubmissions; let idx = index" style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+              <td style="padding: 0.8rem 1rem; font-weight: 700; color: var(--warning-color);">
+                #{{ idx + 1 }}
+              </td>
+              <td style="padding: 0.8rem 1rem;">{{ sub.studentName }}</td>
+              <td style="padding: 0.8rem 1rem; color: var(--text-secondary);">{{ sub.collegeName }}</td>
+              <td style="padding: 0.8rem 1rem; font-weight: 700; color: var(--accent-color);">
+                {{ sub.score }} / {{ sub.totalMarks }}
+              </td>
+              <td style="padding: 0.8rem 1rem;">
+                <span *ngIf="sub.status === 'Pass'" class="badge badge-completed">Passed</span>
+                <span *ngIf="sub.status === 'Fail'" class="badge badge-overdue">Failed</span>
+                <span *ngIf="sub.status === 'Pending Evaluation'" class="badge badge-pending">Pending</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ANALYTICS MODAL OVERLAY ==================== -->
+  <div *ngIf="showAnalyticsModal" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; backdrop-filter: blur(4px);">
+    <div class="neo-card" style="max-width: 750px; width: 100%; padding: 2.5rem; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.3rem;">📊 Quiz Analytics: {{ analyticsQuizTitle }}</h3>
+        <button class="neo-btn" style="padding: 0.3rem 0.6rem;" (click)="closeModals()">Close</button>
+      </div>
+
+      <div style="flex: 1; overflow-y: auto;" *ngIf="analyticsData">
+        <!-- Key Metrics Cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+          <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Attempts</p>
+            <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 0.25rem;">{{ analyticsData.totalAttempts }}</h2>
+          </div>
+          <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Class Average</p>
+            <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--accent-color); margin-top: 0.25rem;">{{ analyticsData.averageScore }}</h2>
+          </div>
+          <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Pass / Fail %</p>
+            <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--success-color); margin-top: 0.25rem;">
+              {{ analyticsData.passPercentage }}% <span style="color: var(--danger-color); font-size: 1rem; font-weight: 400; margin-left: 0.2rem;">/ {{ analyticsData.failPercentage }}%</span>
+            </h2>
+          </div>
+        </div>
+
+        <!-- Question Performance Analysis -->
+        <h4 style="font-size: 1.05rem; margin-bottom: 0.8rem;">Question Performance Breakdown</h4>
+        
+        <div *ngIf="analyticsData.questionAnalysis.length === 0" style="color: var(--text-muted); text-align: center;">No question performance metrics available.</div>
+        
+        <table *ngIf="analyticsData.questionAnalysis.length > 0" style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--glass-border); color: var(--text-secondary);">
+              <th style="padding: 0.6rem 0.8rem;">Question Text</th>
+              <th style="padding: 0.6rem 0.8rem; text-align: center; color: var(--success-color);">Correct %</th>
+              <th style="padding: 0.6rem 0.8rem; text-align: center; color: var(--danger-color);">Wrong %</th>
+              <th style="padding: 0.6rem 0.8rem; text-align: center; color: var(--text-muted);">Blank %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of analyticsData.questionAnalysis" style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+              <td style="padding: 0.8rem 0.8rem; font-weight: 500; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="item.questionText">
+                {{ item.questionText }}
+              </td>
+              <td style="padding: 0.8rem 0.8rem; text-align: center; font-weight: 600; color: var(--success-color);">
+                {{ item.correctRatio | number:'1.0-1' }}%
+              </td>
+              <td style="padding: 0.8rem 0.8rem; text-align: center; font-weight: 600; color: var(--danger-color);">
+                {{ item.wrongRatio | number:'1.0-1' }}%
+              </td>
+              <td style="padding: 0.8rem 0.8rem; text-align: center; color: var(--text-muted);">
+                {{ item.blankRatio | number:'1.0-1' }}%
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

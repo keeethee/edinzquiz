@@ -1,0 +1,333 @@
+/* CSS Variables matching the screenshot exactly */
+:root {
+  --bg-color: #080c14; /* very dark slate/black backdrop */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Glass / Card Colors matching the screenshot */
+  --glass-bg: #0d1527; /* dark navy card background */
+  --glass-bg-hover: #141f36;
+  --glass-bg-inset: #060910;
+  --glass-border: #1e293b; /* dark slate border */
+  --glass-border-focus: #3b82f6;
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  
+  /* Neon Accent Colors matching the screenshot */
+  --accent-color: #3b82f6; /* royal blue */
+  --accent-hover: #1d4ed8;
+  --accent-light: rgba(59, 130, 246, 0.15);
+  --success-color: #10b981; /* completed green */
+  --danger-color: #ef4444; /* pending red */
+  --warning-color: #f59e0b; /* in progress amber */
+  --orange-accent: #ea580c; /* coral/orange line and buttons */
+}
+
+/* Reset and Core Layout */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Full Width Header Bar */
+.header-bar {
+  background-color: #111e3b; /* deep blue */
+  border-bottom: 4px solid var(--orange-accent); /* orange/coral border-bottom */
+  padding: 0.8rem 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Logo Pill */
+.logo-pill {
+  background-color: #ffffff;
+  border-radius: 50px;
+  padding: 0.4rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 800;
+  font-size: 1.15rem;
+  text-decoration: none;
+}
+
+.logo-blue {
+  color: #1e3b8a;
+  font-family: 'Outfit', sans-serif;
+}
+
+.logo-orange {
+  color: var(--orange-accent);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  vertical-align: middle;
+  background-color: rgba(234, 88, 12, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* Outset Glass Card */
+.neo-card {
+  background: var(--glass-bg);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: all 0.2s ease;
+}
+
+/* Inset Glass Container */
+.neo-card-inset {
+  background: var(--glass-bg-inset);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+/* Inputs and Textareas */
+.neo-input {
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  outline: none;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
+  font-size: 1rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.neo-input:focus {
+  border-color: var(--accent-color);
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* Custom Select Dropdowns */
+.neo-select {
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  outline: none;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
+  font-size: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23f8fafc' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.neo-select:focus {
+  border-color: var(--accent-color);
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* Glass Buttons */
+.neo-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  outline: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.neo-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.neo-btn:active {
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(1px);
+}
+
+.neo-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Active Tab Blue Border-Bottom (master dashboard style) */
+.neo-btn-toggle {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--accent-color);
+  border-bottom: 3px solid var(--accent-color);
+  color: var(--text-primary);
+  border-radius: 8px 8px 0 0;
+}
+
+/* Primary Action Buttons (matching screenshot) */
+.neo-btn-primary {
+  background: var(--accent-hover);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+}
+
+.neo-btn-primary:hover {
+  background: #2563eb;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Danger / Orange Buttons (matching Logout button) */
+.neo-btn-danger {
+  background: var(--orange-accent);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+}
+
+.neo-btn-danger:hover {
+  background: #f97316;
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Grid & Layout Utilities */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Badges */
+.badge {
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-pending {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--warning-color);
+}
+
+.badge-completed {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--success-color);
+}
+
+.badge-overdue {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--danger-color);
+}
+
+/* App Containers */
+.app-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  flex: 1;
+}
+
+/* File Upload drag zone */
+.neo-file-drop {
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.neo-file-drop:hover {
+  border-color: var(--accent-color);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Keyframe Animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.blink {
+  animation: blink 1s linear infinite;
+}

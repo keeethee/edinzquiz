@@ -1,0 +1,557 @@
+<!-- Header navigation (Extracted out of app-container for full width) -->
+<div class="header-bar">
+  <div style="display: flex; align-items: center; gap: 1.5rem;">
+    <div class="logo-pill">
+      <span class="logo-blue">edinz</span>
+      <span class="logo-orange">TECH</span>
+    </div>
+    <h2 style="font-size: 1.1rem; margin: 0; color: #94a3b8; font-weight: 500; letter-spacing: 0.1em;">STUDENT PORTAL</h2>
+  </div>
+
+  <div *ngIf="loggedInStudent" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+    <!-- Active Course Indicator -->
+    <div *ngIf="activeCourse" class="flex-center" style="gap: 0.5rem; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.9rem;">
+      <span style="color: var(--accent-color); font-weight: 600;">{{ activeCourse.courseId }}</span>
+      <span style="color: #64748b;">|</span>
+      <span style="color: var(--text-secondary);">{{ activeCourse.courseName }}</span>
+      <button class="neo-btn" style="padding: 0.1rem 0.4rem; font-size: 0.75rem; border-color: rgba(255,255,255,0.1);" (click)="exitCourse()">Change</button>
+    </div>
+
+    <!-- Mode Selector tabs -->
+    <div *ngIf="activeCourse" style="display: flex; gap: 0.3rem;">
+      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz'" (click)="switchTab('quiz')">Quizzes</button>
+      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignment'" (click)="switchTab('assignment')">Assignments</button>
+      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'results'" (click)="switchTab('results')">My Results</button>
+    </div>
+
+    <!-- Logged in identity card -->
+    <div class="flex-center" style="gap: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.9rem;">
+      <span style="color: var(--text-primary); font-weight: 550;">{{ loggedInStudent.name }}</span>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">({{ loggedInStudent.collegeName }})</span>
+    </div>
+
+    <button class="neo-btn neo-btn-danger" style="padding: 0.5rem 1rem;" (click)="onStudentLogout()">
+      Logout
+    </button>
+  </div>
+</div>
+
+<div class="app-container">
+  <!-- Messages -->
+  <div *ngIf="errorMsg" class="neo-card" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+    {{ errorMsg }}
+  </div>
+  <div *ngIf="successMsg" class="neo-card" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+    {{ successMsg }}
+  </div>
+
+  <!-- ==================== SECURITY SIGN-IN GATE ==================== -->
+  <div *ngIf="!loggedInStudent" class="flex-center" style="min-height: 60vh; padding: 2rem 0;">
+    <div class="neo-card" style="max-width: 450px; width: 100%; padding: 2.5rem;">
+      
+      <!-- Login gate -->
+      <div *ngIf="authMode === 'login'">
+        <h2 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Student Login</h2>
+        <p style="text-align: center; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Access quizzes and assignments portal</p>
+        
+        <form (ngSubmit)="onStudentLogin()">
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
+            <input type="email" class="neo-input" [(ngModel)]="loginEmail" name="email" placeholder="student@college.edu" required />
+          </div>
+
+          <div style="margin-bottom: 2rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
+            <input type="password" class="neo-input" [(ngModel)]="loginPassword" name="password" placeholder="••••••••" required />
+          </div>
+
+          <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
+            Sign In
+          </button>
+
+          <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+            Don't have an account? 
+            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 600; text-decoration: none;" (click)="authMode = 'register'">Sign up</a>
+          </p>
+        </form>
+      </div>
+
+      <!-- Register gate -->
+      <div *ngIf="authMode === 'register'">
+        <h2 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Student Signup</h2>
+        <p style="text-align: center; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Create student profile credentials</p>
+        
+        <form (ngSubmit)="onStudentRegister()">
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Full Name</label>
+            <input type="text" class="neo-input" [(ngModel)]="regName" name="name" placeholder="John Doe" required />
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
+            <input type="email" class="neo-input" [(ngModel)]="regEmail" name="email" placeholder="student@college.edu" required />
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">College Name</label>
+            <input type="text" class="neo-input" [(ngModel)]="regCollege" name="collegeName" placeholder="Harvard University" required />
+          </div>
+
+          <div style="margin-bottom: 2rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
+            <input type="password" class="neo-input" [(ngModel)]="regPassword" name="password" placeholder="••••••••" required />
+          </div>
+
+          <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
+            Create Profile
+          </button>
+
+          <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+            Already have an account? 
+            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 600; text-decoration: none;" (click)="authMode = 'login'">Sign in</a>
+          </p>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== SEARCH COURSE STEP ==================== -->
+  <div *ngIf="loggedInStudent && !activeCourse" class="flex-center" style="min-height: 50vh;">
+    <div class="neo-card" style="max-width: 500px; width: 100%; text-align: center; padding: 3rem 2rem;">
+      <h3 style="font-size: 1.6rem; margin-bottom: 1rem;">Welcome back!</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5;">Enter the alphanumeric course ID code given by your coordinator to access active quizzes and upload assignments.</p>
+      
+      <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+        <input 
+          type="text" 
+          class="neo-input" 
+          placeholder="e.g. CS-101 or 412" 
+          [(ngModel)]="searchCourseIdCode"
+          style="max-width: 300px; text-transform: uppercase;"
+          (keyup.enter)="onCourseSearch()"
+        />
+        <button class="neo-btn neo-btn-primary" style="padding: 0.8rem 1.5rem;" (click)="onCourseSearch()">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PORTAL BODY AFTER COURSE MATED ==================== -->
+  <div *ngIf="loggedInStudent && activeCourse">
+
+    <!-- 1. QUIZ TAB -->
+    <div *ngIf="activeTab === 'quiz'">
+      
+      <!-- Quiz List Dashboard -->
+      <div *ngIf="quizStep === 'dashboard'">
+        <div class="neo-card">
+          <h2 style="font-size: 1.4rem; margin-bottom: 1.5rem;">Active & Upcoming Quizzes</h2>
+          
+          <div *ngIf="quizzes.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            No quizzes available for this course yet.
+          </div>
+
+          <div *ngIf="quizzes.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div *ngFor="let q of quizzes" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ q.quizTitle }}</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                  Time Window: {{ q.startTime | date:'short' }} to {{ q.endTime | date:'short' }}
+                </p>
+                <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                  <span>Duration: <strong>{{ q.duration }} mins</strong></span>
+                  <span>Passing Score: <strong>{{ q.passingMarks }}/{{ q.totalMarks }}</strong></span>
+                  <span *ngIf="q.negativeMarkingEnabled" style="color: var(--danger-color); font-weight: 550;">Negative Marking: -{{ q.negativeMarkingValue }}</span>
+                </div>
+              </div>
+
+              <div>
+                <!-- Already Submitted badge -->
+                <span *ngIf="hasSubmittedQuiz(q.id)" class="badge badge-completed" style="padding: 0.5rem 1rem;">Submitted</span>
+
+                <!-- Active and not submitted -->
+                <button 
+                  *ngIf="isQuizAttemptable(q)" 
+                  class="neo-btn neo-btn-primary" 
+                  (click)="startQuizAttemptFlow(q)">
+                  Start Attempt
+                </button>
+
+                <!-- Stopped or Expired -->
+                <span 
+                  *ngIf="!hasSubmittedQuiz(q.id) && !isQuizAttemptable(q)" 
+                  class="badge badge-overdue" 
+                  style="padding: 0.5rem 1rem;">
+                  {{ getQuizStatusLabel(q) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Pre-start Rules Details Screen -->
+      <div *ngIf="quizStep === 'details'" class="flex-center">
+        <div class="neo-card" style="max-width: 600px; width: 100%; padding: 2.5rem;">
+          <h2 style="font-size: 1.6rem; text-align: center; margin-bottom: 1.5rem;">Attempt Details & Rules</h2>
+          
+          <div class="neo-card-inset" style="margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.6;">
+            <p style="margin-bottom: 0.5rem;">🎓 Quiz Title: <strong style="color: var(--accent-color);">{{ selectedQuiz.quizTitle }}</strong></p>
+            <p style="margin-bottom: 0.5rem;">⏳ Time Available: <strong>{{ selectedQuiz.duration }} Minutes</strong></p>
+            <p style="margin-bottom: 0.5rem;">🏆 Total Marks: <strong>{{ selectedQuiz.totalMarks }} Marks</strong></p>
+            <p style="margin-bottom: 0.5rem;">🎯 Passing Criteria: <strong>{{ selectedQuiz.passingMarks }} Marks</strong></p>
+            
+            <div style="border-top: 1px solid var(--glass-border); margin: 1rem 0; padding-top: 1rem;">
+              <p style="font-weight: 600; margin-bottom: 0.5rem; color: var(--warning-color);">Important Instructions:</p>
+              <ul>
+                <li>The countdown timer starts as soon as you proceed to the next screen.</li>
+                <li>Your draft selections are **auto-saved** every 5 seconds. If your tab reloads, your progress will be restored.</li>
+                <li>You cannot modify your choices after manual submission or timer expiration.</li>
+                <li *ngIf="selectedQuiz.negativeMarkingEnabled" style="color: var(--danger-color);">Negative marking is enabled. Incorrect objective answers will deduct {{ selectedQuiz.negativeMarkingValue }} marks.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem;">
+            <button class="neo-btn" style="flex: 1;" (click)="quizStep = 'dashboard'">Cancel</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="onQuizDetailsConfirm()">Agree & Start</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Attempt Testing Room (With Auto-Save and countdown display) -->
+      <div *ngIf="quizStep === 'attempt'">
+        <!-- Sticky Header with Timer -->
+        <div class="neo-card flex-between" style="position: sticky; top: 0; z-index: 100; border-color: var(--accent-color); padding: 1rem 2rem; margin-bottom: 2rem;">
+          <div>
+            <h3 style="font-size: 1.25rem;">Attempting: {{ selectedQuiz.quizTitle }}</h3>
+            <span style="font-size: 0.8rem; color: var(--success-color); font-weight: 550; display: inline-flex; align-items: center; gap: 0.3rem;" class="blink">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success-color);"></span>
+              Progress Auto-Saving Enabled
+            </span>
+          </div>
+
+          <div class="flex-center" style="gap: 1rem;">
+            <div style="text-align: right;">
+              <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Remaining Time</p>
+              <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--warning-color); margin: 0; font-family: monospace;">{{ countdownDisplay }}</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question List -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2.5rem;">
+          <div *ngFor="let q of quizQuestions; let i = index" class="neo-card">
+            <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+              <h4 style="font-size: 1.15rem; color: var(--text-secondary);">Question {{ i + 1 }}</h4>
+              <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">{{ q.mark }} mark(s)</span>
+            </div>
+
+            <p style="font-size: 1.1rem; margin-bottom: 1.5rem; line-height: 1.5;">{{ q.questionText }}</p>
+
+            <!-- Render MCQ_SINGLE/TF/MCQ options -->
+            <div *ngIf="q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF'" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div 
+                *ngFor="let opt of q.options" 
+                class="neo-card-inset flex-between" 
+                style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 8px; transition: all 0.15s ease;"
+                [class.neo-btn-toggle]="selectedOptions[q.id!] === opt.id"
+                (click)="selectedOptions[q.id!] = opt.id">
+                <span style="font-size: 1rem;">{{ opt.optionText }}</span>
+                <span class="flex-center" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--text-secondary);">
+                  <span *ngIf="selectedOptions[q.id!] === opt.id" style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent-color);"></span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Render MCQ_MULTIPLE options (Checkboxes) -->
+            <div *ngIf="q.questionType === 'MCQ_MULTIPLE'" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div 
+                *ngFor="let opt of q.options" 
+                class="neo-card-inset flex-between" 
+                style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 8px; transition: all 0.15s ease;"
+                [class.neo-btn-toggle]="isOptionSelected(q.id!, opt.id)"
+                (click)="toggleOptionSelection(q.id!, opt.id)">
+                <span style="font-size: 1rem;">{{ opt.optionText }}</span>
+                <span class="flex-center" style="width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--text-secondary);">
+                  <span *ngIf="isOptionSelected(q.id!, opt.id)" style="width: 12px; height: 12px; border-radius: 2px; background: var(--accent-color);"></span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Render Fill in the Blank option -->
+            <div *ngIf="q.questionType === 'FillBlank' || q.questionType === 'FILL_BLANK' || q.questionType === 'SHORT_ANSWER'">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Type your answer below:</label>
+              <input type="text" class="neo-input" placeholder="Your typed answer..." [(ngModel)]="typedAnswers[q.id!]" />
+            </div>
+
+            <!-- Render Subjective option -->
+            <div *ngIf="q.questionType === 'Subjective' || q.questionType === 'ESSAY'">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Type your essay/explanation below:</label>
+              <textarea class="neo-input" rows="5" placeholder="Write your full response here..." [(ngModel)]="typedAnswers[q.id!]"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Panel -->
+        <div class="neo-card flex-between" style="padding: 1.5rem 2rem;">
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Please review all questions before submitting. Multiple submissions are blocked.</p>
+          <button class="neo-btn neo-btn-primary" style="padding: 0.8rem 2.5rem; font-size: 1.05rem;" (click)="submitQuiz()">Submit Quiz</button>
+        </div>
+      </div>
+
+      <!-- Success Screen -->
+      <div *ngIf="quizStep === 'success'" class="flex-center" style="min-height: 45vh;">
+        <div class="neo-card" style="max-width: 450px; width: 100%; text-align: center; padding: 3rem 2rem;">
+          <div class="flex-center" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid var(--success-color); margin: 0 auto 1.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="var(--success-color)" style="width: 30px; height: 30px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
+          <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Submission Successful</h3>
+          <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">Your answers have been securely logged and analyzed in the database.</p>
+          <button class="neo-btn" style="width: 100%;" (click)="resetState()">Back to Dashboard</button>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- 2. ASSIGNMENT TAB -->
+    <div *ngIf="activeTab === 'assignment'">
+      
+      <!-- Homework list dashboard -->
+      <div *ngIf="assignStep === 'dashboard'">
+        <div class="neo-card">
+          <h2 style="font-size: 1.4rem; margin-bottom: 1.5rem;">Homework Assignments</h2>
+          
+          <div *ngIf="assignments.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            No homework items assigned for this course.
+          </div>
+
+          <div *ngIf="assignments.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div *ngFor="let a of assignments" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ a.title }}</h4>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">{{ a.description }}</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                  Deadline: <span [style.color]="isDeadlinePassed(a.deadline) ? 'var(--danger-color)' : 'var(--text-muted)'">{{ a.deadline | date:'medium' }}</span>
+                </p>
+              </div>
+
+              <div>
+                <span *ngIf="isDeadlinePassed(a.deadline)" class="badge badge-overdue">Closed</span>
+                <button 
+                  *ngIf="!isDeadlinePassed(a.deadline)" 
+                  class="neo-btn neo-btn-primary" 
+                  (click)="selectAssignmentForUpload(a)">
+                  Upload Homework
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- File upload gate -->
+      <div *ngIf="assignStep === 'upload'" class="flex-center">
+        <div class="neo-card" style="max-width: 550px; width: 100%; padding: 2.5rem;">
+          <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">Submit: {{ selectedAssignment?.title }}</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 2rem;">Upload your document file (PDF, DOCX, ZIP, or Image format only, maximum 10MB)</p>
+          
+          <div 
+            class="neo-file-drop" 
+            (dragover)="onDragOver($event)" 
+            (drop)="onFileDropped($event)" 
+            (click)="fileInput.click()">
+            <input 
+              type="file" 
+              #fileInput 
+              style="display: none;" 
+              (change)="onFileSelected($event)" 
+            />
+            <div style="font-size: 2.5rem; color: var(--accent-color); margin-bottom: 1rem;">📁</div>
+            <p style="font-size: 1rem; margin-bottom: 0.5rem; font-weight: 550;">Drag and drop your file here, or click to browse</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted);" *ngIf="!fileName">Supports PDF, DOC, PNG, JPG, ZIP</p>
+            <p style="font-size: 0.95rem; color: var(--success-color); font-weight: 600;" *ngIf="fileName">Selected: {{ fileName }}</p>
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button class="neo-btn" style="flex: 1;" (click)="assignStep = 'dashboard'">Cancel</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="submitAssignment()" [disabled]="!selectedFile">Submit Homework</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload success screen -->
+      <div *ngIf="assignStep === 'success'" class="flex-center" style="min-height: 45vh;">
+        <div class="neo-card" style="max-width: 450px; width: 100%; text-align: center; padding: 3rem 2rem;">
+          <div class="flex-center" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid var(--success-color); margin: 0 auto 1.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="var(--success-color)" style="width: 30px; height: 30px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
+          <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Homework Submitted</h3>
+          <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">Your homework document file has been successfully uploaded and is pending evaluation by the admin.</p>
+          <button class="neo-btn" style="width: 100%;" (click)="resetState()">Back to Homework</button>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- 3. RESULTS HISTORY TAB (Score hidden until published) -->
+    <div *ngIf="activeTab === 'results'">
+      
+      <!-- Submission Results History List -->
+      <div *ngIf="!detailedSubmission">
+        <div class="neo-card">
+          <h2 style="font-size: 1.4rem; margin-bottom: 1.5rem;">My Quiz Attempts</h2>
+          
+          <div *ngIf="allSubmissions.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            You have not attempted any quizzes yet.
+          </div>
+
+          <div *ngIf="allSubmissions.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div *ngFor="let sub of allSubmissions" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ sub.quiz?.quizTitle || 'Quiz Attempt' }}</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Attempted: {{ sub.submittedAt | date:'medium' }}</p>
+              </div>
+
+              <div class="flex-center" style="gap: 1.5rem;">
+                
+                <!-- If published: show scores -->
+                <div *ngIf="sub.quiz?.resultsPublished" style="text-align: right;">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Final Score</span>
+                  <strong style="font-size: 1.15rem; color: var(--accent-color);">{{ sub.score }}/{{ sub.totalMarks }}</strong>
+                  <span style="font-size: 0.85rem; color: var(--text-secondary); display: block;">({{ sub.percentage | number:'1.0-1' }}%)</span>
+                </div>
+
+                <!-- If not published: show pending publication -->
+                <div *ngIf="!sub.quiz?.resultsPublished" style="text-align: right;">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Score Status</span>
+                  <span style="font-size: 0.9rem; color: var(--warning-color); font-weight: 550;">Pending Publication</span>
+                </div>
+
+                <!-- Status Badge -->
+                <div>
+                  <span *ngIf="sub.status === 'Pass' && sub.quiz?.resultsPublished" class="badge badge-completed">Passed</span>
+                  <span *ngIf="sub.status === 'Fail' && sub.quiz?.resultsPublished" class="badge badge-overdue">Failed</span>
+                  <span *ngIf="sub.status === 'Pending Evaluation'" class="badge badge-pending">Pending Grading</span>
+                  <span *ngIf="sub.status !== 'Pending Evaluation' && !sub.quiz?.resultsPublished" class="badge badge-pending">Graded</span>
+                </div>
+
+                <!-- Action Button -->
+                <button 
+                  class="neo-btn" 
+                  [disabled]="!sub.quiz?.resultsPublished" 
+                  (click)="viewDetailedSubmissionBreakdown(sub)">
+                  Review Answers
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed student answer review screen (only shown if published) -->
+      <div *ngIf="detailedSubmission">
+        <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 2rem;">
+          <div>
+            <h2 style="font-size: 1.4rem; margin-bottom: 0.3rem;">Detailed Review: {{ detailedSubmission.quiz?.quizTitle }}</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Course: {{ detailedSubmission.courseId }} - {{ detailedSubmission.courseName }}</p>
+          </div>
+          <button class="neo-btn" (click)="detailedSubmission = null">Back to Results</button>
+        </div>
+
+        <!-- Score Metrics Cards row -->
+        <div class="grid-2" style="margin-bottom: 2rem;">
+          <div class="neo-card-inset flex-between" style="padding: 1.5rem 2rem;">
+            <div>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem;">Your Score</p>
+              <h1 style="font-size: 2.2rem; font-weight: 700; color: var(--accent-color);">{{ detailedSubmission.score }} / {{ detailedSubmission.totalMarks }}</h1>
+              <span style="font-size: 0.95rem; color: var(--text-secondary);">Passing criteria: {{ detailedSubmission.quiz?.passingMarks }}</span>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem; display: block;">Result Status</span>
+              <span *ngIf="detailedSubmission.status === 'Pass'" class="badge badge-completed" style="font-size: 1rem; padding: 0.5rem 1.25rem;">Passed</span>
+              <span *ngIf="detailedSubmission.status === 'Fail'" class="badge badge-overdue" style="font-size: 1rem; padding: 0.5rem 1.25rem;">Failed</span>
+              <span *ngIf="detailedSubmission.status === 'Pending Evaluation'" class="badge badge-pending" style="font-size: 1rem; padding: 0.5rem 1.25rem;">Pending Grading</span>
+            </div>
+          </div>
+
+          <div class="neo-card-inset" style="padding: 1.5rem 2rem;">
+            <p style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.75rem;">Question breakdown</p>
+            <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 0.5rem;">
+              <div>
+                <h3 style="color: var(--success-color); font-size: 1.8rem; font-weight: 700;">{{ detailedSubmission.correctCount }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Correct</span>
+              </div>
+              <div>
+                <h3 style="color: var(--danger-color); font-size: 1.8rem; font-weight: 700;">{{ detailedSubmission.wrongCount }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Incorrect</span>
+              </div>
+              <div>
+                <h3 style="color: var(--text-muted); font-size: 1.8rem; font-weight: 700;">{{ detailedSubmission.unansweredCount }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Unanswered</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Breakdown analysis details -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div *ngFor="let sa of detailedSubmission.studentAnswers; let i = index" class="neo-card">
+            
+            <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+              <h4 style="font-size: 1.1rem; color: var(--text-secondary);">Question {{ i + 1 }}</h4>
+              
+              <div class="flex-center" style="gap: 0.8rem;">
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Points: {{ sa.awardedMarks !== null ? sa.awardedMarks : 'Pending' }}/{{ sa.question.mark }}</span>
+                <!-- Correctness tags -->
+                <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks > 0" class="badge badge-completed">Correct</span>
+                <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks <= 0" class="badge badge-overdue">Incorrect</span>
+                <span *ngIf="sa.awardedMarks === null" class="badge badge-pending">Pending Grading</span>
+              </div>
+            </div>
+
+            <!-- Question statement -->
+            <p style="font-size: 1.05rem; margin-bottom: 1.5rem; line-height: 1.5;">{{ sa.question.questionText }}</p>
+
+            <!-- Choice listing for MCQ/TF -->
+            <div *ngIf="sa.question.questionType === 'MCQ' || sa.question.questionType === 'MCQ_SINGLE' || sa.question.questionType === 'MCQ_MULTIPLE' || sa.question.questionType === 'TF'" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div 
+                *ngFor="let opt of sa.question.options" 
+                class="neo-card-inset flex-between" 
+                style="padding: 0.8rem 1.2rem; border-radius: 6px; font-size: 0.95rem;"
+                [style.border-color]="opt.isCorrect ? 'var(--success-color)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'var(--danger-color)' : 'var(--glass-border)')"
+                [style.background]="opt.isCorrect ? 'rgba(16,185,129,0.06)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.15)')">
+                <span>{{ opt.optionText }}</span>
+                
+                <span *ngIf="opt.isCorrect" style="color: var(--success-color); font-weight: 600; font-size: 0.85rem;">Correct Answer Key</span>
+                <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && !opt.isCorrect" style="color: var(--danger-color); font-weight: 600; font-size: 0.85rem;">Your Selection</span>
+                <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && opt.isCorrect" style="color: var(--success-color); font-weight: 600; font-size: 0.85rem;">Your Selection (Correct)</span>
+              </div>
+            </div>
+
+            <!-- Text responses for FillBlank / Subjective -->
+            <div *ngIf="sa.question.questionType === 'FillBlank' || sa.question.questionType === 'FILL_BLANK' || sa.question.questionType === 'SHORT_ANSWER' || sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY'" class="neo-card-inset" style="padding: 1rem 1.5rem;">
+              <p style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">Your Submission:</p>
+              <p style="font-size: 0.95rem; color: var(--text-primary); white-space: pre-wrap; font-style: italic;">"{{ sa.typedAnswerText || '[Unanswered]' }}"</p>
+              
+              <!-- Correct answer reference key for FillBlank -->
+              <div *ngIf="sa.question.questionType === 'FillBlank' || sa.question.questionType === 'FILL_BLANK' || sa.question.questionType === 'SHORT_ANSWER'" style="border-top: 1px solid var(--glass-border); margin-top: 0.8rem; padding-top: 0.8rem; font-size: 0.9rem;">
+                <span style="color: var(--text-secondary);">Correct Answer Pattern: </span>
+                <strong style="color: var(--success-color);">{{ sa.question.correctAnswerText }}</strong>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

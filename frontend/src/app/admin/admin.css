@@ -1,0 +1,188 @@
+/* Split Layout for Editor */
+.editor-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  height: calc(100vh - 190px);
+}
+
+.editor-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.editor-workspace {
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  padding-bottom: 2rem;
+}
+
+/* CDK Drag & Drop Styles */
+.cdk-drop-list-dragging .question-drag-card {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.15;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px dashed var(--accent-color) !important;
+}
+
+.question-drag-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.85rem;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.question-drag-card:active {
+  cursor: grabbing;
+}
+
+.question-drag-card.active-card {
+  border-color: var(--accent-color);
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+}
+
+.question-drag-card:hover:not(.active-card) {
+  background: var(--glass-bg-hover);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  cursor: grab;
+  padding: 0.2rem;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Rich Preview styling */
+.rich-preview-box {
+  background: var(--glass-bg-inset);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-height: 300px;
+  overflow-y: auto;
+  color: var(--text-primary);
+}
+
+.katex-display-formula {
+  margin: 1.2rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.katex-inline-formula {
+  padding: 0 0.2rem;
+}
+
+.katex-error {
+  color: var(--danger-color);
+  font-family: monospace;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* Pagination styling */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 2rem;
+}
+
+.pagination-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-color);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active-page {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* File Upload drag area */
+.file-upload-zone {
+  border: 2px dashed var(--glass-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.file-upload-zone:hover {
+  border-color: var(--accent-color);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* Status indicator styles */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 550;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot-active {
+  background-color: var(--success-color);
+  box-shadow: 0 0 8px var(--success-color);
+}
+
+.status-dot-pending {
+  background-color: var(--warning-color);
+  box-shadow: 0 0 8px var(--warning-color);
+}

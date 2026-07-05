@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production builds
+dist/
+**/dist/
+
+# Angular dev folders
+.angular/
+**/.angular/
+
+# Environment configurations
+.env
+**/.env
+
+# Local SQLite databases
+*.sqlite
+*.db
+**/edinz_quiz.sqlite
+
+# System and logs
+*.log
+.DS_Store
+Thumbs.db
