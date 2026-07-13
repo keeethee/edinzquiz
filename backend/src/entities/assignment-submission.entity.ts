@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 import { CourseEntity } from './course.entity';
+import { AssignmentEntity } from './assignment.entity';
 
 @Entity('assignment_submissions')
 export class AssignmentSubmissionEntity {
@@ -32,4 +33,7 @@ export class AssignmentSubmissionEntity {
 
   @ManyToOne(() => CourseEntity, (course) => course.submissions, { onDelete: 'CASCADE' })
   course: CourseEntity;
+
+  @ManyToOne(() => AssignmentEntity, { onDelete: 'CASCADE', eager: true, nullable: true })
+  assignment: AssignmentEntity | null;
 }

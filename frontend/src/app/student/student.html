@@ -62,7 +62,12 @@
 
           <div style="margin-bottom: 2rem;">
             <label for="studentLoginPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
-            <input id="studentLoginPassword" type="password" class="neo-input" [(ngModel)]="loginPassword" name="password" placeholder="••••••••" required />
+            <div style="position: relative;">
+              <input id="studentLoginPassword" [type]="showLoginPassword ? 'text' : 'password'" class="neo-input" [(ngModel)]="loginPassword" name="password" placeholder="••••••••" required style="padding-right: 2.5rem;" />
+              <button type="button" (click)="showLoginPassword = !showLoginPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.15rem; padding: 0.2rem;">
+                {{ showLoginPassword ? '👁️' : '🙈' }}
+              </button>
+            </div>
           </div>
 
           <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
@@ -99,7 +104,12 @@
 
           <div style="margin-bottom: 2rem;">
             <label for="studentRegPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
-            <input id="studentRegPassword" type="password" class="neo-input" [(ngModel)]="regPassword" name="password" placeholder="••••••••" required />
+            <div style="position: relative;">
+              <input id="studentRegPassword" [type]="showRegisterPassword ? 'text' : 'password'" class="neo-input" [(ngModel)]="regPassword" name="password" placeholder="••••••••" required style="padding-right: 2.5rem;" />
+              <button type="button" (click)="showRegisterPassword = !showRegisterPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.15rem; padding: 0.2rem;">
+                {{ showRegisterPassword ? '👁️' : '🙈' }}
+              </button>
+            </div>
           </div>
 
           <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
@@ -249,7 +259,7 @@
               <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">{{ q.mark }} mark(s)</span>
             </div>
 
-            <p style="font-size: 1.1rem; margin-bottom: 1.5rem; line-height: 1.5;">{{ q.questionText }}</p>
+            <p style="font-size: 1.1rem; margin-bottom: 1.5rem; line-height: 1.5;" [innerHTML]="getParsedPreview(q.questionText || '')"></p>
 
             <!-- Render MCQ_SINGLE/TF/MCQ options -->
             <div *ngIf="q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF'" style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -339,12 +349,23 @@
                 <p style="font-size: 0.8rem; color: var(--text-muted);">
                   Deadline: <span [style.color]="isDeadlinePassed(a.deadline) ? 'var(--danger-color)' : 'var(--text-muted)'">{{ a.deadline | date:'medium' }}</span>
                 </p>
+                
+                <!-- Submission Status Details -->
+                <div *ngIf="getSubmissionForAssignment(a.id) as sub" style="margin-top: 0.8rem; padding: 0.6rem 1rem; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 6px; display: inline-block;">
+                  <span style="font-size: 0.85rem; color: var(--success-color); font-weight: 600; display: block;">✓ Homework Submitted</span>
+                  <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">File: {{ sub.fileName }} ({{ sub.submittedAt | date:'short' }})</span>
+                  <div *ngIf="sub.marks !== null" style="margin-top: 0.4rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.4rem;">
+                    <span style="font-size: 0.8rem; color: var(--success-color); font-weight: 700; display: block;">Marks: {{ sub.marks }} / 100</span>
+                    <span *ngIf="sub.feedback" style="font-size: 0.8rem; color: var(--text-muted); display: block; font-style: italic;">Feedback: "{{ sub.feedback }}"</span>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <span *ngIf="isDeadlinePassed(a.deadline)" class="badge badge-overdue">Closed</span>
+                <span *ngIf="getSubmissionForAssignment(a.id)" class="badge badge-completed">Submitted</span>
                 <button 
-                  *ngIf="!isDeadlinePassed(a.deadline)" 
+                  *ngIf="!isDeadlinePassed(a.deadline) && !getSubmissionForAssignment(a.id)" 
                   class="neo-btn neo-btn-primary" 
                   (click)="selectAssignmentForUpload(a)">
                   Upload Homework
@@ -519,7 +540,7 @@
             </div>
 
             <!-- Question statement -->
-            <p style="font-size: 1.05rem; margin-bottom: 1.5rem; line-height: 1.5;">{{ sa.question.questionText }}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 1.5rem; line-height: 1.5;" [innerHTML]="getParsedPreview(sa.question.questionText || '')"></p>
 
             <!-- Choice listing for MCQ/TF -->
             <div *ngIf="sa.question.questionType === 'MCQ' || sa.question.questionType === 'MCQ_SINGLE' || sa.question.questionType === 'MCQ_MULTIPLE' || sa.question.questionType === 'TF'" style="display: flex; flex-direction: column; gap: 0.75rem;">

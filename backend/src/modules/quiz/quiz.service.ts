@@ -658,10 +658,6 @@ export class QuizService implements OnModuleInit {
           totalScore += q.mark;
         } else {
           wrongCount++;
-          if (quiz.negativeMarkingEnabled) {
-            awardedMarks = -quiz.negativeMarkingValue;
-            totalScore -= quiz.negativeMarkingValue;
-          }
         }
 
         const sa = this.studentAnswerRepository.create({
@@ -689,10 +685,6 @@ export class QuizService implements OnModuleInit {
           totalScore += q.mark;
         } else {
           wrongCount++;
-          if (quiz.negativeMarkingEnabled) {
-            awardedMarks = -quiz.negativeMarkingValue;
-            totalScore -= quiz.negativeMarkingValue;
-          }
         }
 
         const firstSelected = q.options.find(o => o.id === selectedIds[0]) || null;
@@ -733,10 +725,6 @@ export class QuizService implements OnModuleInit {
           totalScore += q.mark;
         } else {
           wrongCount++;
-          if (quiz.negativeMarkingEnabled) {
-            awardedMarks = -quiz.negativeMarkingValue;
-            totalScore -= quiz.negativeMarkingValue;
-          }
         }
 
         const sa = this.studentAnswerRepository.create({
@@ -799,7 +787,7 @@ export class QuizService implements OnModuleInit {
   ): Promise<QuizSubmissionEntity> {
     const sub = await this.submissionRepository.findOne({
       where: { id: submissionId },
-      relations: { quiz: true, studentAnswers: { question: true } },
+      relations: { quiz: { settings: true }, studentAnswers: { question: true } },
     });
 
     if (!sub) throw new NotFoundException('Submission not found');
@@ -841,7 +829,9 @@ export class QuizService implements OnModuleInit {
     sub.unansweredCount = unansweredCount;
 
     if (pendingCount === 0) {
-      sub.status = newScore >= sub.quiz.passingMarks ? 'Pass' : 'Fail';
+      const passingPercentage = sub.quiz.settings?.passingPercentage ?? 40;
+      const pass = (sub.totalMarks > 0 && passingPercentage > 0) ? (sub.percentage >= passingPercentage) : (newScore >= sub.quiz.passingMarks);
+      sub.status = pass ? 'Pass' : 'Fail';
     } else {
       sub.status = 'Pending Evaluation';
     }

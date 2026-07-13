@@ -7,6 +7,7 @@ import { ApiService, Course, Quiz, Question, Option, QuizSubmission, AssignmentS
 import { AuthService } from '../services/auth.service';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { Subscription, interval } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-admin',
@@ -57,6 +58,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   lastAutosavedTime: string = '';
   isAutosaving: boolean = false;
   isSaving: boolean = false;
+  isSavingDraft: boolean = false;
+  isPublishing: boolean = false;
 
   // Leaderboard & Analytics Modals
   showLeaderboardModal: boolean = false;
@@ -67,11 +70,15 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   analyticsQuizTitle: string = '';
   analyticsData: any = null;
 
-  // --- Assignments Tab State ---
   publishedAssignments: Assignment[] = [];
   newAssignTitle: string = '';
   newAssignDesc: string = '';
   newAssignDeadline: string = '';
+  showAssignmentEditModal: boolean = false;
+  editingAssignment: Assignment | null = null;
+  editAssignTitle: string = '';
+  editAssignDesc: string = '';
+  editAssignDeadline: string = '';
 
   // --- Quiz Submissions Tab State ---
   quizSubmissions: QuizSubmission[] = [];
@@ -90,7 +97,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     private apiService: ApiService,
     private authService: AuthService,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -315,7 +323,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       list = list.filter(q => q.quizTitle.toLowerCase().includes(txt) || (q.description && q.description.toLowerCase().includes(txt)));
     }
     
-    if (this.quizFilterCategory) {
+    if (this.quizFilterCategory && String(this.quizFilterCategory) !== 'null') {
       list = list.filter(q => q.category && q.category.id === Number(this.quizFilterCategory));
     }
     
@@ -398,6 +406,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       end = tomorrow.toISOString().slice(0, 16);
     }
 
+    const totalMarks = quiz?.questions?.reduce((sum: number, q: any) => sum + (q.mark || 0), 0) || 0;
+    let passingMarksVal = quiz?.passingMarks ?? 0;
+    if (quiz && passingMarksVal > totalMarks) {
+      passingMarksVal = Math.ceil(totalMarks * 0.40);
+    }
+
     this.quizForm = this.fb.group({
       id: [quiz?.id || null],
       quizTitle: [quiz?.quizTitle || '', Validators.required],
@@ -407,7 +421,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       startTime: [start, Validators.required],
       endTime: [end, Validators.required],
       duration: [quiz?.duration || 60, [Validators.required, Validators.min(1)]],
-      passingPercentage: [quiz?.settings?.passingPercentage || 40, [Validators.required, Validators.min(0), Validators.max(100)]],
+      passingMarks: [passingMarksVal, [Validators.required, Validators.min(0)]],
       maxAttempts: [quiz?.settings?.maxAttempts || 1, [Validators.required, Validators.min(1)]],
       shuffleQuestions: [quiz?.shuffleQuestions || false],
       shuffleOptions: [quiz?.shuffleOptions || false],
@@ -418,8 +432,26 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       questions: questionsArray
     });
 
+    this.quizForm.get('startTime')?.valueChanges.subscribe(() => this.autoCalculateDuration());
+    this.quizForm.get('endTime')?.valueChanges.subscribe(() => this.autoCalculateDuration());
+
     if (questionsArray.length > 0) {
       this.activeQuestionIndex = 0;
+    }
+  }
+
+  autoCalculateDuration() {
+    if (!this.quizForm) return;
+    const startVal = this.quizForm.get('startTime')?.value;
+    const endVal = this.quizForm.get('endTime')?.value;
+    if (startVal && endVal) {
+      const startTime = new Date(startVal);
+      const endTime = new Date(endVal);
+      const diffMs = endTime.getTime() - startTime.getTime();
+      if (diffMs > 0) {
+        const diffMins = Math.floor(diffMs / 60000);
+        this.quizForm.get('duration')?.setValue(diffMins, { emitEvent: false });
+      }
     }
   }
 
@@ -554,7 +586,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const val = this.quizForm.value;
     const questions = val.questions || [];
     const totalMarks = questions.reduce((sum: number, q: any) => sum + (q.mark || 0), 0);
-    const passingMarks = Math.round(totalMarks * (val.passingPercentage / 100));
+    const passingMarks = val.passingMarks || 0;
+    const passingPercentage = totalMarks > 0 ? Math.round((passingMarks / totalMarks) * 100) : 40;
 
     return {
       quizTitle: val.quizTitle,
@@ -573,7 +606,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       categoryId: val.categoryId ? Number(val.categoryId) : null,
       settings: {
         maxAttempts: val.maxAttempts,
-        passingPercentage: val.passingPercentage,
+        passingPercentage: passingPercentage,
         showResultsImmediately: val.showResultsImmediately
       },
       questions: questions.map((q: any) => ({
@@ -605,6 +638,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
 
     this.isSaving = true;
+    this.isSavingDraft = true;
     const quizId = this.quizForm.get('id')?.value;
     const payload = this.prepareSavePayload();
     payload.status = 'Draft';
@@ -632,6 +666,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
           this.apiService.updateQuiz(savedQuiz.id, { questions: payload.questions }).subscribe({
             next: (updatedQuiz) => {
               this.isSaving = false;
+              this.isSavingDraft = false;
               this.quizForm.get('id')?.setValue(updatedQuiz.id);
               this.quizForm.markAsPristine();
               this.updateFormQuestionIds(updatedQuiz);
@@ -640,12 +675,14 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
             },
             error: (err) => {
               this.isSaving = false;
+              this.isSavingDraft = false;
               this.errorMsg = err.error?.message || 'Failed to save draft questions.';
             }
           });
         },
         error: (err) => {
           this.isSaving = false;
+          this.isSavingDraft = false;
           this.errorMsg = err.error?.message || 'Failed to save draft.';
         }
       });
@@ -653,6 +690,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       this.apiService.updateQuiz(quizId, payload).subscribe({
         next: (updatedQuiz) => {
           this.isSaving = false;
+          this.isSavingDraft = false;
           this.quizForm.markAsPristine();
           this.updateFormQuestionIds(updatedQuiz);
           this.successMsg = 'Quiz Draft updated successfully.';
@@ -660,6 +698,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         },
         error: (err) => {
           this.isSaving = false;
+          this.isSavingDraft = false;
           this.errorMsg = err.error?.message || 'Failed to update draft.';
         }
       });
@@ -669,6 +708,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   validateQuizForPublish(): string[] {
     const errors: string[] = [];
     const val = this.quizForm.value;
+    const questions = val.questions || [];
     
     if (!val.quizTitle?.trim()) errors.push('Quiz Title is required.');
     if (!val.startTime) errors.push('Start Date & Time is required.');
@@ -677,11 +717,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       errors.push('Start Date & Time must be before End Date & Time.');
     }
     if (val.duration === null || val.duration <= 0) errors.push('Duration must be a positive number.');
-    if (val.passingPercentage === null || val.passingPercentage < 0 || val.passingPercentage > 100) {
-      errors.push('Passing Percentage must be between 0 and 100.');
+    const totalMarks = questions.reduce((sum: number, q: any) => sum + (q.mark || 0), 0);
+    if (val.passingMarks === null || val.passingMarks < 0 || val.passingMarks > totalMarks) {
+      errors.push(`Passing Score (points) must be between 0 and the total marks (${totalMarks}).`);
     }
-    
-    const questions = val.questions || [];
     if (questions.length === 0) {
       errors.push('Quiz must contain at least one question.');
     }
@@ -741,6 +780,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
 
     this.isSaving = true;
+    this.isPublishing = true;
     const quizId = this.quizForm.get('id')?.value;
     const payload = this.prepareSavePayload();
     payload.status = 'Published';
@@ -768,6 +808,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
           this.apiService.updateQuiz(savedQuiz.id, { status: 'Published', questions: payload.questions }).subscribe({
             next: (updatedQuiz) => {
               this.isSaving = false;
+              this.isPublishing = false;
               this.quizForm.markAsPristine();
               this.successMsg = 'Quiz published successfully!';
               this.isQuizEditorOpen = false;
@@ -775,12 +816,14 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
             },
             error: (err) => {
               this.isSaving = false;
+              this.isPublishing = false;
               this.errorMsg = err.error?.message || 'Failed to save published questions.';
             }
           });
         },
         error: (err) => {
           this.isSaving = false;
+          this.isPublishing = false;
           this.errorMsg = err.error?.message || 'Failed to publish quiz.';
         }
       });
@@ -788,6 +831,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       this.apiService.updateQuiz(quizId, payload).subscribe({
         next: (updatedQuiz) => {
           this.isSaving = false;
+          this.isPublishing = false;
           this.quizForm.markAsPristine();
           this.successMsg = 'Quiz published successfully!';
           this.isQuizEditorOpen = false;
@@ -795,6 +839,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         },
         error: (err) => {
           this.isSaving = false;
+          this.isPublishing = false;
           this.errorMsg = err.error?.message || 'Failed to publish quiz.';
         }
       });
@@ -970,9 +1015,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     return false;
   }
 
-  getParsedPreview(text: string): string {
+  getParsedPreview(text: string): SafeHtml {
     if (!text) return '';
     let parsed = text;
+
+    // Convert relative backend uploads paths to absolute URLs
+    parsed = parsed.replace(/\/uploads\//g, 'http://localhost:3000/uploads/');
 
     const katex = (window as any).katex;
     const hljs = (window as any).hljs;
@@ -1006,13 +1054,19 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     parsed = parsed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--accent-color);">$1</a>');
     parsed = parsed.replace(/\n/g, '<br>');
 
-    return parsed;
+    return this.sanitizer.bypassSecurityTrustHtml(parsed);
   }
 
   get editorTotalMarks(): number {
     if (!this.quizForm) return 0;
     const questions = this.quizForm.get('questions')?.value || [];
     return questions.reduce((sum: number, q: any) => sum + (q.mark || 0), 0);
+  }
+
+  getSelectedCourseName(): string {
+    if (!this.selectedCourseId) return 'No Course Selected';
+    const course = this.courses.find(c => c.id === Number(this.selectedCourseId));
+    return course ? `${course.courseId} - ${course.courseName}` : 'Unknown Course';
   }
 
   // ==================== LEADERBOARD & ANALYTICS ====================
@@ -1099,6 +1153,49 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       },
       error: () => {
         this.errorMsg = 'Failed to delete assignment.';
+      }
+    });
+  }
+
+  openEditAssignmentModal(a: Assignment) {
+    this.editingAssignment = a;
+    this.editAssignTitle = a.title;
+    this.editAssignDesc = a.description || '';
+    if (a.deadline) {
+      const date = new Date(a.deadline);
+      const pad = (num: number) => num.toString().padStart(2, '0');
+      this.editAssignDeadline = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    } else {
+      this.editAssignDeadline = '';
+    }
+    this.showAssignmentEditModal = true;
+  }
+
+  saveEditedAssignment() {
+    if (!this.editingAssignment) return;
+    this.errorMsg = '';
+    this.successMsg = '';
+
+    if (!this.editAssignTitle.trim() || !this.editAssignDeadline) {
+      this.errorMsg = 'Title and deadline are required.';
+      return;
+    }
+
+    this.apiService.updateAssignment(this.editingAssignment.id, {
+      title: this.editAssignTitle,
+      description: this.editAssignDesc,
+      deadline: this.editAssignDeadline
+    }).subscribe({
+      next: () => {
+        this.successMsg = 'Assignment updated successfully.';
+        this.showAssignmentEditModal = false;
+        this.editingAssignment = null;
+        if (this.selectedCourseId) {
+          this.loadAssignments(this.selectedCourseId);
+        }
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Failed to update assignment.';
       }
     });
   }

@@ -147,7 +147,7 @@
             <div>
               <label style="display: block; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--text-secondary);">Category</label>
               <select class="neo-select" [(ngModel)]="quizFilterCategory" (change)="quizCurrentPage = 1">
-                <option [value]="null">All Categories</option>
+                <option [ngValue]="null">All Categories</option>
                 <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
               </select>
             </div>
@@ -266,15 +266,21 @@
           <button class="neo-btn" style="padding: 0.45rem 1rem; margin-right: 1.25rem;" (click)="closeQuizEditor()">
             ← Back to Dashboard
           </button>
-          <span style="font-size: 1.15rem; font-weight: 600; color: #fff;">
-            {{ quizForm.get('quizTitle')?.value || 'New Quiz Assessment' }}
-          </span>
-          <span *ngIf="lastAutosavedTime" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--success-color); font-weight: 550;">
-            {{ lastAutosavedTime }}
-          </span>
-          <span *ngIf="isAutosaving" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--warning-color); font-weight: 550;">
-            Saving draft...
-          </span>
+          <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; display: inline-flex;">
+            <span style="font-size: 1.4rem; font-weight: 700;">
+              📝 Editing:
+              {{ quizForm.get('quizTitle')?.value || 'New Quiz Assessment' }}
+            </span>
+            <span class="badge" style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 0.85rem; padding: 0.25rem 0.6rem;">
+              Course: {{ getSelectedCourseName() }}
+            </span>
+            <span *ngIf="lastAutosavedTime" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--success-color); font-weight: 550;">
+              {{ lastAutosavedTime }}
+            </span>
+            <span *ngIf="isAutosaving" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--warning-color); font-weight: 550;">
+              Saving draft...
+            </span>
+          </div>
         </div>
 
         <div style="display: flex; gap: 0.6rem; align-items: center;">
@@ -282,10 +288,10 @@
             Total weight: <strong style="color: var(--accent-color);">{{ editorTotalMarks }} marks</strong>
           </span>
           <button class="neo-btn" (click)="saveQuizDraft()" [disabled]="isSaving || isAutosaving">
-            {{ isSaving ? 'Saving...' : 'Save Draft' }}
+            {{ isSavingDraft ? 'Saving...' : 'Save Draft' }}
           </button>
           <button class="neo-btn neo-btn-primary" (click)="publishQuiz()" [disabled]="isSaving || isAutosaving">
-            {{ isSaving ? 'Publishing...' : 'Publish' }}
+            {{ isPublishing ? 'Publishing...' : 'Publish' }}
           </button>
         </div>
       </div>
@@ -315,7 +321,7 @@
 
           <div cdkDropList 
                (cdkDropListDropped)="onQuestionDropped($event)" 
-               style="display: flex; flex-direction: column; gap: 0.5rem; min-height: 100px;">
+               style="display: flex; flex-direction: column; gap: 0.5rem; min-height: 100px; max-height: calc(100vh - 420px); overflow-y: auto; padding-right: 0.25rem;">
             <div *ngFor="let q of questionsFormArray.controls; let idx = index" 
                  cdkDrag 
                  class="question-drag-card"
@@ -420,8 +426,8 @@
                 <input type="number" class="neo-input" formControlName="duration" min="1" />
               </div>
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Passing Percentage (%)</label>
-                <input type="number" class="neo-input" formControlName="passingPercentage" min="0" max="100" />
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Passing Score (points)</label>
+                <input type="number" class="neo-input" formControlName="passingMarks" min="0" />
               </div>
               <div>
                 <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Max Attempts Limit</label>
@@ -673,7 +679,10 @@
               <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">{{ a.description }}</p>
               <span style="font-size: 0.8rem; color: var(--text-muted);">Deadline: {{ a.deadline | date:'medium' }}</span>
             </div>
-            <button class="neo-btn neo-btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="deleteAssignment(a.id)">Delete</button>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="neo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="openEditAssignmentModal(a)">Edit</button>
+              <button class="neo-btn neo-btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="deleteAssignment(a.id)">Delete</button>
+            </div>
           </div>
         </div>
       </div>
@@ -832,7 +841,7 @@
         <div *ngFor="let sub of assignSubmissions" class="neo-card-inset flex-between" style="padding: 1.25rem; flex-wrap: wrap; gap: 1rem;">
           <div>
             <h4 style="font-size: 1.05rem; font-weight: 600;">{{ sub.studentName }}</h4>
-            <p style="font-size: 0.85rem; color: var(--text-secondary);">Course: {{ sub.courseName }} | File: <a href="javascript:void(0)" (click)="downloadHomework(sub)" style="color: var(--accent-color); font-weight: 550;">{{ sub.fileName }}</a></p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Course: {{ sub.courseName }} | Assignment: {{ sub.assignment?.title || 'General' }} | File: <a href="javascript:void(0)" (click)="downloadHomework(sub)" style="color: var(--accent-color); font-weight: 550;">{{ sub.fileName }}</a></p>
             <p style="font-size: 0.8rem; color: var(--text-muted);">Uploaded on: {{ sub.submittedAt | date:'medium' }}</p>
           </div>
 
@@ -978,6 +987,36 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT ASSIGNMENT MODAL OVERLAY -->
+  <div *ngIf="showAssignmentEditModal && editingAssignment" class="modal-overlay">
+    <div class="neo-card modal-content" style="max-width: 500px; width: 90%; padding: 2rem;">
+      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Edit Assignment</h3>
+        <button class="modal-close" (click)="showAssignmentEditModal = false; editingAssignment = null;">×</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div>
+          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Homework Title</label>
+          <input type="text" class="neo-input" [(ngModel)]="editAssignTitle" placeholder="e.g. Worksheet 5: Functions" />
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Description / Guidelines</label>
+          <textarea class="neo-textarea" [(ngModel)]="editAssignDesc" rows="3" placeholder="e.g. Upload PDF. Include calculations step-by-step."></textarea>
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Due Date & Time</label>
+          <input type="datetime-local" class="neo-input" [(ngModel)]="editAssignDeadline" />
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+          <button class="neo-btn" (click)="showAssignmentEditModal = false; editingAssignment = null;">Cancel</button>
+          <button class="neo-btn neo-btn-primary" (click)="saveEditedAssignment()">Save Changes</button>
+        </div>
       </div>
     </div>
   </div>

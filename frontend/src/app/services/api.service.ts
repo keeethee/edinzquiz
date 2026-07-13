@@ -102,6 +102,7 @@ export interface AssignmentSubmission {
   marks: number | null;
   feedback: string | null;
   course: Course;
+  assignment?: Assignment | null;
 }
 
 @Injectable({
@@ -308,12 +309,23 @@ export class ApiService {
     return this.http.post<AssignmentSubmission>(`${this.baseUrl}/assignments/submit`, formData, this.getHeaders());
   }
 
+  getStudentSubmissions(studentName: string, collegeName: string): Observable<AssignmentSubmission[]> {
+    return this.http.get<AssignmentSubmission[]>(
+      `${this.baseUrl}/assignments/student/submissions?studentName=${encodeURIComponent(studentName)}&collegeName=${encodeURIComponent(collegeName)}`,
+      this.getHeaders()
+    );
+  }
+
   createAssignment(courseId: number, title: string, description: string, deadline: string): Observable<Assignment> {
     return this.http.post<Assignment>(`${this.baseUrl}/assignments`, { courseId, title, description, deadline }, this.getHeaders());
   }
 
   deleteAssignment(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/assignments/${id}`, this.getHeaders());
+  }
+
+  updateAssignment(id: number, payload: Partial<Assignment>): Observable<Assignment> {
+    return this.http.patch<Assignment>(`${this.baseUrl}/assignments/${id}`, payload, this.getHeaders());
   }
 
   getAssignmentSubmissions(): Observable<AssignmentSubmission[]> {

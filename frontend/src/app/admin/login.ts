@@ -25,7 +25,12 @@ import { AuthService } from '../services/auth.service';
 
           <div style="margin-bottom: 2rem;">
             <label for="adminPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Password</label>
-            <input id="adminPassword" type="password" class="neo-input" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+            <div style="position: relative;">
+              <input id="adminPassword" [type]="showPassword ? 'text' : 'password'" class="neo-input" [(ngModel)]="password" name="password" placeholder="••••••••" required style="padding-right: 2.5rem;">
+              <button type="button" (click)="showPassword = !showPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.15rem; padding: 0.2rem;">
+                {{ showPassword ? '👁️' : '🙈' }}
+              </button>
+            </div>
           </div>
 
           <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 1rem;">
@@ -40,6 +45,7 @@ export class AdminLoginComponent {
   email = '';
   password = '';
   errorMsg = '';
+  showPassword = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 

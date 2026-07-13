@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe, UseInterceptors, UploadedFile, Res, NotFoundException, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, ParseIntPipe, UseInterceptors, UploadedFile, Res, NotFoundException, BadRequestException, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -51,11 +51,27 @@ export class AssignmentController {
     return this.assignmentService.delete(id);
   }
 
+  @UseGuards(AuthGuard)
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('title') title?: string,
+    @Body('description') description?: string,
+    @Body('deadline') deadline?: string,
+  ): Promise<AssignmentEntity> {
+    return this.assignmentService.updateAssignment(id, {
+      title,
+      description,
+      deadline: deadline ? new Date(deadline) : undefined,
+    } as any);
+  }
+
   // Public upload endpoint for students
   @Post('submit')
   @UseInterceptors(FileInterceptor('file', { storage: storageConfig }))
   submitAssignment(
     @Body('courseId', ParseIntPipe) courseId: number,
+    @Body('assignmentId', ParseIntPipe) assignmentId: number,
     @Body('studentName') studentName: string,
     @Body('collegeName') collegeName: string,
     @UploadedFile() file: Express.Multer.File,
@@ -63,7 +79,16 @@ export class AssignmentController {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
-    return this.assignmentService.submitAssignment(courseId, studentName, collegeName, file);
+    return this.assignmentService.submitAssignment(courseId, studentName, collegeName, assignmentId, file);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('student/submissions')
+  getStudentSubmissions(
+    @Query('studentName') studentName: string,
+    @Query('collegeName') collegeName: string,
+  ): Promise<AssignmentSubmissionEntity[]> {
+    return this.assignmentService.getStudentSubmissions(studentName, collegeName);
   }
 
   @UseGuards(AuthGuard)

@@ -59,11 +59,16 @@ export class AssignmentService {
     courseId: number,
     studentName: string,
     collegeName: string,
+    assignmentId: number,
     file: Express.Multer.File,
   ): Promise<AssignmentSubmissionEntity> {
     const course = await this.courseRepository.findOneBy({ id: courseId });
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
+    }
+    const assignment = await this.assignmentRepository.findOneBy({ id: assignmentId });
+    if (!assignment) {
+      throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
     const submission = this.submissionRepository.create({
@@ -73,6 +78,7 @@ export class AssignmentService {
       fileName: file.originalname,
       filePath: file.path,
       course,
+      assignment,
     });
 
     return this.submissionRepository.save(submission);
@@ -80,7 +86,7 @@ export class AssignmentService {
 
   async getSubmissions(): Promise<AssignmentSubmissionEntity[]> {
     return this.submissionRepository.find({
-      relations: { course: true },
+      relations: { course: true, assignment: true },
       order: { submittedAt: 'DESC' },
     });
   }
@@ -101,5 +107,22 @@ export class AssignmentService {
     submission.marks = marks;
     submission.feedback = feedback;
     return this.submissionRepository.save(submission);
+  }
+
+  async getStudentSubmissions(studentName: string, collegeName: string): Promise<AssignmentSubmissionEntity[]> {
+    return this.submissionRepository.find({
+      where: { studentName, collegeName },
+      relations: { course: true, assignment: true },
+      order: { submittedAt: 'DESC' },
+    });
+  }
+
+  async updateAssignment(id: number, attrs: Partial<AssignmentEntity>): Promise<AssignmentEntity> {
+    const assignment = await this.assignmentRepository.findOneBy({ id });
+    if (!assignment) {
+      throw new NotFoundException(`Assignment with ID ${id} not found`);
+    }
+    Object.assign(assignment, attrs);
+    return this.assignmentRepository.save(assignment);
   }
 }
