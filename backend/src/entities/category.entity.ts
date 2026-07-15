@@ -1,17 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { QuizEntity } from './quiz.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-@Entity('categories')
+export type CategoryDocument = CategoryEntity & Document;
+
+@Schema({ collection: 'categories', timestamps: true })
 export class CategoryEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id: string;
 
-  @Column({ unique: true })
+  @Prop({ required: true, unique: true })
   name: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
-
-  @OneToMany(() => QuizEntity, (quiz) => quiz.category)
-  quizzes: QuizEntity[];
+  @Prop()
+  description: string;
 }
+
+export const CategorySchema = SchemaFactory.createForClass(CategoryEntity);

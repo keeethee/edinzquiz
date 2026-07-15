@@ -1,26 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
-import { QuizSubmissionEntity } from './quiz-submission.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-@Entity('students')
+export type StudentDocument = StudentEntity & Document;
+
+@Schema({ collection: 'students', timestamps: true })
 export class StudentEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id: string;
 
-  @Column({ unique: true })
+  @Prop({ required: true, unique: true })
   email: string;
 
-  @Column()
+  @Prop({ required: true })
   passwordHash: string;
 
-  @Column()
+  @Prop({ required: true })
   name: string;
 
-  @Column()
+  @Prop({ required: true })
   collegeName: string;
 
-  @CreateDateColumn()
+  @Prop({ default: Date.now })
   registeredAt: Date;
-
-  @OneToMany(() => QuizSubmissionEntity, (sub) => sub.student, { cascade: true })
-  submissions: QuizSubmissionEntity[];
 }
+
+export const StudentSchema = SchemaFactory.createForClass(StudentEntity);

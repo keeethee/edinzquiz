@@ -1,15 +1,18 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
-import { AdminEntity } from '../../entities/admin.entity';
-import { StudentEntity } from '../../entities/student.entity';
+import { AdminEntity, AdminSchema } from '../../entities/admin.entity';
+import { StudentEntity, StudentSchema } from '../../entities/student.entity';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AdminEntity, StudentEntity]),
+    MongooseModule.forFeature([
+      { name: AdminEntity.name, schema: AdminSchema },
+      { name: StudentEntity.name, schema: StudentSchema },
+    ]),
     JwtModule.register({
       global: true,
       secret: 'SECRET_JWT_KEY_EDINZ', // Simple key for quiz portal

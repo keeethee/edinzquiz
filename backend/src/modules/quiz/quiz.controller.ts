@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe, UseGuards, Res, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Res, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -48,20 +48,20 @@ export class QuizController {
   @UseGuards(AuthGuard)
   @Post()
   createQuiz(
-    @Body('courseId', ParseIntPipe) courseId: number,
+    @Body('courseId') courseId: string,
     @Body('quizTitle') quizTitle: string,
     @Body('startTime') startTime: string,
     @Body('endTime') endTime: string,
-    @Body('totalMarks', ParseIntPipe) totalMarks: number,
-    @Body('duration', ParseIntPipe) duration?: number,
-    @Body('passingMarks', ParseIntPipe) passingMarks?: number,
+    @Body('totalMarks') totalMarks: number,
+    @Body('duration') duration?: number,
+    @Body('passingMarks') passingMarks?: number,
     @Body('negativeMarkingEnabled') negativeMarkingEnabled?: boolean,
     @Body('negativeMarkingValue') negativeMarkingValue?: number,
     @Body('shuffleQuestions') shuffleQuestions?: boolean,
     @Body('shuffleOptions') shuffleOptions?: boolean,
     @Body('description') description?: string,
     @Body('difficulty') difficulty?: string,
-    @Body('categoryId') categoryId?: number,
+    @Body('categoryId') categoryId?: string,
     @Body('settings') settings?: { maxAttempts?: number; passingPercentage?: number; showResultsImmediately?: boolean }
   ): Promise<QuizEntity> {
     return this.quizService.createQuiz(
@@ -85,20 +85,20 @@ export class QuizController {
 
   // Get quizzes for a course (Student and Admin list)
   @Get('course/:courseId')
-  getQuizzesByCourse(@Param('courseId', ParseIntPipe) courseId: number): Promise<QuizEntity[]> {
+  getQuizzesByCourse(@Param('courseId') courseId: string): Promise<QuizEntity[]> {
     return this.quizService.getQuizzesByCourse(courseId);
   }
 
   // Get a specific quiz with answers (Admin only)
   @UseGuards(AuthGuard)
   @Get(':id')
-  getQuiz(@Param('id', ParseIntPipe) id: number): Promise<QuizEntity> {
+  getQuiz(@Param('id') id: string): Promise<QuizEntity> {
     return this.quizService.getQuiz(id);
   }
 
   // Get a quiz dynamically for student (Verifies timing, hides answer key)
   @Get('student/:id')
-  getQuizForStudent(@Param('id', ParseIntPipe) id: number): Promise<any> {
+  getQuizForStudent(@Param('id') id: string): Promise<any> {
     return this.quizService.getQuizForStudent(id);
   }
 
@@ -106,7 +106,7 @@ export class QuizController {
   @UseGuards(AuthGuard)
   @Patch(':id')
   updateQuiz(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() body: any
   ): Promise<QuizEntity> {
     return this.quizService.updateQuiz(id, body);
@@ -115,7 +115,7 @@ export class QuizController {
   @UseGuards(AuthGuard)
   @Patch(':id/timing')
   updateTiming(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body('startTime') startTime?: string,
     @Body('endTime') endTime?: string,
     @Body('status') status?: string,
@@ -132,14 +132,14 @@ export class QuizController {
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  deleteQuiz(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  deleteQuiz(@Param('id') id: string): Promise<void> {
     return this.quizService.deleteQuiz(id);
   }
 
   // Duplicate an existing quiz
   @UseGuards(AuthGuard)
   @Post(':id/duplicate')
-  duplicateQuiz(@Param('id', ParseIntPipe) id: number): Promise<QuizEntity> {
+  duplicateQuiz(@Param('id') id: string): Promise<QuizEntity> {
     return this.quizService.duplicateQuiz(id);
   }
 
@@ -147,8 +147,8 @@ export class QuizController {
   @UseGuards(AuthGuard)
   @Patch(':id/questions/reorder')
   async reorderQuestions(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('questionIds') questionIds: number[]
+    @Param('id') id: string,
+    @Body('questionIds') questionIds: string[]
   ): Promise<{ success: boolean }> {
     await this.quizService.reorderQuestions(id, questionIds);
     return { success: true };
@@ -158,10 +158,10 @@ export class QuizController {
   @UseGuards(AuthGuard)
   @Post('questions')
   addQuestion(
-    @Body('quizId', ParseIntPipe) quizId: number,
+    @Body('quizId') quizId: string,
     @Body('questionText') questionText: string,
     @Body('questionType') questionType: string,
-    @Body('mark', ParseIntPipe) mark: number,
+    @Body('mark') mark: number,
     @Body('correctAnswerText') correctAnswerText?: string,
     @Body('options') options?: { optionText: string; isCorrect: boolean }[],
   ): Promise<QuestionEntity> {
@@ -171,7 +171,7 @@ export class QuizController {
   @UseGuards(AuthGuard)
   @Patch('questions/:id')
   updateQuestion(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() body: any
   ): Promise<QuestionEntity> {
     return this.quizService.updateQuestion(id, body);
@@ -179,15 +179,15 @@ export class QuizController {
 
   @UseGuards(AuthGuard)
   @Delete('questions/:id')
-  deleteQuestion(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  deleteQuestion(@Param('id') id: string): Promise<void> {
     return this.quizService.deleteQuestion(id);
   }
 
   @UseGuards(AuthGuard)
   @Patch('questions/:id/answer-key')
   async updateAnswerKey(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('correctOptionId', ParseIntPipe) correctOptionId: number,
+    @Param('id') id: string,
+    @Body('correctOptionId') correctOptionId: string,
   ): Promise<{ success: boolean }> {
     await this.quizService.updateAnswerKey(id, correctOptionId);
     return { success: true };
@@ -203,7 +203,7 @@ export class QuizController {
     }
     const attachment = await this.quizService.logMediaAttachment(file.originalname, file.path, file.mimetype);
     return {
-      id: attachment.id,
+      id: attachment._id,
       fileName: attachment.fileName,
       url: `/uploads/${file.filename}`,
     };
@@ -212,14 +212,28 @@ export class QuizController {
   // Submission endpoints
   @Post('submit')
   async submitQuiz(
-    @Body('quizId', ParseIntPipe) quizId: number,
-    @Body('studentId', ParseIntPipe) studentId: number,
-    @Body('answers') answers: { questionId: number; selectedOptionId?: number; selectedOptionIds?: number[]; typedAnswerText?: string }[],
-  ): Promise<{ message: string }> {
-    await this.quizService.submitQuiz(quizId, studentId, answers);
-    return {
-      message: 'Your quiz has been submitted successfully.',
-    };
+    @Body('quizId') quizId: string,
+    @Body('studentId') studentId: string,
+    @Body('answers') answers: { questionId: string; selectedOptionId?: string; selectedOptionIds?: string[]; typedAnswerText?: string }[],
+    @Body('timeTakenSeconds') timeTakenSeconds?: number,
+  ): Promise<QuizSubmissionEntity> {
+    return this.quizService.submitQuiz(quizId, studentId, answers, timeTakenSeconds || 0);
+  }
+
+  @Get('submissions/student-result/:id')
+  getStudentSubmissionResult(
+    @Param('id') id: string,
+    @Body('studentId') studentId: string,
+  ): Promise<any> {
+    return this.quizService.getStudentSubmissionResult(id, studentId);
+  }
+
+  @Get(':id/attempt-stats')
+  getAttemptStats(
+    @Param('id') id: string,
+    @Body('studentId') studentId: string,
+  ): Promise<any> {
+    return this.quizService.getAttemptStats(id, studentId);
   }
 
   @UseGuards(AuthGuard)
@@ -239,7 +253,7 @@ export class QuizController {
 
   @UseGuards(AuthGuard)
   @Get('submissions/:id')
-  getSubmissionDetail(@Param('id', ParseIntPipe) id: number): Promise<any> {
+  getSubmissionDetail(@Param('id') id: string): Promise<any> {
     return this.quizService.getSubmissionDetail(id);
   }
 
@@ -247,8 +261,8 @@ export class QuizController {
   @UseGuards(AuthGuard)
   @Patch('submissions/:id/evaluate')
   evaluateSubmission(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('evaluations') evaluations: { questionId: number; marks: number }[],
+    @Param('id') id: string,
+    @Body('evaluations') evaluations: { questionId: string; marks: number }[],
   ): Promise<QuizSubmissionEntity> {
     return this.quizService.evaluateSubmission(id, evaluations);
   }
@@ -256,13 +270,13 @@ export class QuizController {
   // Analytics & Leaderboards
   @UseGuards(AuthGuard)
   @Get(':id/leaderboard')
-  getLeaderboard(@Param('id', ParseIntPipe) id: number): Promise<QuizSubmissionEntity[]> {
+  getLeaderboard(@Param('id') id: string): Promise<QuizSubmissionEntity[]> {
     return this.quizService.getLeaderboard(id);
   }
 
   @UseGuards(AuthGuard)
   @Get(':id/analytics')
-  getAnalytics(@Param('id', ParseIntPipe) id: number): Promise<any> {
+  getAnalytics(@Param('id') id: string): Promise<any> {
     return this.quizService.getAnalytics(id);
   }
 }

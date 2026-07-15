@@ -1,71 +1,69 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, OneToOne, Index } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 import { CourseEntity } from './course.entity';
-import { QuestionEntity } from './question.entity';
-import { QuizSubmissionEntity } from './quiz-submission.entity';
 import { CategoryEntity } from './category.entity';
-import { QuizSettingsEntity } from './quiz-settings.entity';
+import { QuizSettingsSchema, QuizSettingsEntity } from './quiz-settings.entity';
+import { QuestionSchema, QuestionEntity } from './question.entity';
 
-@Entity('quizzes')
+export type QuizDocument = QuizEntity & Document;
+
+@Schema({ collection: 'quizzes', timestamps: true })
 export class QuizEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id: string;
 
-  @Column()
+  @Prop({ required: true })
   quizTitle: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Prop({ type: String, default: null })
   description: string | null;
 
-  @Column({ default: 'Medium' })
+  @Prop({ default: 'Medium' })
   difficulty: string; // 'Easy' | 'Medium' | 'Hard'
 
-  @Column()
+  @Prop({ required: true })
   startTime: Date;
 
-  @Column()
+  @Prop({ required: true })
   endTime: Date;
 
-  @Column({ default: 'Draft' })
+  @Prop({ default: 'Draft' })
   status: string; // 'Draft' | 'Published' | 'Archived'
 
-  @Column({ default: 100 })
+  @Prop({ default: 100 })
   totalMarks: number;
 
-  @Column({ default: 60 })
+  @Prop({ default: 60 })
   duration: number; // in minutes
 
-  @Column({ default: 40 })
+  @Prop({ default: 40 })
   passingMarks: number;
 
-  @Column({ default: false })
+  @Prop({ default: false })
   negativeMarkingEnabled: boolean;
 
-  @Column({ type: 'float', default: 0 })
-  negativeMarkingValue: number; // e.g. 0.25
+  @Prop({ default: 0 })
+  negativeMarkingValue: number;
 
-  @Column({ default: false })
+  @Prop({ default: false })
   shuffleQuestions: boolean;
 
-  @Column({ default: false })
+  @Prop({ default: false })
   shuffleOptions: boolean;
 
-  @Column({ default: false })
+  @Prop({ default: false })
   resultsPublished: boolean;
 
-  @Index()
-  @ManyToOne(() => CourseEntity, (course) => course.quizzes, { onDelete: 'CASCADE' })
-  course: CourseEntity;
+  @Prop({ type: Types.ObjectId, ref: 'CourseEntity', required: true, index: true })
+  course: CourseEntity | string; // Reference to Course
 
-  @Index()
-  @ManyToOne(() => CategoryEntity, (cat) => cat.quizzes, { nullable: true, onDelete: 'SET NULL', eager: true })
-  category: CategoryEntity | null;
+  @Prop({ type: Types.ObjectId, ref: 'CategoryEntity', default: null, index: true })
+  category: CategoryEntity | null | string; // Reference to Category
 
-  @OneToOne(() => QuizSettingsEntity, (settings) => settings.quiz, { cascade: true, eager: true })
+  @Prop({ type: QuizSettingsSchema, default: () => ({}) })
   settings: QuizSettingsEntity;
 
-  @OneToMany(() => QuestionEntity, (q) => q.quiz, { cascade: true })
+  @Prop({ type: [QuestionSchema], default: [] })
   questions: QuestionEntity[];
-
-  @OneToMany(() => QuizSubmissionEntity, (sub) => sub.quiz, { cascade: true })
-  submissions: QuizSubmissionEntity[];
 }
+
+export const QuizSchema = SchemaFactory.createForClass(QuizEntity);

@@ -1,39 +1,43 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 import { CourseEntity } from './course.entity';
 import { AssignmentEntity } from './assignment.entity';
 
-@Entity('assignment_submissions')
-export class AssignmentSubmissionEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+export type AssignmentSubmissionDocument = AssignmentSubmissionEntity & Document;
 
-  @Column()
+@Schema({ collection: 'assignment_submissions', timestamps: true })
+export class AssignmentSubmissionEntity {
+  _id: string;
+
+  @Prop({ required: true })
   studentName: string;
 
-  @Column()
+  @Prop({ required: true })
   collegeName: string;
 
-  @Column()
-  courseName: string; // Course name copied at submission
+  @Prop({ required: true })
+  courseName: string;
 
-  @Column()
+  @Prop({ required: true })
   fileName: string;
 
-  @Column()
+  @Prop({ required: true })
   filePath: string;
 
-  @CreateDateColumn()
+  @Prop({ default: Date.now })
   submittedAt: Date;
 
-  @Column({ nullable: true, type: 'int' })
-  marks: number | null; // Grade marks (0-100)
+  @Prop({ type: Number, default: null })
+  marks: number | null;
 
-  @Column({ nullable: true, type: 'text' })
+  @Prop({ type: String, default: null })
   feedback: string | null;
 
-  @ManyToOne(() => CourseEntity, (course) => course.submissions, { onDelete: 'CASCADE' })
-  course: CourseEntity;
+  @Prop({ type: Types.ObjectId, ref: 'CourseEntity', required: true, index: true })
+  course: CourseEntity | string;
 
-  @ManyToOne(() => AssignmentEntity, { onDelete: 'CASCADE', eager: true, nullable: true })
-  assignment: AssignmentEntity | null;
+  @Prop({ type: Types.ObjectId, ref: 'AssignmentEntity', default: null, index: true })
+  assignment: AssignmentEntity | null | string;
 }
+
+export const AssignmentSubmissionSchema = SchemaFactory.createForClass(AssignmentSubmissionEntity);

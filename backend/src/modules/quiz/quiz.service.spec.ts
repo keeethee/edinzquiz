@@ -1,46 +1,44 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { getModelToken } from '@nestjs/mongoose';
 import { QuizService } from './quiz.service';
 import { QuizEntity } from '../../entities/quiz.entity';
-import { QuestionEntity } from '../../entities/question.entity';
-import { OptionEntity } from '../../entities/option.entity';
 import { QuizSubmissionEntity } from '../../entities/quiz-submission.entity';
-import { StudentAnswerEntity } from '../../entities/student-answer.entity';
 import { CourseEntity } from '../../entities/course.entity';
 import { StudentEntity } from '../../entities/student.entity';
+import { CategoryEntity } from '../../entities/category.entity';
+import { MediaAttachmentEntity } from '../../entities/media-attachment.entity';
 
 describe('QuizService', () => {
   let service: QuizService;
 
-  const mockQuizRepository = {
-    findOne: jest.fn(),
+  const mockQuizModel = {
+    findOne: jest.fn().mockReturnThis(),
+    exec: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+    countDocuments: jest.fn(),
+  };
+  const mockSubmissionModel = {
     create: jest.fn(),
     save: jest.fn(),
   };
-  const mockQuestionRepository = {};
-  const mockOptionRepository = {};
-  const mockSubmissionRepository = {
-    create: jest.fn(),
-    save: jest.fn(),
+  const mockCourseModel = {};
+  const mockStudentModel = {};
+  const mockCategoryModel = {
+    countDocuments: jest.fn(),
   };
-  const mockStudentAnswerRepository = {
-    create: jest.fn(),
-    save: jest.fn(),
-  };
-  const mockCourseRepository = {};
-  const mockStudentRepository = {};
+  const mockMediaModel = {};
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         QuizService,
-        { provide: getRepositoryToken(QuizEntity), useValue: mockQuizRepository },
-        { provide: getRepositoryToken(QuestionEntity), useValue: mockQuestionRepository },
-        { provide: getRepositoryToken(OptionEntity), useValue: mockOptionRepository },
-        { provide: getRepositoryToken(QuizSubmissionEntity), useValue: mockSubmissionRepository },
-        { provide: getRepositoryToken(StudentAnswerEntity), useValue: mockStudentAnswerRepository },
-        { provide: getRepositoryToken(CourseEntity), useValue: mockCourseRepository },
-        { provide: getRepositoryToken(StudentEntity), useValue: mockStudentRepository },
+        { provide: getModelToken(QuizEntity.name), useValue: mockQuizModel },
+        { provide: getModelToken(QuizSubmissionEntity.name), useValue: mockSubmissionModel },
+        { provide: getModelToken(CourseEntity.name), useValue: mockCourseModel },
+        { provide: getModelToken(StudentEntity.name), useValue: mockStudentModel },
+        { provide: getModelToken(CategoryEntity.name), useValue: mockCategoryModel },
+        { provide: getModelToken(MediaAttachmentEntity.name), useValue: mockMediaModel },
       ],
     }).compile();
 

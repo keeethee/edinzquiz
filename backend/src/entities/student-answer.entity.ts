@@ -1,30 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Index } from 'typeorm';
-import { QuizSubmissionEntity } from './quiz-submission.entity';
-import { QuestionEntity } from './question.entity';
-import { OptionEntity } from './option.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { QuestionEntity, QuestionSchema } from './question.entity';
+import { OptionEntity, OptionSchema } from './option.entity';
 
-@Entity('student_answers')
+@Schema()
 export class StudentAnswerEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id?: string;
 
-  @Column({ default: false })
+  @Prop({ default: false })
   isCorrect: boolean;
 
-  @Column({ type: 'text', nullable: true })
-  typedAnswerText: string | null; // Used for FillBlank and Subjective typed answers
+  @Prop({ type: String, default: null })
+  typedAnswerText: string | null;
 
-  @Column({ type: 'float', nullable: true })
-  awardedMarks: number | null; // Null represents 'Pending Evaluation' (for Subjective items)
+  @Prop({ type: Number, default: null })
+  awardedMarks: number | null;
 
-  @Index()
-  @ManyToOne(() => QuizSubmissionEntity, (sub) => sub.studentAnswers, { onDelete: 'CASCADE' })
-  submission: QuizSubmissionEntity;
-
-  @Index()
-  @ManyToOne(() => QuestionEntity, (q) => q.studentAnswers, { onDelete: 'CASCADE' })
+  @Prop({ type: QuestionSchema, required: true })
   question: QuestionEntity;
 
-  @ManyToOne(() => OptionEntity, (opt) => opt.studentAnswers, { onDelete: 'CASCADE', nullable: true })
+  @Prop({ type: OptionSchema, default: null })
   selectedOption: OptionEntity | null;
 }
+
+export const StudentAnswerSchema = SchemaFactory.createForClass(StudentAnswerEntity);

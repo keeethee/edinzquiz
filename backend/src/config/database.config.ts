@@ -1,8 +1,5 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('database', () => ({
-  type: 'better-sqlite3',
-  database: 'edinz_quiz.sqlite',
-  autoLoadEntities: true,
-  synchronize: true,
+  uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/edinz_quiz',
 }));

@@ -1,44 +1,38 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, Index } from 'typeorm';
-import { QuizEntity } from './quiz.entity';
-import { OptionEntity } from './option.entity';
-import { StudentAnswerEntity } from './student-answer.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
+import { OptionSchema, OptionEntity } from './option.entity';
 
-@Entity('questions')
+@Schema()
 export class QuestionEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId() })
+  _id: string;
 
-  @Column({ type: 'text' })
+  @Prop({ required: true })
   questionText: string;
 
-  @Column({ default: 'MCQ' })
-  questionType: string; // 'MCQ_SINGLE' | 'MCQ_MULTIPLE' | 'TF' | 'FILL_BLANK' | 'SHORT_ANSWER' | 'ESSAY'
+  @Prop({ default: 'MCQ' })
+  questionType: string;
 
-  @Column({ default: 1 })
+  @Prop({ default: 1 })
   mark: number;
 
-  @Column({ type: 'text', nullable: true })
-  correctAnswerText: string | null; // Stores correct answers (e.g., serialized JSON array of accepted blanks)
+  @Prop({ type: String, default: null })
+  correctAnswerText: string | null;
 
-  @Column({ default: 0 })
+  @Prop({ default: 0 })
   orderIndex: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Prop({ type: String, default: null })
   explanation: string | null;
 
-  @Column({ default: false })
+  @Prop({ default: false })
   caseSensitive: boolean;
 
-  @Column({ type: 'text', nullable: true })
+  @Prop({ type: String, default: null })
   sampleAnswer: string | null;
 
-  @Index()
-  @ManyToOne(() => QuizEntity, (quiz) => quiz.questions, { onDelete: 'CASCADE' })
-  quiz: QuizEntity;
-
-  @OneToMany(() => OptionEntity, (opt) => opt.question, { cascade: true })
+  @Prop({ type: [OptionSchema], default: [] })
   options: OptionEntity[];
-
-  @OneToMany(() => StudentAnswerEntity, (sa) => sa.question, { cascade: true })
-  studentAnswers: StudentAnswerEntity[];
 }
+
+export const QuestionSchema = SchemaFactory.createForClass(QuestionEntity);

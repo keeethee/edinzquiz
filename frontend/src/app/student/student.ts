@@ -46,7 +46,10 @@ export class StudentComponent implements OnInit, OnDestroy {
   selectedOptionsMultiple: Record<number, Record<number, boolean>> = {}; // questionId -> optionId -> boolean
   typedAnswers: Record<number, string> = {};    // questionId -> text (for FillBlank/Subjective)
   
-  quizStep: 'search' | 'dashboard' | 'details' | 'attempt' | 'success' = 'search';
+  quizStep: 'search' | 'dashboard' | 'details' | 'attempt' | 'success' | 'result' = 'search';
+  quizStartedAt: Date | null = null;
+  resultSubmission: QuizSubmission | null = null;
+  attemptStats: any = null;
 
   // Timing & Auto-save
   countdownSeconds = 0;
@@ -195,6 +198,9 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.selectedOptions = {};
     this.selectedOptionsMultiple = {};
     this.typedAnswers = {};
+    this.quizStartedAt = null;
+    this.resultSubmission = null;
+    this.attemptStats = null;
     
     // Assignment resets
     this.assignStep = 'dashboard';
@@ -281,6 +287,7 @@ export class StudentComponent implements OnInit, OnDestroy {
         this.restoreAttemptDraft();
 
         this.quizStep = 'attempt';
+        this.quizStartedAt = new Date();
 
         // Timer calculation
         const endTimeMs = new Date(res.endTime).getTime();
@@ -430,6 +437,12 @@ export class StudentComponent implements OnInit, OnDestroy {
 
     if (!this.loggedInStudent) return;
 
+    // Calculate time taken
+    let timeTakenSeconds = 0;
+    if (this.quizStartedAt) {
+      timeTakenSeconds = Math.round((new Date().getTime() - this.quizStartedAt.getTime()) / 1000);
+    }
+
     // Build answers list
     const answersArray = this.quizQuestions.map(q => {
       const ansObj: any = { questionId: q.id };
@@ -449,18 +462,64 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.apiService.submitQuiz(
       this.selectedQuiz.id,
       this.loggedInStudent.id,
-      answersArray
+      answersArray,
+      timeTakenSeconds
     ).subscribe({
       next: (res) => {
         this.clearAttemptDraft();
-        this.successMsg = res.message;
-        this.quizStep = 'success';
+        this.successMsg = 'Quiz submitted successfully!';
+        
+        // Fetch student-result details and attempt stats
+        this.apiService.getStudentSubmissionResult(res.id, this.loggedInStudent!.id).subscribe(detail => {
+          this.resultSubmission = detail;
+          this.quizStep = 'result';
+        });
+
+        this.apiService.getAttemptStats(this.selectedQuiz.id, this.loggedInStudent!.id).subscribe(stats => {
+          this.attemptStats = stats;
+        });
+
         this.loadHistoricalResults();
       },
       error: (err) => {
         this.errorMsg = err.error?.message || 'Failed to submit quiz. Please contact your coordinator.';
       }
     });
+  }
+
+  // --- Grade helper utilities ---
+  getGradeClass(grade?: string): string {
+    if (!grade) return 'badge-secondary';
+    switch (grade) {
+      case 'Excellent': return 'badge-success';
+      case 'Passed': return 'badge-primary';
+      case 'Average': return 'badge-warning';
+      case 'Failed': return 'badge-danger';
+      default: return 'badge-secondary';
+    }
+  }
+
+  getPerformanceFeedback(sub: QuizSubmission): string {
+    if (sub.status === 'Pending Evaluation') {
+      return 'Your answers are currently being evaluated by a tutor. Please check back later.';
+    }
+    const pct = sub.percentage;
+    if (pct >= 80) {
+      return 'Excellent! You have shown strong programming fundamentals and an outstanding grasp of the material.';
+    } else if (pct >= 60) {
+      return 'Passed! Good job, you have understood the concepts well. Keep practicing to reach excellence.';
+    } else if (pct >= 40) {
+      return 'Average. You passed, but we recommend revising the core topics and taking more practice quizzes.';
+    } else {
+      return 'Failed. Do not worry! Revise the lectures, look over the question explanations, and try again.';
+    }
+  }
+
+  getFormattedTimeTaken(seconds?: number): string {
+    if (!seconds) return '00:00';
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
   // ==================== ASSIGNMENTS MODULE ====================
@@ -569,7 +628,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.apiService.getQuizSubmissionDetail(sub.id).subscribe({
+    this.apiService.getStudentSubmissionResult(sub.id, this.loggedInStudent!.id).subscribe({
       next: (res) => {
         this.detailedSubmission = res;
       },
@@ -621,3 +680,4 @@ export class StudentComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustHtml(parsed);
   }
 }
+

@@ -1,35 +1,35 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CourseEntity } from '../../entities/course.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { CourseEntity, CourseDocument } from '../../entities/course.entity';
 
 @Injectable()
 export class CourseService {
   constructor(
-    @InjectRepository(CourseEntity)
-    private courseRepository: Repository<CourseEntity>,
+    @InjectModel(CourseEntity.name)
+    private courseModel: Model<CourseDocument>,
   ) {}
 
-  async create(courseId: string, courseName: string, duration?: string, status: string = 'Active'): Promise<CourseEntity> {
-    const existing = await this.courseRepository.findOneBy({ courseId });
+  async create(courseId: string, courseName: string, duration?: string, status: string = 'Active'): Promise<any> {
+    const existing = await this.courseModel.findOne({ courseId }).exec();
     if (existing) {
       throw new ConflictException(`Course with display ID "${courseId}" already exists.`);
     }
 
-    const course = this.courseRepository.create({
+    const course = new this.courseModel({
       courseId,
       courseName,
       duration,
       status,
     });
-    return this.courseRepository.save(course);
+    return course.save();
   }
 
-  async update(id: number, courseId: string, courseName: string, duration?: string, status?: string): Promise<CourseEntity> {
+  async update(id: string, courseId: string, courseName: string, duration?: string, status?: string): Promise<any> {
     const course = await this.findOne(id);
     
     if (course.courseId !== courseId) {
-      const existing = await this.courseRepository.findOneBy({ courseId });
+      const existing = await this.courseModel.findOne({ courseId }).exec();
       if (existing) {
         throw new ConflictException(`Course with display ID "${courseId}" already exists.`);
       }
@@ -40,38 +40,32 @@ export class CourseService {
     if (duration !== undefined) course.duration = duration;
     if (status !== undefined) course.status = status;
 
-    return this.courseRepository.save(course);
+    return course.save();
   }
 
-  async findAll(): Promise<CourseEntity[]> {
-    return this.courseRepository.find({ order: { id: 'ASC' } });
+  async findAll(): Promise<any[]> {
+    return this.courseModel.find().sort({ createdAt: 1 }).exec();
   }
 
-  async findOne(id: number): Promise<CourseEntity> {
-    const course = await this.courseRepository.findOne({
-      where: { id },
-      relations: { quizzes: true, submissions: true },
-    });
+  async findOne(id: string): Promise<any> {
+    const course = await this.courseModel.findById(id).exec();
     if (!course) {
       throw new NotFoundException(`Course with DB ID ${id} not found`);
     }
     return course;
   }
 
-  async findByCourseId(courseId: string): Promise<CourseEntity> {
-    const course = await this.courseRepository.findOne({
-      where: { courseId, status: 'Active' },
-      relations: { quizzes: true },
-    });
+  async findByCourseId(courseId: string): Promise<any> {
+    const course = await this.courseModel.findOne({ courseId, status: 'Active' }).exec();
     if (!course) {
       throw new NotFoundException(`Course with code "${courseId}" not found or is inactive.`);
     }
     return course;
   }
 
-  async delete(id: number): Promise<void> {
-    const result = await this.courseRepository.delete(id);
-    if (result.affected === 0) {
+  async delete(id: string): Promise<void> {
+    const result = await this.courseModel.findByIdAndDelete(id).exec();
+    if (!result) {
       throw new NotFoundException(`Course with DB ID ${id} not found`);
     }
   }

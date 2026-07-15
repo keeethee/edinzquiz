@@ -1,39 +1,39 @@
 import { Injectable, OnApplicationBootstrap, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { AdminEntity } from '../../entities/admin.entity';
-import { StudentEntity } from '../../entities/student.entity';
+import { AdminEntity, AdminDocument } from '../../entities/admin.entity';
+import { StudentEntity, StudentDocument } from '../../entities/student.entity';
 
 @Injectable()
 export class AuthService implements OnApplicationBootstrap {
   constructor(
-    @InjectRepository(AdminEntity)
-    private adminRepository: Repository<AdminEntity>,
-    @InjectRepository(StudentEntity)
-    private studentRepository: Repository<StudentEntity>,
+    @InjectModel(AdminEntity.name)
+    private adminModel: Model<AdminDocument>,
+    @InjectModel(StudentEntity.name)
+    private studentModel: Model<StudentDocument>,
     private jwtService: JwtService,
   ) {}
 
   // Seed default admin on startup
   async onApplicationBootstrap() {
-    const adminCount = await this.adminRepository.count();
+    const adminCount = await this.adminModel.countDocuments();
     if (adminCount === 0) {
       const passwordHash = await bcrypt.hash('admin123', 10);
-      const defaultAdmin = this.adminRepository.create({
+      const defaultAdmin = new this.adminModel({
         name: 'Default Admin',
         email: 'admin@edinz.com',
         passwordHash,
         role: 'admin',
       });
-      await this.adminRepository.save(defaultAdmin);
+      await defaultAdmin.save();
       console.log('Seeded default admin user: admin@edinz.com / admin123');
     }
   }
 
   async login(email: string, pass: string): Promise<{ token: string; admin: { name: string; email: string } }> {
-    const admin = await this.adminRepository.findOneBy({ email });
+    const admin = await this.adminModel.findOne({ email }).exec();
     if (!admin) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -43,7 +43,7 @@ export class AuthService implements OnApplicationBootstrap {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { sub: admin.id, email: admin.email, role: admin.role };
+    const payload = { sub: admin._id, email: admin.email, role: admin.role };
     return {
       token: await this.jwtService.signAsync(payload),
       admin: {
@@ -54,24 +54,24 @@ export class AuthService implements OnApplicationBootstrap {
   }
 
   // Student Auth methods
-  async registerStudent(email: string, pass: string, name: string, collegeName: string): Promise<StudentEntity> {
-    const existing = await this.studentRepository.findOneBy({ email });
+  async registerStudent(email: string, pass: string, name: string, collegeName: string): Promise<any> {
+    const existing = await this.studentModel.findOne({ email }).exec();
     if (existing) {
       throw new ConflictException(`Student with email "${email}" already registered.`);
     }
 
     const passwordHash = await bcrypt.hash(pass, 10);
-    const student = this.studentRepository.create({
+    const student = new this.studentModel({
       email,
       passwordHash,
       name,
       collegeName,
     });
-    return this.studentRepository.save(student);
+    return student.save();
   }
 
-  async loginStudent(email: string, pass: string): Promise<{ token: string; student: { id: number; name: string; email: string; collegeName: string } }> {
-    const student = await this.studentRepository.findOneBy({ email });
+  async loginStudent(email: string, pass: string): Promise<{ token: string; student: { id: string; name: string; email: string; collegeName: string } }> {
+    const student = await this.studentModel.findOne({ email }).exec();
     if (!student) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -81,11 +81,11 @@ export class AuthService implements OnApplicationBootstrap {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { sub: student.id, email: student.email, role: 'student' };
+    const payload = { sub: student._id, email: student.email, role: 'student' };
     return {
       token: await this.jwtService.signAsync(payload),
       student: {
-        id: student.id,
+        id: student._id,
         name: student.name,
         email: student.email,
         collegeName: student.collegeName,

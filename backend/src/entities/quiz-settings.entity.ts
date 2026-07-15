@@ -1,21 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import { QuizEntity } from './quiz.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Entity('quiz_settings')
+@Schema()
 export class QuizSettingsEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ default: 1 })
+  @Prop({ default: 1 })
   maxAttempts: number;
 
-  @Column({ default: 40 })
+  @Prop({ default: 40 })
   passingPercentage: number;
 
-  @Column({ default: true })
+  @Prop({ default: true })
   showResultsImmediately: boolean;
-
-  @OneToOne(() => QuizEntity, (quiz) => quiz.settings, { onDelete: 'CASCADE' })
-  @JoinColumn()
-  quiz: QuizEntity;
 }
+
+export const QuizSettingsSchema = SchemaFactory.createForClass(QuizSettingsEntity);

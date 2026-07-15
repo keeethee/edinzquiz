@@ -1,21 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
-import { QuestionEntity } from './question.entity';
-import { StudentAnswerEntity } from './student-answer.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-@Entity('options')
+@Schema()
 export class OptionEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId() })
+  _id: string;
 
-  @Column({ type: 'text' })
+  @Prop({ required: true })
   optionText: string;
 
-  @Column({ default: false })
+  @Prop({ default: false })
   isCorrect: boolean;
-
-  @ManyToOne(() => QuestionEntity, (q) => q.options, { onDelete: 'CASCADE' })
-  question: QuestionEntity;
-
-  @OneToMany(() => StudentAnswerEntity, (sa) => sa.selectedOption)
-  studentAnswers: StudentAnswerEntity[];
 }
+
+export const OptionSchema = SchemaFactory.createForClass(OptionEntity);

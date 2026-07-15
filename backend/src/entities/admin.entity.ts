@@ -1,19 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-@Entity('admins')
+export type AdminDocument = AdminEntity & Document;
+
+@Schema({ collection: 'admins', timestamps: true })
 export class AdminEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id: string;
 
-  @Column()
+  @Prop({ required: true })
   name: string;
 
-  @Column({ unique: true })
+  @Prop({ required: true, unique: true })
   email: string;
 
-  @Column()
+  @Prop({ required: true })
   passwordHash: string;
 
-  @Column({ default: 'admin' })
+  @Prop({ default: 'admin' })
   role: string;
 }
+
+export const AdminSchema = SchemaFactory.createForClass(AdminEntity);

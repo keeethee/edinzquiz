@@ -1,19 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-@Entity('media_attachments')
+export type MediaAttachmentDocument = MediaAttachmentEntity & Document;
+
+@Schema({ collection: 'media_attachments', timestamps: true })
 export class MediaAttachmentEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id: string;
 
-  @Column()
+  @Prop({ required: true })
   fileName: string;
 
-  @Column()
+  @Prop({ required: true })
   filePath: string;
 
-  @Column()
+  @Prop({ required: true })
   fileType: string;
 
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Prop({ default: Date.now })
   uploadedAt: Date;
 }
+
+export const MediaAttachmentSchema = SchemaFactory.createForClass(MediaAttachmentEntity);

@@ -78,6 +78,8 @@ export interface QuizSubmission {
   unansweredCount: number;
   status: string; // 'Pass' | 'Fail' | 'Pending Evaluation'
   submittedAt: string;
+  timeTakenSeconds?: number;
+  grade?: string;
   quiz?: Quiz;
   student?: any;
   studentAnswers?: StudentAnswer[];
@@ -269,13 +271,22 @@ export class ApiService {
   }
 
   // Submissions API
-  submitQuiz(quizId: number, studentId: number, answers: { questionId: number; selectedOptionId?: number; selectedOptionIds?: number[]; typedAnswerText?: string }[]): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.baseUrl}/quizzes/submit`, { quizId, studentId, answers }, this.getHeaders());
+  submitQuiz(quizId: number, studentId: number, answers: { questionId: number; selectedOptionId?: number; selectedOptionIds?: number[]; typedAnswerText?: string }[], timeTakenSeconds: number = 0): Observable<QuizSubmission> {
+    return this.http.post<QuizSubmission>(`${this.baseUrl}/quizzes/submit`, { quizId, studentId, answers, timeTakenSeconds }, this.getHeaders());
+  }
+
+  getStudentSubmissionResult(id: number, studentId: number): Observable<QuizSubmission> {
+    return this.http.post<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/student-result/${id}`, { studentId }, this.getHeaders());
+  }
+
+  getAttemptStats(quizId: number, studentId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/quizzes/${quizId}/attempt-stats`, { studentId }, this.getHeaders());
   }
 
   getQuizSubmissions(): Observable<QuizSubmission[]> {
     return this.http.get<QuizSubmission[]>(`${this.baseUrl}/quizzes/submissions/list`, this.getHeaders());
   }
+
 
   getQuizSubmissionDetail(id: number): Observable<QuizSubmission> {
     return this.http.get<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/${id}`, this.getHeaders());

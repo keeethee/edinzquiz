@@ -1,57 +1,65 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, OneToMany, Index } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 import { QuizEntity } from './quiz.entity';
-import { StudentAnswerEntity } from './student-answer.entity';
 import { StudentEntity } from './student.entity';
+import { StudentAnswerSchema, StudentAnswerEntity } from './student-answer.entity';
 
-@Entity('quiz_submissions')
+export type QuizSubmissionDocument = QuizSubmissionEntity & Document;
+
+@Schema({ collection: 'quiz_submissions', timestamps: true })
 export class QuizSubmissionEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id: string;
 
-  @Column()
+  @Prop({ required: true })
   studentName: string;
 
-  @Column()
+  @Prop({ required: true })
   collegeName: string;
 
-  @Column()
-  courseId: string; // Course ID code, e.g. 'CS-101'
+  @Prop({ required: true })
+  courseId: string; // e.g. 'CS-101'
 
-  @Column()
-  courseName: string; // Course Name, e.g. 'Intro to Python'
+  @Prop({ required: true })
+  courseName: string;
 
-  @Column({ type: 'float', default: 0 })
+  @Prop({ type: Number, default: 0 })
   score: number;
 
-  @Column()
+  @Prop({ required: true })
   totalMarks: number;
 
-  @Column({ type: 'float', default: 0 })
+  @Prop({ type: Number, default: 0 })
   percentage: number;
 
-  @Column({ default: 0 })
+  @Prop({ default: 0 })
   correctCount: number;
 
-  @Column({ default: 0 })
+  @Prop({ default: 0 })
   wrongCount: number;
 
-  @Column({ default: 0 })
+  @Prop({ default: 0 })
   unansweredCount: number;
 
-  @Column({ default: 'Pending Evaluation' })
+  @Prop({ default: 'Pending Evaluation' })
   status: string; // 'Pass' | 'Fail' | 'Pending Evaluation'
 
-  @CreateDateColumn()
+  @Prop({ default: 0 })
+  timeTakenSeconds: number;
+
+  @Prop({ default: '' })
+  grade: string;
+
+  @Prop({ default: Date.now })
   submittedAt: Date;
 
-  @Index()
-  @ManyToOne(() => QuizEntity, (quiz) => quiz.submissions, { onDelete: 'CASCADE' })
-  quiz: QuizEntity;
+  @Prop({ type: Types.ObjectId, ref: 'QuizEntity', required: true, index: true })
+  quiz: QuizEntity | string;
 
-  @Index()
-  @ManyToOne(() => StudentEntity, (student) => student.submissions, { onDelete: 'SET NULL', nullable: true })
-  student: StudentEntity | null;
+  @Prop({ type: Types.ObjectId, ref: 'StudentEntity', default: null, index: true })
+  student: StudentEntity | null | string;
 
-  @OneToMany(() => StudentAnswerEntity, (ans) => ans.submission, { cascade: true })
+  @Prop({ type: [StudentAnswerSchema], default: [] })
   studentAnswers: StudentAnswerEntity[];
 }
+
+export const QuizSubmissionSchema = SchemaFactory.createForClass(QuizSubmissionEntity);

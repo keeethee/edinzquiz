@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import databaseConfig from './config/database.config';
 import { CourseModule } from './modules/course/course.module';
 import { QuizModule } from './modules/quiz/quiz.module';
@@ -13,10 +13,10 @@ import { AuthModule } from './modules/auth/auth.module';
       isGlobal: true,
       load: [databaseConfig],
     }),
-    TypeOrmModule.forRootAsync({
+    MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        ...configService.get('database'),
+        uri: configService.get<string>('database.uri'),
       }),
     }),
     CourseModule,

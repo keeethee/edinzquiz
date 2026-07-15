@@ -9,10 +9,10 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend/edinz_quiz.sqlite:/app/edinz_quiz.sqlite
     env_file:
       - ./backend/.env
+    depends_on:
+      - mongodb
 
   frontend:
     build:
@@ -24,3 +24,15 @@ services:
       - "80:80"
     depends_on:
       - backend
+
+  mongodb:
+    image: mongo:latest
+    container_name: edinz-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

@@ -312,6 +312,168 @@
         </div>
       </div>
 
+      <!-- Success Screen / Rich Result Dashboard -->
+      <div *ngIf="quizStep === 'result' && resultSubmission">
+
+        <div class="neo-card" style="margin-bottom: 2rem;">
+          <div style="text-align: center; padding: 1.5rem 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 2rem;">
+            <div class="flex-center" style="width: 70px; height: 70px; border-radius: 50%; background: rgba(59,130,246,0.1); border: 2px solid var(--accent-color); margin: 0 auto 1rem;">
+              <span style="font-size: 2rem;">📊</span>
+            </div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Attempt Finished!</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Your answers have been processed and evaluated.</p>
+          </div>
+
+          <!-- Score Summary Card -->
+          <div class="grid-2" style="margin-bottom: 2rem; gap: 1.5rem;">
+            <div class="neo-card-inset flex-between" style="padding: 1.5rem 2rem;">
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em;">Final Score</span>
+                <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--accent-color); margin: 0.2rem 0;">{{ resultSubmission.score }} / {{ resultSubmission.totalMarks }}</h1>
+                <span style="font-size: 0.85rem; color: var(--text-secondary); display: block;">Obtained Percentage: <strong>{{ resultSubmission.percentage | number:'1.0-1' }}%</strong></span>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Grade / Status</span>
+                <span *ngIf="resultSubmission.grade" class="badge" [ngClass]="getGradeClass(resultSubmission.grade)" style="font-size: 0.95rem; padding: 0.4rem 1rem; display: inline-block; margin-bottom: 0.5rem;">
+                  {{ resultSubmission.grade }}
+                </span>
+                <div>
+                  <span *ngIf="resultSubmission.status === 'Pass'" class="badge badge-completed" style="font-size: 0.85rem;">Passed</span>
+                  <span *ngIf="resultSubmission.status === 'Fail'" class="badge badge-overdue" style="font-size: 0.85rem;">Failed</span>
+                  <span *ngIf="resultSubmission.status === 'Pending Evaluation'" class="badge badge-pending" style="font-size: 0.85rem;">Pending Grading</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Personalized Feedback Card -->
+            <div class="neo-card-inset" style="padding: 1.5rem 2rem; display: flex; flex-direction: column; justify-content: center;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Performance Feedback</span>
+              <p style="font-size: 1rem; line-height: 1.5; color: var(--text-primary); font-style: italic; margin: 0;">
+                "{{ getPerformanceFeedback(resultSubmission) }}"
+              </p>
+            </div>
+          </div>
+
+          <!-- Metrics Grid -->
+          <h3 style="font-size: 1.2rem; margin-bottom: 1rem; border-left: 3px solid var(--accent-color); padding-left: 0.75rem;">Attempt Metrics</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">Total Questions</span>
+              <strong style="font-size: 1.4rem;">{{ quizQuestions.length }}</strong>
+            </div>
+            <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">Attempted</span>
+              <strong style="font-size: 1.4rem;">{{ resultSubmission.correctCount + resultSubmission.wrongCount }}</strong>
+            </div>
+            <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-success); display: block; margin-bottom: 0.3rem;">Correct Answers</span>
+              <strong style="font-size: 1.4rem; color: var(--success-color);">{{ resultSubmission.correctCount }}</strong>
+            </div>
+            <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-danger); display: block; margin-bottom: 0.3rem;">Incorrect Answers</span>
+              <strong style="font-size: 1.4rem; color: var(--danger-color);">{{ resultSubmission.wrongCount }}</strong>
+            </div>
+            <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">Skipped</span>
+              <strong style="font-size: 1.4rem; color: var(--text-muted);">{{ resultSubmission.unansweredCount }}</strong>
+            </div>
+            <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">Time Taken</span>
+              <strong style="font-size: 1.4rem; color: var(--warning-color);">{{ getFormattedTimeTaken(resultSubmission.timeTakenSeconds) }}</strong>
+            </div>
+          </div>
+
+          <!-- Multiple Attempts / Progress Tracking Stats -->
+          <div *ngIf="attemptStats && attemptStats.totalAttempts > 1" style="margin-bottom: 2.5rem;">
+            <h3 style="font-size: 1.2rem; margin-bottom: 1rem; border-left: 3px solid var(--accent-color); padding-left: 0.75rem;">Attempt History & Statistics</h3>
+            <div class="neo-card-inset" style="padding: 1.5rem 2rem;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center; margin-bottom: 1.5rem;">
+                <div>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Total Attempts</span>
+                  <strong style="font-size: 1.25rem;">{{ attemptStats.totalAttempts }}</strong>
+                </div>
+                <div>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Best Score</span>
+                  <strong style="font-size: 1.25rem; color: var(--success-color);">{{ attemptStats.bestScore }} / {{ resultSubmission.totalMarks }}</strong>
+                </div>
+                <div>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Average Score</span>
+                  <strong style="font-size: 1.25rem; color: var(--accent-color);">{{ attemptStats.averageScore }}</strong>
+                </div>
+                <div>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Highest / Lowest</span>
+                  <strong style="font-size: 1.25rem;">{{ attemptStats.highestScore }} / {{ attemptStats.lowestScore }}</strong>
+                </div>
+              </div>
+              
+              <!-- Attempt Trend list -->
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase;">Score Trend Across Attempts</span>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div *ngFor="let entry of attemptStats.scoreHistory" class="flex-between" style="font-size: 0.85rem; padding: 0.4rem 1rem; background: rgba(0,0,0,0.15); border-radius: 4px;">
+                  <span>Attempt #{{ entry.attemptNumber }}</span>
+                  <span>Score: <strong>{{ entry.score }}</strong> ({{ entry.percentage | number:'1.0-0' }}%)</span>
+                  <span class="badge" [ngClass]="getGradeClass(entry.grade)" style="font-size: 0.75rem; padding: 0.1rem 0.5rem;">{{ entry.grade || 'Graded' }}</span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">{{ entry.submittedAt | date:'short' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question-by-Question Review (If showResultsImmediately is enabled) -->
+          <div *ngIf="resultSubmission.studentAnswers && resultSubmission.studentAnswers.length > 0">
+            <h3 style="font-size: 1.2rem; margin-bottom: 1.2rem; border-left: 3px solid var(--accent-color); padding-left: 0.75rem;">Question Review</h3>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <div *ngFor="let sa of resultSubmission.studentAnswers; let idx = index" class="neo-card-inset" style="padding: 1.25rem; border-radius: 8px;">
+                <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                  <strong style="color: var(--text-secondary);">Question {{ idx + 1 }}</strong>
+                  <div class="flex-center" style="gap: 0.8rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Score: {{ sa.awardedMarks !== null ? sa.awardedMarks : 'Pending' }} / {{ sa.question.mark }}</span>
+                    <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks > 0" class="badge badge-completed">Correct</span>
+                    <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks <= 0" class="badge badge-overdue">Incorrect</span>
+                    <span *ngIf="sa.awardedMarks === null" class="badge badge-pending">Pending Grading</span>
+                  </div>
+                </div>
+
+                <p style="font-size: 1rem; margin-bottom: 1rem;" [innerHTML]="getParsedPreview(sa.question.questionText || '')"></p>
+
+                <!-- Options list for Objective -->
+                <div *ngIf="sa.question.options && sa.question.options.length > 0" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.8rem;">
+                  <div *ngFor="let opt of sa.question.options" class="flex-between" style="padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.9rem; border: 1px solid var(--glass-border);"
+                    [style.border-color]="opt.isCorrect ? 'var(--success-color)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'var(--danger-color)' : 'var(--glass-border)')"
+                    [style.background]="opt.isCorrect ? 'rgba(16,185,129,0.06)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.15)')">
+                    <span>{{ opt.optionText }}</span>
+                    <span *ngIf="opt.isCorrect" style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">Correct Option</span>
+                    <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && !opt.isCorrect" style="color: var(--danger-color); font-weight: 600; font-size: 0.8rem;">Your Choice</span>
+                    <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && opt.isCorrect" style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">Your Choice (Correct)</span>
+                  </div>
+                </div>
+
+                <!-- Text-based typed answers (FillBlank/Subjective) -->
+                <div *ngIf="sa.question.questionType === 'FillBlank' || sa.question.questionType === 'FILL_BLANK' || sa.question.questionType === 'SHORT_ANSWER' || sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY'" style="background: rgba(0,0,0,0.12); padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.9rem; border: 1px solid var(--glass-border);">
+                  <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem;">Your Typed Answer:</div>
+                  <div style="font-style: italic; color: var(--text-primary); margin-bottom: 0.5rem;">"{{ sa.typedAnswerText || '[No Answer Typed]' }}"</div>
+
+                  <div *ngIf="sa.question.correctAnswerText" style="border-top: 1px dashed var(--glass-border); padding-top: 0.5rem; margin-top: 0.5rem; font-size: 0.85rem;">
+                    <span style="color: var(--text-secondary);">Correct Pattern Acceptances:</span>
+                    <strong style="color: var(--success-color); margin-left: 0.3rem;">{{ sa.question.correctAnswerText }}</strong>
+                  </div>
+                </div>
+
+                <!-- Explanations -->
+                <div *ngIf="sa.question.explanation" style="margin-top: 0.8rem; background: rgba(59,130,246,0.06); padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(59,130,246,0.15);">
+                  <strong style="color: var(--accent-color); display: block; margin-bottom: 0.2rem;">💡 Explanation & Rationale:</strong>
+                  <div [innerHTML]="getParsedPreview(sa.question.explanation)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 2.5rem; display: flex; justify-content: center;">
+            <button class="neo-btn" style="padding: 0.75rem 2.5rem; font-size: 1rem;" (click)="resetState()">Return to Dashboard</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Success Screen -->
       <div *ngIf="quizStep === 'success'" class="flex-center" style="min-height: 45vh;">
         <div class="neo-card" style="max-width: 450px; width: 100%; text-align: center; padding: 3rem 2rem;">
@@ -380,7 +542,7 @@
       <div *ngIf="assignStep === 'upload'" class="flex-center">
         <div class="neo-card" style="max-width: 550px; width: 100%; padding: 2.5rem;">
           <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">Submit: {{ selectedAssignment?.title }}</h3>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 2rem;">Upload your document file (PDF, DOCX, ZIP, or Image format only, maximum 10MB)</p>
+          <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Upload your document file (PDF, DOCX, ZIP, or Image format only, maximum 10MB)</p>
           
           <div 
             class="neo-file-drop" 
@@ -439,7 +601,11 @@
             <div *ngFor="let sub of allSubmissions" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
               <div>
                 <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ sub.quiz?.quizTitle || 'Quiz Attempt' }}</h4>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">Attempted: {{ sub.submittedAt | date:'medium' }}</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.3rem;">Attempted: {{ sub.submittedAt | date:'medium' }}</p>
+                <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 1rem; align-items: center;">
+                  <span>Time Taken: <strong>{{ getFormattedTimeTaken(sub.timeTakenSeconds) }}</strong></span>
+                  <span *ngIf="sub.grade">Grade: <strong class="badge" [ngClass]="getGradeClass(sub.grade)">{{ sub.grade }}</strong></span>
+                </div>
               </div>
 
               <div class="flex-center" style="gap: 1.5rem;">
@@ -494,7 +660,10 @@
             <div>
               <p style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem;">Your Score</p>
               <h1 style="font-size: 2.2rem; font-weight: 700; color: var(--accent-color);">{{ detailedSubmission.score }} / {{ detailedSubmission.totalMarks }}</h1>
-              <span style="font-size: 0.95rem; color: var(--text-secondary);">Passing criteria: {{ detailedSubmission.quiz?.passingMarks }}</span>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; margin-top: 0.3rem;">
+                <span>Passing criteria: {{ detailedSubmission.quiz?.passingMarks }}</span>
+                <span *ngIf="detailedSubmission.grade" class="badge" [ngClass]="getGradeClass(detailedSubmission.grade)">{{ detailedSubmission.grade }}</span>
+              </div>
             </div>
             <div style="text-align: right;">
               <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem; display: block;">Result Status</span>
@@ -570,6 +739,12 @@
               </div>
             </div>
 
+            <!-- Explanations -->
+            <div *ngIf="sa.question.explanation" style="margin-top: 0.8rem; background: rgba(59,130,246,0.06); padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(59,130,246,0.15);">
+              <strong style="color: var(--accent-color); display: block; margin-bottom: 0.2rem;">💡 Explanation & Rationale:</strong>
+              <div [innerHTML]="getParsedPreview(sa.question.explanation)"></div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -578,3 +753,4 @@
 
   </div>
 </div>
+

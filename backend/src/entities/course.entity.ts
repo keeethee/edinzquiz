@@ -1,31 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { QuizEntity } from './quiz.entity';
-import { AssignmentSubmissionEntity } from './assignment-submission.entity';
-import { AssignmentEntity } from './assignment.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-@Entity('courses')
+export type CourseDocument = CourseEntity & Document;
+
+@Schema({ collection: 'courses', timestamps: true })
 export class CourseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  _id: string;
 
-  @Column({ unique: true })
+  @Prop({ required: true, unique: true })
   courseId: string; // e.g. 'CS-101' or '412'
 
-  @Column()
+  @Prop({ required: true })
   courseName: string;
 
-  @Column({ nullable: true })
+  @Prop()
   duration: string;
 
-  @Column({ default: 'Active' })
+  @Prop({ default: 'Active' })
   status: string; // 'Active' or 'Inactive'
-
-  @OneToMany(() => QuizEntity, (quiz) => quiz.course, { cascade: true })
-  quizzes: QuizEntity[];
-
-  @OneToMany(() => AssignmentSubmissionEntity, (sub) => sub.course, { cascade: true })
-  submissions: AssignmentSubmissionEntity[];
-
-  @OneToMany(() => AssignmentEntity, (assignment) => assignment.course, { cascade: true })
-  assignments: AssignmentEntity[];
 }
+
+export const CourseSchema = SchemaFactory.createForClass(CourseEntity);

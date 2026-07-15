@@ -1,20 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 import { CourseEntity } from './course.entity';
 
-@Entity('assignments')
-export class AssignmentEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+export type AssignmentDocument = AssignmentEntity & Document;
 
-  @Column()
+@Schema({ collection: 'assignments', timestamps: true })
+export class AssignmentEntity {
+  _id: string;
+
+  @Prop({ required: true })
   title: string;
 
-  @Column({ nullable: true, type: 'text' })
-  description: string;
+  @Prop({ type: String, default: null })
+  description: string | null;
 
-  @Column()
+  @Prop({ required: true })
   deadline: Date;
 
-  @ManyToOne(() => CourseEntity, (course) => course.assignments, { onDelete: 'CASCADE' })
-  course: CourseEntity;
+  @Prop({ type: Types.ObjectId, ref: 'CourseEntity', required: true, index: true })
+  course: CourseEntity | string;
 }
+
+export const AssignmentSchema = SchemaFactory.createForClass(AssignmentEntity);

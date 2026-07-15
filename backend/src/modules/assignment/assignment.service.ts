@@ -1,128 +1,122 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { AssignmentEntity } from '../../entities/assignment.entity';
-import { AssignmentSubmissionEntity } from '../../entities/assignment-submission.entity';
-import { CourseEntity } from '../../entities/course.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { AssignmentEntity, AssignmentDocument } from '../../entities/assignment.entity';
+import { AssignmentSubmissionEntity, AssignmentSubmissionDocument } from '../../entities/assignment-submission.entity';
+import { CourseEntity, CourseDocument } from '../../entities/course.entity';
 
 @Injectable()
 export class AssignmentService {
   constructor(
-    @InjectRepository(AssignmentEntity)
-    private assignmentRepository: Repository<AssignmentEntity>,
-    @InjectRepository(AssignmentSubmissionEntity)
-    private submissionRepository: Repository<AssignmentSubmissionEntity>,
-    @InjectRepository(CourseEntity)
-    private courseRepository: Repository<CourseEntity>,
+    @InjectModel(AssignmentEntity.name)
+    private assignmentModel: Model<AssignmentDocument>,
+    @InjectModel(AssignmentSubmissionEntity.name)
+    private submissionModel: Model<AssignmentSubmissionDocument>,
+    @InjectModel(CourseEntity.name)
+    private courseModel: Model<CourseDocument>,
   ) {}
 
-  async create(courseId: number, title: string, description: string, deadline: Date): Promise<AssignmentEntity> {
-    const course = await this.courseRepository.findOneBy({ id: courseId });
+  async create(courseId: string, title: string, description: string, deadline: Date): Promise<any> {
+    const course = await this.courseModel.findById(courseId).exec();
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
     }
-    const assignment = this.assignmentRepository.create({
+    const assignment = new this.assignmentModel({
       title,
       description,
       deadline,
-      course,
+      course: courseId,
     });
-    return this.assignmentRepository.save(assignment);
+    return assignment.save();
   }
 
-  async getAssignmentsByCourse(courseId: number): Promise<AssignmentEntity[]> {
-    return this.assignmentRepository.find({
-      where: { course: { id: courseId } },
-      order: { deadline: 'ASC' },
-    });
+  async getAssignmentsByCourse(courseId: string): Promise<any[]> {
+    return this.assignmentModel.find({ course: courseId })
+      .sort({ deadline: 1 })
+      .exec();
   }
 
-  async findOne(id: number): Promise<AssignmentEntity> {
-    const assignment = await this.assignmentRepository.findOne({
-      where: { id },
-      relations: { course: true },
-    });
+  async findOne(id: string): Promise<any> {
+    const assignment = await this.assignmentModel.findById(id).populate('course').exec();
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${id} not found`);
     }
     return assignment;
   }
 
-  async delete(id: number): Promise<void> {
-    const result = await this.assignmentRepository.delete(id);
-    if (result.affected === 0) {
+  async delete(id: string): Promise<void> {
+    const result = await this.assignmentModel.findByIdAndDelete(id).exec();
+    if (!result) {
       throw new NotFoundException(`Assignment with ID ${id} not found`);
     }
   }
 
   async submitAssignment(
-    courseId: number,
+    courseId: string,
     studentName: string,
     collegeName: string,
-    assignmentId: number,
+    assignmentId: string,
     file: Express.Multer.File,
-  ): Promise<AssignmentSubmissionEntity> {
-    const course = await this.courseRepository.findOneBy({ id: courseId });
+  ): Promise<any> {
+    const course = await this.courseModel.findById(courseId).exec();
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
     }
-    const assignment = await this.assignmentRepository.findOneBy({ id: assignmentId });
+    const assignment = await this.assignmentModel.findById(assignmentId).exec();
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    const submission = this.submissionRepository.create({
+    const submission = new this.submissionModel({
       studentName,
       collegeName,
       courseName: course.courseName,
       fileName: file.originalname,
       filePath: file.path,
-      course,
-      assignment,
+      course: courseId,
+      assignment: assignmentId,
     });
 
-    return this.submissionRepository.save(submission);
+    return submission.save();
   }
 
-  async getSubmissions(): Promise<AssignmentSubmissionEntity[]> {
-    return this.submissionRepository.find({
-      relations: { course: true, assignment: true },
-      order: { submittedAt: 'DESC' },
-    });
+  async getSubmissions(): Promise<any[]> {
+    return this.submissionModel.find()
+      .populate('course')
+      .populate('assignment')
+      .sort({ submittedAt: -1 })
+      .exec();
   }
 
-  async getSubmission(id: number): Promise<AssignmentSubmissionEntity> {
-    const submission = await this.submissionRepository.findOne({
-      where: { id },
-      relations: { course: true },
-    });
+  async getSubmission(id: string): Promise<any> {
+    const submission = await this.submissionModel.findById(id).populate('course').exec();
     if (!submission) {
       throw new NotFoundException(`Submission with ID ${id} not found`);
     }
     return submission;
   }
 
-  async gradeSubmission(id: number, marks: number, feedback: string): Promise<AssignmentSubmissionEntity> {
+  async gradeSubmission(id: string, marks: number, feedback: string): Promise<any> {
     const submission = await this.getSubmission(id);
     submission.marks = marks;
     submission.feedback = feedback;
-    return this.submissionRepository.save(submission);
+    return submission.save();
   }
 
-  async getStudentSubmissions(studentName: string, collegeName: string): Promise<AssignmentSubmissionEntity[]> {
-    return this.submissionRepository.find({
-      where: { studentName, collegeName },
-      relations: { course: true, assignment: true },
-      order: { submittedAt: 'DESC' },
-    });
+  async getStudentSubmissions(studentName: string, collegeName: string): Promise<any[]> {
+    return this.submissionModel.find({ studentName, collegeName })
+      .populate('course')
+      .populate('assignment')
+      .sort({ submittedAt: -1 })
+      .exec();
   }
 
-  async updateAssignment(id: number, attrs: Partial<AssignmentEntity>): Promise<AssignmentEntity> {
-    const assignment = await this.assignmentRepository.findOneBy({ id });
+  async updateAssignment(id: string, attrs: Partial<AssignmentEntity>): Promise<any> {
+    const assignment = await this.assignmentModel.findById(id).exec();
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${id} not found`);
     }
     Object.assign(assignment, attrs);
-    return this.assignmentRepository.save(assignment);
+    return assignment.save();
   }
 }

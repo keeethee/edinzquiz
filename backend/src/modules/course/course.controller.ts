@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CourseEntity } from '../../entities/course.entity';
 import { AuthGuard } from '../auth/auth.guard';
@@ -21,7 +21,7 @@ export class CourseController {
   @UseGuards(AuthGuard)
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body('courseId') courseId: string,
     @Body('courseName') courseName: string,
     @Body('duration') duration?: string,
@@ -44,13 +44,13 @@ export class CourseController {
 
   @UseGuards(AuthGuard)
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<CourseEntity> {
+  findOne(@Param('id') id: string): Promise<CourseEntity> {
     return this.courseService.findOne(id);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  delete(@Param('id') id: string): Promise<void> {
     return this.courseService.delete(id);
   }
 }

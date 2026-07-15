@@ -1,45 +1,34 @@
 import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { QuizEntity } from '../../entities/quiz.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { QuizEntity, QuizDocument } from '../../entities/quiz.entity';
+import { QuizSubmissionEntity, QuizSubmissionDocument } from '../../entities/quiz-submission.entity';
+import { CourseEntity, CourseDocument } from '../../entities/course.entity';
+import { StudentEntity, StudentDocument } from '../../entities/student.entity';
+import { CategoryEntity, CategoryDocument } from '../../entities/category.entity';
+import { MediaAttachmentEntity, MediaAttachmentDocument } from '../../entities/media-attachment.entity';
 import { QuestionEntity } from '../../entities/question.entity';
-import { OptionEntity } from '../../entities/option.entity';
-import { QuizSubmissionEntity } from '../../entities/quiz-submission.entity';
-import { StudentAnswerEntity } from '../../entities/student-answer.entity';
-import { CourseEntity } from '../../entities/course.entity';
-import { StudentEntity } from '../../entities/student.entity';
-import { CategoryEntity } from '../../entities/category.entity';
-import { QuizSettingsEntity } from '../../entities/quiz-settings.entity';
-import { MediaAttachmentEntity } from '../../entities/media-attachment.entity';
 
 @Injectable()
 export class QuizService implements OnModuleInit {
   constructor(
-    @InjectRepository(QuizEntity)
-    private quizRepository: Repository<QuizEntity>,
-    @InjectRepository(QuestionEntity)
-    private questionRepository: Repository<QuestionEntity>,
-    @InjectRepository(OptionEntity)
-    private optionRepository: Repository<OptionEntity>,
-    @InjectRepository(QuizSubmissionEntity)
-    private submissionRepository: Repository<QuizSubmissionEntity>,
-    @InjectRepository(StudentAnswerEntity)
-    private studentAnswerRepository: Repository<StudentAnswerEntity>,
-    @InjectRepository(CourseEntity)
-    private courseRepository: Repository<CourseEntity>,
-    @InjectRepository(StudentEntity)
-    private studentRepository: Repository<StudentEntity>,
-    @InjectRepository(CategoryEntity)
-    private categoryRepository: Repository<CategoryEntity>,
-    @InjectRepository(QuizSettingsEntity)
-    private settingsRepository: Repository<QuizSettingsEntity>,
-    @InjectRepository(MediaAttachmentEntity)
-    private mediaRepository: Repository<MediaAttachmentEntity>,
+    @InjectModel(QuizEntity.name)
+    private quizModel: Model<QuizDocument>,
+    @InjectModel(QuizSubmissionEntity.name)
+    private submissionModel: Model<QuizSubmissionDocument>,
+    @InjectModel(CourseEntity.name)
+    private courseModel: Model<CourseDocument>,
+    @InjectModel(StudentEntity.name)
+    private studentModel: Model<StudentDocument>,
+    @InjectModel(CategoryEntity.name)
+    private categoryModel: Model<CategoryDocument>,
+    @InjectModel(MediaAttachmentEntity.name)
+    private mediaModel: Model<MediaAttachmentDocument>,
   ) {}
 
   async onModuleInit() {
-    // Seed standard quiz categories if the database categories table is empty
-    const count = await this.categoryRepository.count();
+    // Seed standard quiz categories if the database categories collection is empty
+    const count = await this.categoryModel.countDocuments();
     if (count === 0) {
       const categories = [
         { name: 'Programming', description: 'Coding, scripts, and software engineering questions' },
@@ -48,26 +37,26 @@ export class QuizService implements OnModuleInit {
         { name: 'General', description: 'General Knowledge and general education trivia' },
         { name: 'Subjective Essay', description: 'Essay-based long form assessment tasks' },
       ];
-      await this.categoryRepository.save(categories);
-      console.log('Quiz categories successfully seeded!');
+      await this.categoryModel.insertMany(categories);
+      console.log('Quiz categories successfully seeded in MongoDB!');
     }
   }
 
   // Categories operations
   async getCategories(): Promise<CategoryEntity[]> {
-    return this.categoryRepository.find({ order: { name: 'ASC' } });
+    return this.categoryModel.find().sort({ name: 1 }).exec();
   }
 
   async createCategory(name: string, description?: string): Promise<CategoryEntity> {
-    const existing = await this.categoryRepository.findOneBy({ name });
+    const existing = await this.categoryModel.findOne({ name }).exec();
     if (existing) return existing;
-    const cat = this.categoryRepository.create({ name, description });
-    return this.categoryRepository.save(cat);
+    const cat = new this.categoryModel({ name, description });
+    return cat.save();
   }
 
   // Quiz CRUD & configurations
   async createQuiz(
-    courseId: number,
+    courseId: string,
     quizTitle: string,
     startTime: Date,
     endTime: Date,
@@ -80,20 +69,20 @@ export class QuizService implements OnModuleInit {
     shuffleOptions: boolean = false,
     description?: string,
     difficulty: string = 'Medium',
-    categoryId?: number,
+    categoryId?: string,
     settingsData?: { maxAttempts?: number; passingPercentage?: number; showResultsImmediately?: boolean }
-  ): Promise<QuizEntity> {
-    const course = await this.courseRepository.findOneBy({ id: courseId });
+  ): Promise<any> {
+    const course = await this.courseModel.findById(courseId).exec();
     if (!course) {
       throw new NotFoundException(`Course not found`);
     }
 
     let category = null;
     if (categoryId) {
-      category = await this.categoryRepository.findOneBy({ id: categoryId });
+      category = await this.categoryModel.findById(categoryId).exec();
     }
 
-    const quiz = this.quizRepository.create({
+    const quiz = new this.quizModel({
       quizTitle,
       startTime,
       endTime,
@@ -108,77 +97,55 @@ export class QuizService implements OnModuleInit {
       resultsPublished: false,
       description: description || null,
       difficulty,
-      course,
-      category,
+      course: courseId,
+      category: categoryId || null,
+      settings: {
+        maxAttempts: settingsData?.maxAttempts ?? 1,
+        passingPercentage: settingsData?.passingPercentage ?? 40,
+        showResultsImmediately: settingsData?.showResultsImmediately ?? true,
+      },
+      questions: [],
     });
 
-    const savedQuiz = await this.quizRepository.save(quiz);
-
-    // Create 1-to-1 QuizSettings record
-    const settings = this.settingsRepository.create({
-      maxAttempts: settingsData?.maxAttempts ?? 1,
-      passingPercentage: settingsData?.passingPercentage ?? 40,
-      showResultsImmediately: settingsData?.showResultsImmediately ?? true,
-      quiz: savedQuiz,
-    });
-    await this.settingsRepository.save(settings);
-
-    return this.getQuiz(savedQuiz.id);
+    return quiz.save();
   }
 
-  async getQuizzesByCourse(courseId: number): Promise<QuizEntity[]> {
-    return this.quizRepository.find({
-      where: { course: { id: courseId } },
-      relations: { category: true, settings: true },
-      order: { id: 'DESC' },
-    });
+  async getQuizzesByCourse(courseId: string): Promise<any[]> {
+    return this.quizModel.find({ course: courseId })
+      .populate('category')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
-  async getQuiz(id: number): Promise<QuizEntity> {
-    const quiz = await this.quizRepository.findOne({
-      where: { id },
-      relations: { course: true, category: true, settings: true, questions: { options: true } },
-      order: {
-        questions: {
-          orderIndex: 'ASC'
-        }
-      }
-    });
+  async getQuiz(id: string): Promise<any> {
+    const quiz = await this.quizModel.findById(id)
+      .populate('course')
+      .populate('category')
+      .exec();
     if (!quiz) {
       throw new NotFoundException(`Quiz not found`);
-    }
-
-    // Eager seed settings for backwards compatibility
-    if (!quiz.settings) {
-      const settings = this.settingsRepository.create({
-        maxAttempts: 1,
-        passingPercentage: Math.round((quiz.passingMarks / (quiz.totalMarks || 100)) * 100),
-        showResultsImmediately: true,
-        quiz: quiz
-      });
-      quiz.settings = await this.settingsRepository.save(settings);
     }
     return quiz;
   }
 
   async updateTiming(
-    id: number,
+    id: string,
     startTime?: Date,
     endTime?: Date,
     status?: string,
     resultsPublished?: boolean,
-  ): Promise<QuizEntity> {
+  ): Promise<any> {
     const quiz = await this.getQuiz(id);
     if (startTime) quiz.startTime = startTime;
     if (endTime) quiz.endTime = endTime;
     if (status) quiz.status = status;
     if (resultsPublished !== undefined) quiz.resultsPublished = resultsPublished;
-    return this.quizRepository.save(quiz);
+    return quiz.save();
   }
 
   // Unified quiz settings update
   async updateQuiz(
-    id: number,
+    id: string,
     data: {
       quizTitle?: string;
       description?: string;
@@ -193,7 +160,7 @@ export class QuizService implements OnModuleInit {
       shuffleQuestions?: boolean;
       shuffleOptions?: boolean;
       resultsPublished?: boolean;
-      categoryId?: number;
+      categoryId?: string;
       settings?: {
         maxAttempts?: number;
         passingPercentage?: number;
@@ -201,11 +168,8 @@ export class QuizService implements OnModuleInit {
       };
       questions?: any[];
     }
-  ): Promise<QuizEntity> {
-    const quiz = await this.quizRepository.findOne({
-      where: { id },
-      relations: { course: true, category: true, settings: true }
-    });
+  ): Promise<any> {
+    const quiz = await this.quizModel.findById(id).exec();
     if (!quiz) throw new NotFoundException(`Quiz not found`);
 
     if (data.quizTitle !== undefined) quiz.quizTitle = data.quizTitle;
@@ -223,105 +187,66 @@ export class QuizService implements OnModuleInit {
     if (data.resultsPublished !== undefined) quiz.resultsPublished = data.resultsPublished;
 
     if (data.categoryId !== undefined) {
-      if (data.categoryId) {
-        const cat = await this.categoryRepository.findOneBy({ id: data.categoryId });
-        quiz.category = cat;
-      } else {
-        quiz.category = null;
-      }
+      quiz.category = data.categoryId || null;
     }
 
-    const savedQuiz = await this.quizRepository.save(quiz);
-
     if (data.settings) {
-      let settings = savedQuiz.settings;
-      if (!settings) {
-        settings = this.settingsRepository.create({ quiz: savedQuiz });
+      if (!quiz.settings) {
+        quiz.settings = {} as any;
       }
-      if (data.settings.maxAttempts !== undefined) settings.maxAttempts = data.settings.maxAttempts;
-      if (data.settings.passingPercentage !== undefined) settings.passingPercentage = data.settings.passingPercentage;
-      if (data.settings.showResultsImmediately !== undefined) settings.showResultsImmediately = data.settings.showResultsImmediately;
-      await this.settingsRepository.save(settings);
+      if (data.settings.maxAttempts !== undefined) quiz.settings.maxAttempts = data.settings.maxAttempts;
+      if (data.settings.passingPercentage !== undefined) quiz.settings.passingPercentage = data.settings.passingPercentage;
+      if (data.settings.showResultsImmediately !== undefined) quiz.settings.showResultsImmediately = data.settings.showResultsImmediately;
     }
 
     if (data.questions !== undefined) {
-      const existingQs = await this.questionRepository.find({
-        where: { quiz: { id: quiz.id } },
-        relations: { options: true }
-      });
-      
-      const keepQIds: number[] = [];
-
-      for (let idx = 0; idx < data.questions.length; idx++) {
-        const nq = data.questions[idx];
-        let qEntity = null;
-        if (nq.id) {
-          qEntity = existingQs.find(eq => eq.id === nq.id);
-        }
-
-        if (!qEntity) {
-          qEntity = this.questionRepository.create({ quiz: savedQuiz });
-        }
-
-        qEntity.questionText = nq.questionText;
-        qEntity.questionType = nq.questionType;
-        qEntity.mark = nq.mark;
-        qEntity.correctAnswerText = nq.correctAnswerText || null;
-        qEntity.orderIndex = idx;
-        qEntity.explanation = nq.explanation || null;
-        qEntity.caseSensitive = nq.caseSensitive || false;
-        qEntity.sampleAnswer = nq.sampleAnswer || null;
-
-        const savedQ = await this.questionRepository.save(qEntity);
-        keepQIds.push(savedQ.id);
-
-        if (nq.options !== undefined) {
-          const existingOpts = qEntity.options || [];
-          if (existingOpts.length > 0) {
-            await this.optionRepository.remove(existingOpts);
-          }
-          if (nq.options.length > 0) {
-            const newOpts = nq.options.map((opt: any) => this.optionRepository.create({
-              optionText: opt.optionText,
-              isCorrect: opt.isCorrect,
-              question: savedQ,
-            }));
-            await this.optionRepository.save(newOpts);
-          }
-        }
-      }
-
-      const deleteQs = existingQs.filter(eq => !keepQIds.includes(eq.id));
-      if (deleteQs.length > 0) {
-        await this.questionRepository.remove(deleteQs);
-      }
+      quiz.questions = data.questions.map((nq, idx) => {
+        const questionId = nq._id || nq.id || new Types.ObjectId();
+        const options = (nq.options || []).map((o: any) => ({
+          _id: o._id || o.id || new Types.ObjectId(),
+          optionText: o.optionText,
+          isCorrect: o.isCorrect || false,
+        }));
+        return {
+          _id: questionId.toString(),
+          questionText: nq.questionText,
+          questionType: nq.questionType,
+          mark: nq.mark || 1,
+          correctAnswerText: nq.correctAnswerText || null,
+          orderIndex: idx,
+          explanation: nq.explanation || null,
+          caseSensitive: nq.caseSensitive || false,
+          sampleAnswer: nq.sampleAnswer || null,
+          options,
+        };
+      }) as any;
     }
 
     // Automatically calculate and sync totalMarks
-    await this.recalculateTotalMarks(savedQuiz.id);
+    quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
 
-    return this.getQuiz(savedQuiz.id);
+    return quiz.save();
   }
 
-  async recalculateTotalMarks(quizId: number): Promise<number> {
-    const questions = await this.questionRepository.find({
-      where: { quiz: { id: quizId } }
-    });
-    const total = questions.reduce((sum, q) => sum + (q.mark || 0), 0);
-    await this.quizRepository.update(quizId, { totalMarks: total });
+  async recalculateTotalMarks(quizId: string): Promise<number> {
+    const quiz = await this.quizModel.findById(quizId).exec();
+    if (!quiz) throw new NotFoundException('Quiz not found');
+    const total = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
+    quiz.totalMarks = total;
+    await quiz.save();
     return total;
   }
 
-  async deleteQuiz(id: number): Promise<void> {
-    await this.quizRepository.delete(id);
+  async deleteQuiz(id: string): Promise<void> {
+    await this.quizModel.findByIdAndDelete(id).exec();
   }
 
   // Quiz duplication logic
-  async duplicateQuiz(id: number): Promise<QuizEntity> {
+  async duplicateQuiz(id: string): Promise<any> {
     const orig = await this.getQuiz(id);
     if (!orig) throw new NotFoundException('Quiz to duplicate not found');
 
-    const duplicatedQuiz = this.quizRepository.create({
+    const duplicatedQuiz = new this.quizModel({
       quizTitle: `Copy of ${orig.quizTitle}`,
       description: orig.description,
       difficulty: orig.difficulty,
@@ -338,24 +263,11 @@ export class QuizService implements OnModuleInit {
       resultsPublished: false,
       course: orig.course,
       category: orig.category,
-    });
-
-    const savedQuiz = await this.quizRepository.save(duplicatedQuiz);
-
-    // Duplicate settings 1-to-1
-    const origSettings = orig.settings;
-    const settings = this.settingsRepository.create({
-      maxAttempts: origSettings?.maxAttempts ?? 1,
-      passingPercentage: origSettings?.passingPercentage ?? 40,
-      showResultsImmediately: origSettings?.showResultsImmediately ?? true,
-      quiz: savedQuiz,
-    });
-    await this.settingsRepository.save(settings);
-
-    // Duplicate questions and options
-    if (orig.questions && orig.questions.length > 0) {
-      for (const q of orig.questions) {
-        const dupQ = this.questionRepository.create({
+      settings: orig.settings,
+      questions: orig.questions.map((q: any) => {
+        const qId = new Types.ObjectId();
+        return {
+          _id: qId.toString(),
           questionText: q.questionText,
           questionType: q.questionType,
           mark: q.mark,
@@ -364,73 +276,64 @@ export class QuizService implements OnModuleInit {
           explanation: q.explanation,
           caseSensitive: q.caseSensitive,
           sampleAnswer: q.sampleAnswer,
-          quiz: savedQuiz,
-        });
-        const savedQ = await this.questionRepository.save(dupQ);
-
-        if (q.options && q.options.length > 0) {
-          const dupOpts = q.options.map(opt => this.optionRepository.create({
+          options: q.options.map((opt: any) => ({
+            _id: new Types.ObjectId().toString(),
             optionText: opt.optionText,
             isCorrect: opt.isCorrect,
-            question: savedQ,
-          }));
-          await this.optionRepository.save(dupOpts);
-        }
-      }
-    }
+          })),
+        };
+      }),
+    });
 
-    return this.getQuiz(savedQuiz.id);
+    return duplicatedQuiz.save();
   }
 
   // Question & Option CRUD & updates
   async addQuestion(
-    quizId: number,
+    quizId: string,
     questionText: string,
     questionType: string,
     mark: number,
     correctAnswerText?: string,
     optionsData?: { optionText: string; isCorrect: boolean }[],
-  ): Promise<QuestionEntity> {
-    const quiz = await this.quizRepository.findOneBy({ id: quizId });
+  ): Promise<any> {
+    const quiz = await this.quizModel.findById(quizId).exec();
     if (!quiz) throw new NotFoundException(`Quiz not found`);
 
-    const count = await this.questionRepository.countBy({ quiz: { id: quizId } });
+    const questionId = new Types.ObjectId();
+    const options = (optionsData || []).map(o => ({
+      _id: new Types.ObjectId().toString(),
+      optionText: o.optionText,
+      isCorrect: o.isCorrect || false,
+    }));
 
-    const question = this.questionRepository.create({
+    const newQuestion = {
+      _id: questionId.toString(),
       questionText,
       questionType,
       mark,
       correctAnswerText: correctAnswerText || null,
-      orderIndex: count,
-      quiz,
-    });
+      orderIndex: quiz.questions.length,
+      options,
+    };
 
-    const savedQuestion = await this.questionRepository.save(question);
+    quiz.questions.push(newQuestion as any);
+    quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
+    await quiz.save();
 
-    if (optionsData && optionsData.length > 0) {
-      const options = optionsData.map(opt => this.optionRepository.create({
-        optionText: opt.optionText,
-        isCorrect: opt.isCorrect,
-        question: savedQuestion,
-      }));
-      await this.optionRepository.save(options);
-    }
-
-    await this.recalculateTotalMarks(quizId);
-    return this.getQuestion(savedQuestion.id);
+    return newQuestion;
   }
 
-  async getQuestion(id: number): Promise<QuestionEntity> {
-    const question = await this.questionRepository.findOne({
-      where: { id },
-      relations: { options: true },
-    });
+  async getQuestion(id: string): Promise<any> {
+    const quiz = await this.quizModel.findOne({ 'questions._id': id }).exec();
+    if (!quiz) throw new NotFoundException(`Question not found`);
+    const question = quiz.questions.find(q => q._id.toString() === id.toString());
     if (!question) throw new NotFoundException(`Question not found`);
     return question;
   }
 
   async updateQuestion(
-    id: number,
+    id: string,
     data: {
       questionText?: string;
       questionType?: string;
@@ -441,11 +344,10 @@ export class QuizService implements OnModuleInit {
       sampleAnswer?: string;
       options?: { optionText: string; isCorrect: boolean }[];
     }
-  ): Promise<QuestionEntity> {
-    const q = await this.questionRepository.findOne({
-      where: { id },
-      relations: { quiz: true, options: true }
-    });
+  ): Promise<any> {
+    const quiz = await this.quizModel.findOne({ 'questions._id': id }).exec();
+    if (!quiz) throw new NotFoundException('Question not found');
+    const q = quiz.questions.find(q => q._id.toString() === id.toString());
     if (!q) throw new NotFoundException('Question not found');
 
     if (data.questionText !== undefined) q.questionText = data.questionText;
@@ -456,61 +358,73 @@ export class QuizService implements OnModuleInit {
     if (data.caseSensitive !== undefined) q.caseSensitive = data.caseSensitive;
     if (data.sampleAnswer !== undefined) q.sampleAnswer = data.sampleAnswer || null;
 
-    const savedQ = await this.questionRepository.save(q);
-
     if (data.options !== undefined) {
-      if (q.options && q.options.length > 0) {
-        await this.optionRepository.remove(q.options);
-      }
-      if (data.options.length > 0) {
-        const newOpts = data.options.map(opt => this.optionRepository.create({
-          optionText: opt.optionText,
-          isCorrect: opt.isCorrect,
-          question: savedQ,
-        }));
-        await this.optionRepository.save(newOpts);
-      }
+      q.options = data.options.map(opt => ({
+        _id: new Types.ObjectId().toString(),
+        optionText: opt.optionText,
+        isCorrect: opt.isCorrect,
+      })) as any;
     }
 
-    await this.recalculateTotalMarks(q.quiz.id);
-    return this.getQuestion(savedQ.id);
+    quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
+    await quiz.save();
+    return q;
   }
 
-  async deleteQuestion(id: number): Promise<void> {
-    const q = await this.questionRepository.findOne({
-      where: { id },
-      relations: { quiz: true }
+  async deleteQuestion(id: string): Promise<void> {
+    const quiz = await this.quizModel.findOne({ 'questions._id': id }).exec();
+    if (quiz) {
+      quiz.questions = quiz.questions.filter(q => q._id.toString() !== id.toString());
+      quiz.questions.forEach((q, idx) => { q.orderIndex = idx; });
+      quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
+      await quiz.save();
+    }
+  }
+
+  async updateAnswerKey(questionId: string, correctOptionId: string): Promise<void> {
+    const quiz = await this.quizModel.findOne({ 'questions._id': questionId }).exec();
+    if (!quiz) throw new NotFoundException('Question not found');
+    const q = quiz.questions.find(q => q._id.toString() === questionId.toString());
+    if (!q) throw new NotFoundException('Question not found');
+    
+    q.options.forEach(opt => {
+      opt.isCorrect = opt._id.toString() === correctOptionId.toString();
     });
-    if (q) {
-      const quizId = q.quiz.id;
-      await this.questionRepository.remove(q);
-      await this.recalculateTotalMarks(quizId);
-    }
+    await quiz.save();
   }
 
-  async updateAnswerKey(questionId: number, correctOptionId: number): Promise<void> {
-    const question = await this.getQuestion(questionId);
-    for (const opt of question.options) {
-      opt.isCorrect = opt.id === correctOptionId;
-      await this.optionRepository.save(opt);
-    }
-  }
+  async reorderQuestions(quizId: string, questionIds: string[]): Promise<void> {
+    const quiz = await this.quizModel.findById(quizId).exec();
+    if (!quiz) throw new NotFoundException('Quiz not found');
 
-  async reorderQuestions(quizId: number, questionIds: number[]): Promise<void> {
-    for (let index = 0; index < questionIds.length; index++) {
-      const qId = questionIds[index];
-      await this.questionRepository.update({ id: qId, quiz: { id: quizId } }, { orderIndex: index });
+    const newQs: any[] = [];
+    for (const qId of questionIds) {
+      const found = quiz.questions.find(q => q._id.toString() === qId.toString());
+      if (found) newQs.push(found);
     }
+
+    quiz.questions.forEach(q => {
+      if (!newQs.some(nq => nq._id.toString() === q._id.toString())) {
+        newQs.push(q);
+      }
+    });
+
+    newQs.forEach((q, index) => {
+      q.orderIndex = index;
+    });
+
+    quiz.questions = newQs;
+    await quiz.save();
   }
 
   // Media attachments logger
   async logMediaAttachment(fileName: string, filePath: string, fileType: string): Promise<MediaAttachmentEntity> {
-    const att = this.mediaRepository.create({ fileName, filePath, fileType });
-    return this.mediaRepository.save(att);
+    const att = new this.mediaModel({ fileName, filePath, fileType });
+    return att.save();
   }
 
   // Access checkers
-  getQuizAccessStatus(quiz: QuizEntity): 'not-started' | 'active' | 'closed' | 'stopped' {
+  getQuizAccessStatus(quiz: any): 'not-started' | 'active' | 'closed' | 'stopped' {
     if (quiz.status === 'Force stopped') return 'stopped';
     if (quiz.status === 'Closed' || quiz.status === 'Archived') return 'closed';
     
@@ -521,11 +435,11 @@ export class QuizService implements OnModuleInit {
   }
 
   // Student specific clean details fetching
-  async getQuizForStudent(quizId: number): Promise<any> {
-    const quiz = await this.quizRepository.findOne({
-      where: { id: quizId },
-      relations: { course: true, category: true, settings: true, questions: { options: true } },
-    });
+  async getQuizForStudent(quizId: string): Promise<any> {
+    const quiz = await this.quizModel.findById(quizId)
+      .populate('course')
+      .populate('category')
+      .exec();
 
     if (!quiz) {
       throw new NotFoundException(`Quiz not found`);
@@ -534,7 +448,7 @@ export class QuizService implements OnModuleInit {
     const access = this.getQuizAccessStatus(quiz);
     if (access !== 'active') {
       return {
-        id: quiz.id,
+        id: quiz._id,
         quizTitle: quiz.quizTitle,
         startTime: quiz.startTime,
         endTime: quiz.endTime,
@@ -548,18 +462,18 @@ export class QuizService implements OnModuleInit {
     }
 
     const cleanQuestions = quiz.questions.map(q => ({
-      id: q.id,
+      id: q._id,
       questionText: q.questionText,
       questionType: q.questionType,
       mark: q.mark,
       options: q.options.map(o => ({
-        id: o.id,
+        id: o._id,
         optionText: o.optionText,
       })),
     }));
 
     return {
-      id: quiz.id,
+      id: quiz._id,
       quizTitle: quiz.quizTitle,
       startTime: quiz.startTime,
       endTime: quiz.endTime,
@@ -577,15 +491,12 @@ export class QuizService implements OnModuleInit {
 
   // Timed student submission with automated grading engine
   async submitQuiz(
-    quizId: number,
-    studentId: number,
-    selectedAnswers: { questionId: number; selectedOptionId?: number; selectedOptionIds?: number[]; typedAnswerText?: string }[],
-  ): Promise<QuizSubmissionEntity> {
-    const quiz = await this.quizRepository.findOne({
-      where: { id: quizId },
-      relations: { course: true, settings: true, questions: { options: true } },
-    });
-
+    quizId: string,
+    studentId: string,
+    selectedAnswers: { questionId: string; selectedOptionId?: string; selectedOptionIds?: string[]; typedAnswerText?: string }[],
+    timeTakenSeconds: number = 0,
+  ): Promise<any> {
+    const quiz = await this.quizModel.findById(quizId).populate('course').exec();
     if (!quiz) throw new NotFoundException(`Quiz not found`);
 
     const access = this.getQuizAccessStatus(quiz);
@@ -596,32 +507,33 @@ export class QuizService implements OnModuleInit {
       throw new BadRequestException('Quiz submission blocked: Time limit exceeded or quiz not active.');
     }
 
-    const student = await this.studentRepository.findOneBy({ id: studentId });
+    const student = await this.studentModel.findById(studentId).exec();
     if (!student) throw new NotFoundException('Student account not found');
 
     // Handle multiple attempts restrictions using Settings maxAttempts limit
-    const attemptsCount = await this.submissionRepository.count({
-      where: { quiz: { id: quizId }, student: { id: studentId } },
+    const attemptsCount = await this.submissionModel.countDocuments({
+      quiz: quizId,
+      student: studentId,
     });
     const maxAttempts = quiz.settings?.maxAttempts ?? 1;
     if (attemptsCount >= maxAttempts) {
       throw new BadRequestException(`Submission blocked: You have reached the maximum allowed attempts (${maxAttempts}) for this quiz.`);
     }
 
-    let totalScore = 0;
+    let rawScore = 0;
     let correctCount = 0;
     let wrongCount = 0;
     let unansweredCount = 0;
     let hasSubjective = false;
 
-    const studentAnswersEntities: StudentAnswerEntity[] = [];
+    const studentAnswersEntities: any[] = [];
 
     for (const q of quiz.questions) {
       if (q.questionType === 'Subjective' || q.questionType === 'ESSAY') {
         hasSubjective = true;
       }
 
-      const submissionAns = selectedAnswers.find(ans => ans.questionId === q.id);
+      const submissionAns = selectedAnswers.find(ans => ans.questionId.toString() === q._id.toString());
       
       // Check if unanswered
       if (!submissionAns || 
@@ -630,20 +542,20 @@ export class QuizService implements OnModuleInit {
           ((q.questionType === 'Subjective' || q.questionType === 'ESSAY') && (!submissionAns.typedAnswerText || !submissionAns.typedAnswerText.trim()))
       ) {
         unansweredCount++;
-        const blankSa = this.studentAnswerRepository.create({
+        const blankSa = {
           question: q,
           selectedOption: null,
           typedAnswerText: null,
           isCorrect: false,
           awardedMarks: 0,
-        });
+        };
         studentAnswersEntities.push(blankSa);
         continue;
       }
 
       // Objective Single selection type MCQ & TF
       if (q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF') {
-        const opt = q.options.find(o => o.id === submissionAns.selectedOptionId);
+        const opt = q.options.find(o => o._id.toString() === submissionAns.selectedOptionId?.toString());
         if (!opt) {
           unansweredCount++;
           continue;
@@ -655,46 +567,54 @@ export class QuizService implements OnModuleInit {
         if (isCorrect) {
           correctCount++;
           awardedMarks = q.mark;
-          totalScore += q.mark;
+          rawScore += q.mark;
         } else {
           wrongCount++;
+          if (quiz.negativeMarkingEnabled) {
+            awardedMarks = -Math.abs(quiz.negativeMarkingValue || 0);
+            rawScore -= Math.abs(quiz.negativeMarkingValue || 0);
+          }
         }
 
-        const sa = this.studentAnswerRepository.create({
+        const sa = {
           question: q,
           selectedOption: opt,
           isCorrect,
           awardedMarks,
-        });
+        };
         studentAnswersEntities.push(sa);
 
       } else if (q.questionType === 'MCQ_MULTIPLE') {
         // Multiple Select MCQ Choice Checking
         const selectedIds = submissionAns.selectedOptionIds || (submissionAns.selectedOptionId ? [submissionAns.selectedOptionId] : []);
         const correctOpts = q.options.filter(o => o.isCorrect);
-        const correctIds = correctOpts.map(o => o.id);
+        const correctIds = correctOpts.map(o => o._id.toString());
         
         // Exact match comparison
         const isCorrect = selectedIds.length === correctIds.length && 
-                          selectedIds.every(id => correctIds.includes(id));
+                          selectedIds.every(id => correctIds.includes(id.toString()));
         let awardedMarks = 0;
 
         if (isCorrect) {
           correctCount++;
           awardedMarks = q.mark;
-          totalScore += q.mark;
+          rawScore += q.mark;
         } else {
           wrongCount++;
+          if (quiz.negativeMarkingEnabled) {
+            awardedMarks = -Math.abs(quiz.negativeMarkingValue || 0);
+            rawScore -= Math.abs(quiz.negativeMarkingValue || 0);
+          }
         }
 
-        const firstSelected = q.options.find(o => o.id === selectedIds[0]) || null;
-        const sa = this.studentAnswerRepository.create({
+        const firstSelected = q.options.find(o => o._id.toString() === selectedIds[0]?.toString()) || null;
+        const sa = {
           question: q,
           selectedOption: firstSelected,
           typedAnswerText: JSON.stringify(selectedIds),
           isCorrect,
           awardedMarks,
-        });
+        };
         studentAnswersEntities.push(sa);
 
       } else if (q.questionType === 'FILL_BLANK' || q.questionType === 'SHORT_ANSWER' || q.questionType === 'FillBlank') {
@@ -722,83 +642,87 @@ export class QuizService implements OnModuleInit {
         if (isCorrect) {
           correctCount++;
           awardedMarks = q.mark;
-          totalScore += q.mark;
+          rawScore += q.mark;
         } else {
           wrongCount++;
+          if (quiz.negativeMarkingEnabled) {
+            awardedMarks = -Math.abs(quiz.negativeMarkingValue || 0);
+            rawScore -= Math.abs(quiz.negativeMarkingValue || 0);
+          }
         }
 
-        const sa = this.studentAnswerRepository.create({
+        const sa = {
           question: q,
           selectedOption: null,
           typedAnswerText: typed,
           isCorrect,
           awardedMarks,
-        });
+        };
         studentAnswersEntities.push(sa);
 
       } else if (q.questionType === 'Subjective' || q.questionType === 'ESSAY') {
-        const sa = this.studentAnswerRepository.create({
+        const sa = {
           question: q,
           selectedOption: null,
-          typedAnswerText: submissionAns.typedAnswerText,
+          typedAnswerText: submissionAns.typedAnswerText || '',
           isCorrect: false,
           awardedMarks: null, // Pending evaluation
-        });
+        };
         studentAnswersEntities.push(sa);
       }
     }
 
     let status = 'Pending Evaluation';
     if (!hasSubjective) {
-      status = totalScore >= quiz.passingMarks ? 'Pass' : 'Fail';
+      status = rawScore >= quiz.passingMarks ? 'Pass' : 'Fail';
     }
 
-    const percentage = (totalScore / (quiz.totalMarks || 100)) * 100;
+    const percentage = (rawScore / (quiz.totalMarks || 100)) * 100;
+    
+    // Evaluate Grade
+    let grade = '';
+    if (!hasSubjective) {
+      if (percentage >= 80) grade = 'Excellent';
+      else if (percentage >= 60) grade = 'Passed';
+      else if (percentage >= 40) grade = 'Average';
+      else grade = 'Failed';
+    }
 
-    const submission = this.submissionRepository.create({
+    const submission = new this.submissionModel({
       studentName: student.name,
       collegeName: student.collegeName,
-      courseId: quiz.course.courseId,
-      courseName: quiz.course.courseName,
-      score: totalScore,
+      courseId: (quiz.course as any).courseId,
+      courseName: (quiz.course as any).courseName,
+      score: rawScore,
       totalMarks: quiz.totalMarks,
       percentage: Math.max(0, percentage),
       correctCount,
       wrongCount,
       unansweredCount,
       status,
-      quiz,
-      student,
+      timeTakenSeconds,
+      grade,
+      quiz: quizId,
+      student: studentId,
+      studentAnswers: studentAnswersEntities,
     });
 
-    const savedSubmission = await this.submissionRepository.save(submission);
-
-    for (const sa of studentAnswersEntities) {
-      sa.submission = savedSubmission;
-      await this.studentAnswerRepository.save(sa);
-    }
-
-    return savedSubmission;
+    return submission.save();
   }
 
   async evaluateSubmission(
-    submissionId: number,
-    evaluations: { questionId: number; marks: number }[],
-  ): Promise<QuizSubmissionEntity> {
-    const sub = await this.submissionRepository.findOne({
-      where: { id: submissionId },
-      relations: { quiz: { settings: true }, studentAnswers: { question: true } },
-    });
-
+    submissionId: string,
+    evaluations: { questionId: string; marks: number }[],
+  ): Promise<any> {
+    const sub = await this.submissionModel.findById(submissionId).populate('quiz').exec();
     if (!sub) throw new NotFoundException('Submission not found');
 
     for (const grading of evaluations) {
-      const sa = sub.studentAnswers.find(answer => answer.question.id === grading.questionId);
+      const sa = sub.studentAnswers.find(answer => answer.question._id.toString() === grading.questionId.toString());
       if (!sa) continue;
 
       sa.awardedMarks = grading.marks;
       sa.isCorrect = grading.marks > 0;
-      await this.studentAnswerRepository.save(sa);
     }
 
     let newScore = 0;
@@ -829,56 +753,145 @@ export class QuizService implements OnModuleInit {
     sub.unansweredCount = unansweredCount;
 
     if (pendingCount === 0) {
-      const passingPercentage = sub.quiz.settings?.passingPercentage ?? 40;
-      const pass = (sub.totalMarks > 0 && passingPercentage > 0) ? (sub.percentage >= passingPercentage) : (newScore >= sub.quiz.passingMarks);
+      const passingPercentage = (sub.quiz as any).settings?.passingPercentage ?? 40;
+      const pass = (sub.totalMarks > 0 && passingPercentage > 0) ? (sub.percentage >= passingPercentage) : (newScore >= (sub.quiz as any).passingMarks);
       sub.status = pass ? 'Pass' : 'Fail';
+      
+      if (sub.percentage >= 80) sub.grade = 'Excellent';
+      else if (sub.percentage >= 60) sub.grade = 'Passed';
+      else if (sub.percentage >= 40) sub.grade = 'Average';
+      else sub.grade = 'Failed';
     } else {
       sub.status = 'Pending Evaluation';
+      sub.grade = '';
     }
 
-    return this.submissionRepository.save(sub);
+    return sub.save();
   }
 
-  async getSubmissions(): Promise<QuizSubmissionEntity[]> {
-    return this.submissionRepository.find({
-      relations: { quiz: { course: true } },
-      order: { submittedAt: 'DESC' },
-    });
+  async getSubmissions(): Promise<any[]> {
+    return this.submissionModel.find()
+      .populate({ path: 'quiz', populate: { path: 'course' } })
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
-  async getSubmissionDetail(id: number): Promise<any> {
-    const sub = await this.submissionRepository.findOne({
-      where: { id },
-      relations: {
-        quiz: true,
-        studentAnswers: {
-          question: { options: true },
-          selectedOption: true,
-        },
-      },
-    });
+  async getSubmissionDetail(id: string): Promise<any> {
+    const sub = await this.submissionModel.findById(id).populate('quiz').exec();
     if (!sub) throw new NotFoundException(`Submission not found`);
     return sub;
   }
 
-  async getLeaderboard(quizId: number): Promise<QuizSubmissionEntity[]> {
-    return this.submissionRepository.find({
-      where: { quiz: { id: quizId } },
-      relations: { student: true },
-      order: { score: 'DESC', submittedAt: 'ASC' },
-    });
+  async getStudentSubmissionResult(id: string, studentId: string): Promise<any> {
+    const sub = await this.submissionModel.findOne({ _id: new Types.ObjectId(id) as any, student: new Types.ObjectId(studentId) as any }).populate('quiz').exec();
+    if (!sub) throw new NotFoundException(`Submission not found for this student`);
+
+    const showAnswers = (sub.quiz as any).resultsPublished || ((sub.quiz as any).settings?.showResultsImmediately && sub.status !== 'Pending Evaluation');
+
+    return {
+      id: sub._id,
+      studentName: sub.studentName,
+      courseId: sub.courseId,
+      courseName: sub.courseName,
+      score: sub.score,
+      totalMarks: sub.totalMarks,
+      percentage: sub.percentage,
+      correctCount: sub.correctCount,
+      wrongCount: sub.wrongCount,
+      unansweredCount: sub.unansweredCount,
+      status: sub.status,
+      timeTakenSeconds: sub.timeTakenSeconds,
+      grade: sub.grade,
+      submittedAt: sub.submittedAt,
+      quiz: {
+        id: (sub.quiz as any)._id,
+        quizTitle: (sub.quiz as any).quizTitle,
+        resultsPublished: (sub.quiz as any).resultsPublished,
+        difficulty: (sub.quiz as any).difficulty,
+        showResultsImmediately: (sub.quiz as any).settings?.showResultsImmediately,
+      },
+      studentAnswers: showAnswers ? sub.studentAnswers.map(sa => ({
+        id: sa._id,
+        isCorrect: sa.isCorrect,
+        typedAnswerText: sa.typedAnswerText,
+        awardedMarks: sa.awardedMarks,
+        selectedOption: sa.selectedOption ? {
+          id: sa.selectedOption._id,
+          optionText: sa.selectedOption.optionText,
+          isCorrect: sa.selectedOption.isCorrect,
+        } : null,
+        question: {
+          id: sa.question._id,
+          questionText: sa.question.questionText,
+          questionType: sa.question.questionType,
+          mark: sa.question.mark,
+          explanation: sa.question.explanation,
+          correctAnswerText: sa.question.correctAnswerText,
+          options: sa.question.options.map(o => ({
+            id: o._id,
+            optionText: o.optionText,
+            isCorrect: o.isCorrect
+          }))
+        }
+      })) : []
+    };
   }
 
-  async getAnalytics(quizId: number): Promise<any> {
-    const quiz = await this.quizRepository.findOne({
-      where: { id: quizId },
-      relations: { questions: { studentAnswers: true } },
-    });
+  async getAttemptStats(quizId: string, studentId: string): Promise<any> {
+    const submissions = await this.submissionModel.find({
+      quiz: quizId,
+      student: studentId,
+    }).sort({ submittedAt: 1 }).exec();
+
+    const totalAttempts = submissions.length;
+    if (totalAttempts === 0) {
+      return {
+        totalAttempts: 0,
+        bestScore: 0,
+        latestScore: 0,
+        averageScore: 0,
+        highestScore: 0,
+        lowestScore: 0,
+        scoreHistory: []
+      };
+    }
+
+    const scores = submissions.map(s => s.score);
+    const highestScore = Math.max(...scores);
+    const lowestScore = Math.min(...scores);
+    const averageScore = Number((scores.reduce((sum, s) => sum + s, 0) / totalAttempts).toFixed(2));
+    const latestScore = submissions[totalAttempts - 1].score;
+    const bestScore = highestScore;
+
+    return {
+      totalAttempts,
+      bestScore,
+      latestScore,
+      averageScore,
+      highestScore,
+      lowestScore,
+      scoreHistory: submissions.map((s, index) => ({
+        attemptNumber: index + 1,
+        score: s.score,
+        percentage: s.percentage,
+        submittedAt: s.submittedAt,
+        grade: s.grade
+      }))
+    };
+  }
+
+  async getLeaderboard(quizId: string): Promise<any[]> {
+    return this.submissionModel.find({ quiz: quizId })
+      .populate('student')
+      .sort({ score: -1, submittedAt: 1 })
+      .exec();
+  }
+
+  async getAnalytics(quizId: string): Promise<any> {
+    const quiz = await this.quizModel.findById(quizId).exec();
     if (!quiz) throw new NotFoundException('Quiz not found');
 
-    const submissions = await this.submissionRepository.find({
-      where: { quiz: { id: quizId } },
-    });
+    const submissions = await this.submissionModel.find({ quiz: quizId }).exec();
 
     const count = submissions.length;
     if (count === 0) {
@@ -896,14 +909,19 @@ export class QuizService implements OnModuleInit {
     const failCount = submissions.filter(s => s.status === 'Fail').length;
 
     const questionAnalysis = quiz.questions.map(q => {
-      const answers = q.studentAnswers || [];
+      const answers: any[] = [];
+      submissions.forEach(sub => {
+        const ans = sub.studentAnswers.find(sa => sa.question._id.toString() === q._id.toString());
+        if (ans) answers.push(ans);
+      });
+
       const totalAnswers = answers.length;
       const correct = answers.filter(a => a.isCorrect).length;
       const wrong = answers.filter(a => a.awardedMarks !== null && a.awardedMarks < 0).length;
       const blank = totalAnswers - (correct + wrong);
 
       return {
-        questionId: q.id,
+        questionId: q._id,
         questionText: q.questionText,
         correctRatio: totalAnswers > 0 ? (correct / totalAnswers) * 100 : 0,
         wrongRatio: totalAnswers > 0 ? (wrong / totalAnswers) * 100 : 0,
@@ -924,7 +942,7 @@ export class QuizService implements OnModuleInit {
     const submissions = await this.getSubmissions();
     let csv = 'Student Name,College Name,Course ID,Course Name,Quiz Title,Score,Total Marks,Percentage,Status,Submitted At\n';
     submissions.forEach(s => {
-      csv += `"${s.studentName}","${s.collegeName}","${s.courseId}","${s.courseName}","${s.quiz?.quizTitle}",${s.score},${s.totalMarks},${s.percentage.toFixed(1)},"${s.status}","${s.submittedAt.toISOString()}"\n`;
+      csv += `"${s.studentName}","${s.collegeName}","${s.courseId}","${s.courseName}","${(s.quiz as any)?.quizTitle}",${s.score},${s.totalMarks},${s.percentage.toFixed(1)},"${s.status}","${s.submittedAt.toISOString()}"\n`;
     });
     return csv;
   }

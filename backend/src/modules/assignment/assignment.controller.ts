@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Query, ParseIntPipe, UseInterceptors, UploadedFile, Res, NotFoundException, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, Res, NotFoundException, BadRequestException, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -31,7 +31,7 @@ export class AssignmentController {
   @UseGuards(AuthGuard)
   @Post()
   create(
-    @Body('courseId', ParseIntPipe) courseId: number,
+    @Body('courseId') courseId: string,
     @Body('title') title: string,
     @Body('description') description: string,
     @Body('deadline') deadline: string,
@@ -41,20 +41,20 @@ export class AssignmentController {
 
   // Public endpoint for students to view pending assignments
   @Get('course/:courseId')
-  getAssignmentsByCourse(@Param('courseId', ParseIntPipe) courseId: number): Promise<AssignmentEntity[]> {
+  getAssignmentsByCourse(@Param('courseId') courseId: string): Promise<AssignmentEntity[]> {
     return this.assignmentService.getAssignmentsByCourse(courseId);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  delete(@Param('id') id: string): Promise<void> {
     return this.assignmentService.delete(id);
   }
 
   @UseGuards(AuthGuard)
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body('title') title?: string,
     @Body('description') description?: string,
     @Body('deadline') deadline?: string,
@@ -70,8 +70,8 @@ export class AssignmentController {
   @Post('submit')
   @UseInterceptors(FileInterceptor('file', { storage: storageConfig }))
   submitAssignment(
-    @Body('courseId', ParseIntPipe) courseId: number,
-    @Body('assignmentId', ParseIntPipe) assignmentId: number,
+    @Body('courseId') courseId: string,
+    @Body('assignmentId') assignmentId: string,
     @Body('studentName') studentName: string,
     @Body('collegeName') collegeName: string,
     @UploadedFile() file: Express.Multer.File,
@@ -100,7 +100,7 @@ export class AssignmentController {
   @UseGuards(AuthGuard)
   @Get('submissions/:id/download')
   async downloadFile(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Res() res: express.Response,
   ): Promise<void> {
     const submission = await this.assignmentService.getSubmission(id);
@@ -113,8 +113,8 @@ export class AssignmentController {
   @UseGuards(AuthGuard)
   @Patch('submissions/:id/grade')
   gradeSubmission(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('marks', ParseIntPipe) marks: number,
+    @Param('id') id: string,
+    @Body('marks') marks: number,
     @Body('feedback') feedback: string,
   ): Promise<AssignmentSubmissionEntity> {
     return this.assignmentService.gradeSubmission(id, marks, feedback);
