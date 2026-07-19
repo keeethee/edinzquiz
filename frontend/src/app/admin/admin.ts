@@ -365,8 +365,25 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     return this.quizForm.get('questions') as FormArray;
   }
 
+  get activeQuestionControl(): FormGroup | null {
+    if (this.activeQuestionIndex === null || !this.questionsFormArray) return null;
+    return this.questionsFormArray.at(this.activeQuestionIndex) as FormGroup;
+  }
+
+  get activeQuestionOptions(): FormArray {
+    return this.activeQuestionControl?.get('options') as FormArray;
+  }
+
   getOptionsFormArray(questionIndex: number): FormArray {
     return this.questionsFormArray.at(questionIndex).get('options') as FormArray;
+  }
+
+  generateUniqueId(): string {
+    return Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+  }
+
+  trackQuestionBy(index: number, control: any): string {
+    return control.get('uniqueId')?.value || index.toString();
   }
 
   initQuizForm(quiz?: Quiz) {
@@ -387,6 +404,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         
         questionsArray.push(this.fb.group({
           id: [q.id],
+          uniqueId: [q.id || this.generateUniqueId()],
           questionText: [q.questionText, Validators.required],
           questionType: [q.questionType],
           mark: [q.mark || 1, [Validators.required, Validators.min(1)]],
@@ -857,6 +875,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const questions = this.questionsFormArray;
     const questionGroup = this.fb.group({
       id: [null],
+      uniqueId: [this.generateUniqueId()],
       questionText: ['', Validators.required],
       questionType: [type],
       mark: [1, [Validators.required, Validators.min(1)]],
@@ -900,6 +919,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     const dupQ = this.fb.group({
       id: [null],
+      uniqueId: [this.generateUniqueId()],
       questionText: [`${orig.value.questionText} (Copy)`, Validators.required],
       questionType: [orig.value.questionType],
       mark: [orig.value.mark, [Validators.required, Validators.min(1)]],
