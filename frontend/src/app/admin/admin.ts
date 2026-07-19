@@ -60,6 +60,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   isSaving: boolean = false;
   isSavingDraft: boolean = false;
   isPublishing: boolean = false;
+  isCreatingCourse: boolean = false;
 
   // Leaderboard & Analytics Modals
   showLeaderboardModal: boolean = false;
@@ -183,6 +184,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   createCourse() {
+    if (this.isCreatingCourse) return;
     this.errorMsg = '';
     this.successMsg = '';
     if (!this.newCourseIdCode.trim() || !this.newCourseName.trim()) {
@@ -190,6 +192,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       return;
     }
 
+    this.isCreatingCourse = true;
     this.apiService.createCourse(
       this.newCourseIdCode.trim(),
       this.newCourseName.trim(),
@@ -203,9 +206,11 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.newCourseDuration = '';
         this.newCourseStatus = 'Active';
         this.loadCourses();
+        this.isCreatingCourse = false;
       },
       error: (err) => {
         this.errorMsg = err.error?.message || 'Failed to create course.';
+        this.isCreatingCourse = false;
       }
     });
   }
