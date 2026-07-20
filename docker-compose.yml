@@ -9,6 +9,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/edinz_quiz
     env_file:
       - ./backend/.env
     depends_on:
