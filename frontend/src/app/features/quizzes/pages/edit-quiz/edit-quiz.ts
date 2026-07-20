@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -6,6 +6,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { Subscription } from 'rxjs';
+import { debounceTime, filter, switchMap } from 'rxjs/operators';
 import { ApiService, Quiz } from '../../../../services/api.service';
 import { QuizFormComponent } from '../../components/quiz-form/quiz-form';
 import { QuizSettingsComponent } from '../../components/quiz-settings/quiz-settings';
@@ -31,7 +33,7 @@ import { SelectedQuestionsComponent } from '../../components/selected-questions/
   templateUrl: './edit-quiz.html',
   styleUrls: ['./edit-quiz.scss']
 })
-export class EditQuizComponent implements OnInit {
+export class EditQuizComponent implements OnInit, OnDestroy {
   quizForm!: FormGroup;
   quizId = signal<string>('');
   quiz = signal<Quiz | null>(null);
@@ -40,6 +42,12 @@ export class EditQuizComponent implements OnInit {
   
   isSaving = signal<boolean>(false);
   errorMessage = signal<string>('');
+
+  // Autosave states
+  autosaveSub?: Subscription;
+  isAutosaving = signal<boolean>(false);
+  lastAutosavedTime = signal<string>('');
+  isFormInitialized = false;
 
   constructor(
     private fb: FormBuilder,
@@ -56,8 +64,15 @@ export class EditQuizComponent implements OnInit {
       if (id) {
         this.quizId.set(id);
         this.loadQuiz(id);
+        this.setupAutosave();
       }
     });
+  }
+
+  ngOnDestroy() {
+    if (this.autosaveSub) {
+      this.autosaveSub.unsubscribe();
+    }
   }
 
   initForm() {
@@ -81,6 +96,9 @@ export class EditQuizComponent implements OnInit {
   loadQuiz(id: string) {
     this.apiService.getQuizDetail(id).subscribe({
       next: (quiz) => {
+        // Temporarily pause autosave events during loading/patching
+        this.isFormInitialized = false;
+
         this.quiz.set(quiz);
         this.quizForm.patchValue({
           quizTitle: quiz.quizTitle,
@@ -96,11 +114,40 @@ export class EditQuizComponent implements OnInit {
           shuffleOptions: quiz.shuffleOptions,
           autoSubmit: quiz.autoSubmit,
           showResult: quiz.showResult,
-        });
+        }, { emitEvent: false }); // Do not emit event to valueChanges to prevent immediate autosave trigger
 
         const questionsList = quiz.questions || [];
         this.assignedQuestions.set(questionsList);
         this.linkedQuestionIds.set(questionsList.map((q: any) => q.questionId));
+
+        // Re-enable autosave checks now that loading is complete
+        this.isFormInitialized = true;
+      }
+    });
+  }
+
+  setupAutosave() {
+    if (this.autosaveSub) {
+      this.autosaveSub.unsubscribe();
+    }
+
+    this.autosaveSub = this.quizForm.valueChanges.pipe(
+      filter(() => this.isFormInitialized && this.quizForm.valid && !this.isSaving()),
+      debounceTime(2000), // wait for 2 seconds of silence
+      switchMap((value) => {
+        this.isAutosaving.set(true);
+        return this.apiService.updateQuiz(this.quizId(), value);
+      })
+    ).subscribe({
+      next: () => {
+        this.isAutosaving.set(false);
+        const now = new Date();
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        this.lastAutosavedTime.set(`Draft autosaved at ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`);
+      },
+      error: (err) => {
+        this.isAutosaving.set(false);
+        console.error('Autosave failed:', err);
       }
     });
   }

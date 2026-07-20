@@ -48,6 +48,38 @@
   color: #a3a3a3;
 }
 
+.autosave-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #a3a3a3;
+  font-weight: 550;
+  backdrop-filter: blur(8px);
+}
+
+.status-text {
+  color: #a3a3a3;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #f59e0b;
+  border-radius: 50%;
+  animation: pulse-animation 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-animation {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
 .form-card {
   background: var(--glass-bg, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));

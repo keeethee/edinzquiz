@@ -7,6 +7,12 @@
       <h2 class="title">✏️ Edit Quiz: {{ quiz()?.quizTitle }}</h2>
       <span class="course-badge">Course: {{ quiz()?.course?.courseName }}</span>
     </div>
+
+    <!-- Autosave status info indicator -->
+    <div class="autosave-status" *ngIf="isAutosaving() || lastAutosavedTime()">
+      <span class="pulse-dot" *ngIf="isAutosaving()"></span>
+      <span class="status-text">{{ isAutosaving() ? 'Saving changes...' : lastAutosavedTime() }}</span>
+    </div>
   </div>
 
   <mat-card class="form-card">
