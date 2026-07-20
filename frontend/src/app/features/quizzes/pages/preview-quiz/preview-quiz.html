@@ -1,0 +1,86 @@
+<div class="page-container">
+  <div class="header-row">
+    <a routerLink="/admin" class="back-link">
+      <mat-icon>arrow_back</mat-icon> Back to Dashboard
+    </a>
+    <h2 class="title">👁️ Quiz Preview: {{ quiz()?.quizTitle }}</h2>
+  </div>
+
+  <!-- Settings Grid -->
+  <mat-card class="settings-card">
+    <mat-card-content class="settings-grid">
+      <div class="setting-item">
+        <span class="label">Course</span>
+        <span class="value">{{ quiz()?.course?.courseName }}</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">Duration</span>
+        <span class="value">{{ quiz()?.duration }} Minutes</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">Passing Marks</span>
+        <span class="value">{{ quiz()?.passingMarks }} Points</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">Attempts Limit</span>
+        <span class="value">{{ quiz()?.maxAttempts }}</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">Timer Mode</span>
+        <span class="value">{{ quiz()?.timerMode }}</span>
+      </div>
+      <div class="setting-item">
+        <span class="label">Status</span>
+        <span class="value status-badge" [ngClass]="quiz()?.status?.toLowerCase()">{{ quiz()?.status }}</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Instructions Box -->
+  <mat-card class="instructions-card" *ngIf="quiz()?.instructions">
+    <mat-card-header>
+      <mat-card-title class="section-title">📋 Candidate Instructions</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p class="instr-text">{{ quiz()?.instructions }}</p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Questions list preview -->
+  <h3 class="section-title questions-heading">📝 Assigned Questions Pool</h3>
+  <div class="questions-list">
+    <mat-card *ngFor="let item of quiz()?.questions; let idx = index" class="q-card">
+      <mat-card-content>
+        <div class="q-header">
+          <span class="q-number">Question #{{ idx + 1 }}</span>
+          <span class="q-marks">{{ item.marks }} Marks</span>
+        </div>
+        
+        <p class="q-text">{{ item.question?.question }}</p>
+
+        <!-- Question Type badges -->
+        <div class="badges-row">
+          <span class="badge type">{{ item.question?.questionType }}</span>
+          <span class="badge diff" [ngClass]="item.question?.difficulty.toLowerCase()">{{ item.question?.difficulty }}</span>
+        </div>
+
+        <!-- Options for MCQ/TF -->
+        <div *ngIf="item.question?.options?.length > 0" class="options-block">
+          <div *ngFor="let opt of item.question.options" class="opt-row" [class.correct]="opt.isCorrect">
+            <mat-icon class="opt-icon">{{ opt.isCorrect ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            <span class="opt-text">{{ opt.optionText }}</span>
+          </div>
+        </div>
+
+        <!-- Explanation info if present -->
+        <div *ngIf="item.question?.explanation" class="explanation-box">
+          <span class="expl-label">Explanation:</span> {{ item.question.explanation }}
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div *ngIf="!quiz()?.questions || quiz()?.questions?.length === 0" class="empty-state">
+      This quiz has no questions. Edit the quiz to add questions from the bank.
+    </div>
+  </div>
+</div>

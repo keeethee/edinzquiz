@@ -1,54 +1,55 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { CourseEntity, CourseDocument } from '../../entities/course.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class CourseService {
-  constructor(
-    @InjectModel(CourseEntity.name)
-    private courseModel: Model<CourseDocument>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(courseId: string, courseName: string, duration?: string, status: string = 'Active'): Promise<any> {
-    const existing = await this.courseModel.findOne({ courseId }).exec();
+    const existing = await this.prisma.course.findUnique({ where: { courseId } });
     if (existing) {
       throw new ConflictException(`Course with display ID "${courseId}" already exists.`);
     }
 
-    const course = new this.courseModel({
-      courseId,
-      courseName,
-      duration,
-      status,
+    return this.prisma.course.create({
+      data: {
+        courseId,
+        courseName,
+        duration: duration || '',
+        status,
+      },
     });
-    return course.save();
   }
 
   async update(id: string, courseId: string, courseName: string, duration?: string, status?: string): Promise<any> {
     const course = await this.findOne(id);
     
     if (course.courseId !== courseId) {
-      const existing = await this.courseModel.findOne({ courseId }).exec();
+      const existing = await this.prisma.course.findUnique({ where: { courseId } });
       if (existing) {
         throw new ConflictException(`Course with display ID "${courseId}" already exists.`);
       }
     }
 
-    course.courseId = courseId;
-    course.courseName = courseName;
-    if (duration !== undefined) course.duration = duration;
-    if (status !== undefined) course.status = status;
-
-    return course.save();
+    return this.prisma.course.update({
+      where: { id },
+      data: {
+        courseId,
+        courseName,
+        duration: duration !== undefined ? duration : course.duration,
+        status: status !== undefined ? status : course.status,
+      },
+    });
   }
 
   async findAll(): Promise<any[]> {
-    return this.courseModel.find().sort({ createdAt: 1 }).exec();
+    return this.prisma.course.findMany({
+      orderBy: { createdAt: 'asc' },
+    });
   }
 
   async findOne(id: string): Promise<any> {
-    const course = await this.courseModel.findById(id).exec();
+    const course = await this.prisma.course.findUnique({ where: { id } });
     if (!course) {
       throw new NotFoundException(`Course with DB ID ${id} not found`);
     }
@@ -56,7 +57,9 @@ export class CourseService {
   }
 
   async findByCourseId(courseId: string): Promise<any> {
-    const course = await this.courseModel.findOne({ courseId, status: 'Active' }).exec();
+    const course = await this.prisma.course.findFirst({
+      where: { courseId, status: 'Active' },
+    });
     if (!course) {
       throw new NotFoundException(`Course with code "${courseId}" not found or is inactive.`);
     }
@@ -64,8 +67,9 @@ export class CourseService {
   }
 
   async delete(id: string): Promise<void> {
-    const result = await this.courseModel.findByIdAndDelete(id).exec();
-    if (!result) {
+    try {
+      await this.prisma.course.delete({ where: { id } });
+    } catch {
       throw new NotFoundException(`Course with DB ID ${id} not found`);
     }
   }

@@ -1,0 +1,103 @@
+<div class="page-container">
+  <mat-card class="course-selector-card">
+    <mat-card-content class="flex-between">
+      <div class="selector-left">
+        <span class="label">Select Target Course:</span>
+        <mat-form-field appearance="outline" class="course-select-field">
+          <mat-select [value]="selectedCourseId()" (selectionChange)="onCourseChange($event.value)">
+            <mat-option *ngFor="let course of courses()" [value]="course.id">
+              ({{ course.courseId }}) - {{ course.courseName }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <button mat-raised-button color="primary" class="create-quiz-btn" (click)="createQuiz()">
+        <mat-icon>add</mat-icon> Create New Quiz
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="quizzes()" class="quiz-table mat-elevation-z0">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef> Quiz Name </th>
+            <td mat-cell *matCellDef="let quiz"> {{ quiz.quizTitle }} </td>
+          </ng-container>
+
+          <!-- Course Column -->
+          <ng-container matColumnDef="course">
+            <th mat-header-cell *matHeaderCellDef> Course </th>
+            <td mat-cell *matCellDef="let quiz"> {{ quiz.course?.courseName }} </td>
+          </ng-container>
+
+          <!-- Questions Count Column -->
+          <ng-container matColumnDef="questionsCount">
+            <th mat-header-cell *matHeaderCellDef> Questions </th>
+            <td mat-cell *matCellDef="let quiz"> {{ quiz._count?.questions || 0 }} </td>
+          </ng-container>
+
+          <!-- Duration Column -->
+          <ng-container matColumnDef="duration">
+            <th mat-header-cell *matHeaderCellDef> Duration </th>
+            <td mat-cell *matCellDef="let quiz"> {{ quiz.duration }} mins </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td mat-cell *matCellDef="let quiz">
+              <span class="status-badge" [ngClass]="quiz.status.toLowerCase()">
+                {{ quiz.status }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Created Date Column -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef> Created Date </th>
+            <td mat-cell *matCellDef="let quiz"> {{ quiz.createdAt | date:'shortDate' }} </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let quiz" class="action-buttons-cell">
+              <button mat-icon-button color="primary" (click)="previewQuiz(quiz.id)" title="Preview">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="editQuiz(quiz.id)" title="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="duplicateQuiz(quiz.id)" title="Duplicate">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+              
+              <button *ngIf="quiz.status === 'Draft'" mat-icon-button color="primary" (click)="openPublishDialog(quiz)" title="Publish">
+                <mat-icon>publish</mat-icon>
+              </button>
+              <button *ngIf="quiz.status === 'Published'" mat-icon-button color="warn" (click)="unpublishQuiz(quiz.id)" title="Unpublish">
+                <mat-icon>undo</mat-icon>
+              </button>
+
+              <button mat-icon-button color="warn" (click)="deleteQuiz(quiz.id)" title="Delete">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+        
+        <div *ngIf="quizzes().length === 0 && !isLoading()" class="empty-state">
+          No quizzes found for this course. Click "Create New Quiz" to get started!
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

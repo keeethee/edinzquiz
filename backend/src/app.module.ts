@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
+import { PrismaModule } from './prisma/prisma.module';
 import { CourseModule } from './modules/course/course.module';
+import { QuestionModule } from './modules/question/question.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { AssignmentModule } from './modules/assignment/assignment.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -13,13 +14,9 @@ import { AuthModule } from './modules/auth/auth.module';
       isGlobal: true,
       load: [databaseConfig],
     }),
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('database.uri'),
-      }),
-    }),
+    PrismaModule,
     CourseModule,
+    QuestionModule,
     QuizModule,
     AssignmentModule,
     AuthModule,

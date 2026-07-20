@@ -1,39 +1,34 @@
 import { Injectable, OnApplicationBootstrap, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { AdminEntity, AdminDocument } from '../../entities/admin.entity';
-import { StudentEntity, StudentDocument } from '../../entities/student.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AuthService implements OnApplicationBootstrap {
   constructor(
-    @InjectModel(AdminEntity.name)
-    private adminModel: Model<AdminDocument>,
-    @InjectModel(StudentEntity.name)
-    private studentModel: Model<StudentDocument>,
+    private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
 
-  // Seed default admin on startup
+  // Seed default admin on startup if not present
   async onApplicationBootstrap() {
-    const adminCount = await this.adminModel.countDocuments();
+    const adminCount = await this.prisma.admin.count();
     if (adminCount === 0) {
       const passwordHash = await bcrypt.hash('admin123', 10);
-      const defaultAdmin = new this.adminModel({
-        name: 'Default Admin',
-        email: 'admin@edinz.com',
-        passwordHash,
-        role: 'admin',
+      await this.prisma.admin.create({
+        data: {
+          name: 'Default Admin',
+          email: 'admin@edinz.com',
+          passwordHash,
+          role: 'admin',
+        },
       });
-      await defaultAdmin.save();
       console.log('Seeded default admin user: admin@edinz.com / admin123');
     }
   }
 
   async login(email: string, pass: string): Promise<{ token: string; admin: { name: string; email: string } }> {
-    const admin = await this.adminModel.findOne({ email }).exec();
+    const admin = await this.prisma.admin.findUnique({ where: { email } });
     if (!admin) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -43,7 +38,7 @@ export class AuthService implements OnApplicationBootstrap {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { sub: admin._id, email: admin.email, role: admin.role };
+    const payload = { sub: admin.id, email: admin.email, role: admin.role };
     return {
       token: await this.jwtService.signAsync(payload),
       admin: {
@@ -55,23 +50,24 @@ export class AuthService implements OnApplicationBootstrap {
 
   // Student Auth methods
   async registerStudent(email: string, pass: string, name: string, collegeName: string): Promise<any> {
-    const existing = await this.studentModel.findOne({ email }).exec();
+    const existing = await this.prisma.student.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException(`Student with email "${email}" already registered.`);
     }
 
     const passwordHash = await bcrypt.hash(pass, 10);
-    const student = new this.studentModel({
-      email,
-      passwordHash,
-      name,
-      collegeName,
+    return this.prisma.student.create({
+      data: {
+        email,
+        passwordHash,
+        name,
+        collegeName,
+      },
     });
-    return student.save();
   }
 
   async loginStudent(email: string, pass: string): Promise<{ token: string; student: { id: string; name: string; email: string; collegeName: string } }> {
-    const student = await this.studentModel.findOne({ email }).exec();
+    const student = await this.prisma.student.findUnique({ where: { email } });
     if (!student) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -81,11 +77,11 @@ export class AuthService implements OnApplicationBootstrap {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { sub: student._id, email: student.email, role: 'student' };
+    const payload = { sub: student.id, email: student.email, role: 'student' };
     return {
       token: await this.jwtService.signAsync(payload),
       student: {
-        id: student._id,
+        id: student.id,
         name: student.name,
         email: student.email,
         collegeName: student.collegeName,

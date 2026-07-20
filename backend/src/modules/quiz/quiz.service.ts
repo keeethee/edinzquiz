@@ -1,949 +1,697 @@
-import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { QuizEntity, QuizDocument } from '../../entities/quiz.entity';
-import { QuizSubmissionEntity, QuizSubmissionDocument } from '../../entities/quiz-submission.entity';
-import { CourseEntity, CourseDocument } from '../../entities/course.entity';
-import { StudentEntity, StudentDocument } from '../../entities/student.entity';
-import { CategoryEntity, CategoryDocument } from '../../entities/category.entity';
-import { MediaAttachmentEntity, MediaAttachmentDocument } from '../../entities/media-attachment.entity';
-import { QuestionEntity } from '../../entities/question.entity';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
-export class QuizService implements OnModuleInit {
-  constructor(
-    @InjectModel(QuizEntity.name)
-    private quizModel: Model<QuizDocument>,
-    @InjectModel(QuizSubmissionEntity.name)
-    private submissionModel: Model<QuizSubmissionDocument>,
-    @InjectModel(CourseEntity.name)
-    private courseModel: Model<CourseDocument>,
-    @InjectModel(StudentEntity.name)
-    private studentModel: Model<StudentDocument>,
-    @InjectModel(CategoryEntity.name)
-    private categoryModel: Model<CategoryDocument>,
-    @InjectModel(MediaAttachmentEntity.name)
-    private mediaModel: Model<MediaAttachmentDocument>,
-  ) {}
+export class QuizService {
+  constructor(private prisma: PrismaService) {}
 
-  async onModuleInit() {
-    // Seed standard quiz categories if the database categories collection is empty
-    const count = await this.categoryModel.countDocuments();
-    if (count === 0) {
-      const categories = [
-        { name: 'Programming', description: 'Coding, scripts, and software engineering questions' },
-        { name: 'Mathematics', description: 'Algebra, Geometry, Calculus, and logic formulas' },
-        { name: 'General Science', description: 'Physics, Chemistry, and Biology assessment tasks' },
-        { name: 'General', description: 'General Knowledge and general education trivia' },
-        { name: 'Subjective Essay', description: 'Essay-based long form assessment tasks' },
-      ];
-      await this.categoryModel.insertMany(categories);
-      console.log('Quiz categories successfully seeded in MongoDB!');
-    }
+  // Category endpoints
+  async getCategories() {
+    return this.prisma.category.findMany({
+      orderBy: { name: 'asc' },
+    });
   }
 
-  // Categories operations
-  async getCategories(): Promise<CategoryEntity[]> {
-    return this.categoryModel.find().sort({ name: 1 }).exec();
+  async createCategory(name: string, description?: string) {
+    const existing = await this.prisma.category.findUnique({ where: { name } });
+    if (existing) {
+      throw new ConflictException(`Category "${name}" already exists.`);
+    }
+    return this.prisma.category.create({
+      data: { name, description },
+    });
   }
 
-  async createCategory(name: string, description?: string): Promise<CategoryEntity> {
-    const existing = await this.categoryModel.findOne({ name }).exec();
-    if (existing) return existing;
-    const cat = new this.categoryModel({ name, description });
-    return cat.save();
-  }
-
-  // Quiz CRUD & configurations
-  async createQuiz(
-    courseId: string,
-    quizTitle: string,
-    startTime: Date,
-    endTime: Date,
-    totalMarks: number,
-    duration: number = 60,
-    passingMarks: number = 40,
-    negativeMarkingEnabled: boolean = false,
-    negativeMarkingValue: number = 0,
-    shuffleQuestions: boolean = false,
-    shuffleOptions: boolean = false,
-    description?: string,
-    difficulty: string = 'Medium',
-    categoryId?: string,
-    settingsData?: { maxAttempts?: number; passingPercentage?: number; showResultsImmediately?: boolean }
-  ): Promise<any> {
-    const course = await this.courseModel.findById(courseId).exec();
-    if (!course) {
-      throw new NotFoundException(`Course not found`);
-    }
-
-    let category = null;
-    if (categoryId) {
-      category = await this.categoryModel.findById(categoryId).exec();
-    }
-
-    const quiz = new this.quizModel({
-      quizTitle,
-      startTime,
-      endTime,
-      totalMarks,
-      duration,
-      passingMarks,
-      negativeMarkingEnabled,
-      negativeMarkingValue,
-      shuffleQuestions,
-      shuffleOptions,
-      status: 'Draft',
-      resultsPublished: false,
-      description: description || null,
-      difficulty,
-      course: courseId,
-      category: categoryId || null,
-      settings: {
-        maxAttempts: settingsData?.maxAttempts ?? 1,
-        passingPercentage: settingsData?.passingPercentage ?? 40,
-        showResultsImmediately: settingsData?.showResultsImmediately ?? true,
+  // Quiz Management
+  async createQuiz(data: {
+    courseId: string;
+    title: string;
+    description?: string;
+    instructions?: string;
+    duration: number;
+    timerMode: string;
+    passingMarks: number;
+    maxAttempts: number;
+    shuffleQuestions?: boolean;
+    shuffleOptions?: boolean;
+    autoSubmit?: boolean;
+    showResult?: boolean;
+    categoryId?: string;
+    publishAt?: string;
+    expireAt?: string;
+  }) {
+    return this.prisma.quiz.create({
+      data: {
+        courseId: data.courseId,
+        title: data.title,
+        description: data.description || null,
+        instructions: data.instructions || null,
+        duration: data.duration,
+        timerMode: data.timerMode || 'No Timer',
+        passingMarks: data.passingMarks,
+        maxAttempts: data.maxAttempts || 1,
+        shuffleQuestions: data.shuffleQuestions || false,
+        shuffleOptions: data.shuffleOptions || false,
+        autoSubmit: data.autoSubmit || false,
+        showResult: data.showResult || false,
+        categoryId: data.categoryId || null,
+        status: 'Draft',
+        publishAt: data.publishAt ? new Date(data.publishAt) : null,
+        expireAt: data.expireAt ? new Date(data.expireAt) : null,
       },
-      questions: [],
+      include: {
+        course: true,
+        category: true,
+      },
+    });
+  }
+
+  async findAll(courseId?: string) {
+    return this.prisma.quiz.findMany({
+      where: courseId ? { courseId } : {},
+      include: {
+        course: true,
+        category: true,
+        _count: {
+          select: { questions: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getQuizzesByCourse(courseId: string) {
+    // Map of active/published quizzes for a course
+    return this.prisma.quiz.findMany({
+      where: { courseId },
+      include: {
+        course: true,
+        category: true,
+        _count: {
+          select: { questions: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getQuiz(id: string) {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        course: true,
+        category: true,
+        questions: {
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            question: {
+              include: { options: true },
+            },
+          },
+        },
+      },
     });
 
-    return quiz.save();
-  }
-
-  async getQuizzesByCourse(courseId: string): Promise<any[]> {
-    return this.quizModel.find({ course: courseId })
-      .populate('category')
-      .sort({ createdAt: -1 })
-      .exec();
-  }
-
-  async getQuiz(id: string): Promise<any> {
-    const quiz = await this.quizModel.findById(id)
-      .populate('course')
-      .populate('category')
-      .exec();
     if (!quiz) {
-      throw new NotFoundException(`Quiz not found`);
+      throw new NotFoundException(`Quiz with ID ${id} not found`);
     }
+
     return quiz;
   }
 
-  async updateTiming(
-    id: string,
-    startTime?: Date,
-    endTime?: Date,
-    status?: string,
-    resultsPublished?: boolean,
-  ): Promise<any> {
-    const quiz = await this.getQuiz(id);
-    if (startTime) quiz.startTime = startTime;
-    if (endTime) quiz.endTime = endTime;
-    if (status) quiz.status = status;
-    if (resultsPublished !== undefined) quiz.resultsPublished = resultsPublished;
-    return quiz.save();
-  }
-
-  // Unified quiz settings update
-  async updateQuiz(
-    id: string,
-    data: {
-      quizTitle?: string;
-      description?: string;
-      difficulty?: string;
-      startTime?: string;
-      endTime?: string;
-      status?: string;
-      duration?: number;
-      passingMarks?: number;
-      negativeMarkingEnabled?: boolean;
-      negativeMarkingValue?: number;
-      shuffleQuestions?: boolean;
-      shuffleOptions?: boolean;
-      resultsPublished?: boolean;
-      categoryId?: string;
-      settings?: {
-        maxAttempts?: number;
-        passingPercentage?: number;
-        showResultsImmediately?: boolean;
-      };
-      questions?: any[];
-    }
-  ): Promise<any> {
-    const quiz = await this.quizModel.findById(id).exec();
-    if (!quiz) throw new NotFoundException(`Quiz not found`);
-
-    if (data.quizTitle !== undefined) quiz.quizTitle = data.quizTitle;
-    if (data.description !== undefined) quiz.description = data.description || null;
-    if (data.difficulty !== undefined) quiz.difficulty = data.difficulty;
-    if (data.startTime !== undefined) quiz.startTime = new Date(data.startTime);
-    if (data.endTime !== undefined) quiz.endTime = new Date(data.endTime);
-    if (data.status !== undefined) quiz.status = data.status;
-    if (data.duration !== undefined) quiz.duration = data.duration;
-    if (data.passingMarks !== undefined) quiz.passingMarks = data.passingMarks;
-    if (data.negativeMarkingEnabled !== undefined) quiz.negativeMarkingEnabled = data.negativeMarkingEnabled;
-    if (data.negativeMarkingValue !== undefined) quiz.negativeMarkingValue = data.negativeMarkingValue;
-    if (data.shuffleQuestions !== undefined) quiz.shuffleQuestions = data.shuffleQuestions;
-    if (data.shuffleOptions !== undefined) quiz.shuffleOptions = data.shuffleOptions;
-    if (data.resultsPublished !== undefined) quiz.resultsPublished = data.resultsPublished;
-
-    if (data.categoryId !== undefined) {
-      quiz.category = data.categoryId || null;
-    }
-
-    if (data.settings) {
-      if (!quiz.settings) {
-        quiz.settings = {} as any;
-      }
-      if (data.settings.maxAttempts !== undefined) quiz.settings.maxAttempts = data.settings.maxAttempts;
-      if (data.settings.passingPercentage !== undefined) quiz.settings.passingPercentage = data.settings.passingPercentage;
-      if (data.settings.showResultsImmediately !== undefined) quiz.settings.showResultsImmediately = data.settings.showResultsImmediately;
-    }
-
-    if (data.questions !== undefined) {
-      quiz.questions = data.questions.map((nq, idx) => {
-        const questionId = nq._id || nq.id || new Types.ObjectId();
-        const options = (nq.options || []).map((o: any) => ({
-          _id: o._id || o.id || new Types.ObjectId(),
-          optionText: o.optionText,
-          isCorrect: o.isCorrect || false,
-        }));
-        return {
-          _id: questionId.toString(),
-          questionText: nq.questionText,
-          questionType: nq.questionType,
-          mark: nq.mark || 1,
-          correctAnswerText: nq.correctAnswerText || null,
-          orderIndex: idx,
-          explanation: nq.explanation || null,
-          caseSensitive: nq.caseSensitive || false,
-          sampleAnswer: nq.sampleAnswer || null,
-          options,
-        };
-      }) as any;
-    }
-
-    // Automatically calculate and sync totalMarks
-    quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
-
-    return quiz.save();
-  }
-
-  async recalculateTotalMarks(quizId: string): Promise<number> {
-    const quiz = await this.quizModel.findById(quizId).exec();
-    if (!quiz) throw new NotFoundException('Quiz not found');
-    const total = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
-    quiz.totalMarks = total;
-    await quiz.save();
-    return total;
-  }
-
-  async deleteQuiz(id: string): Promise<void> {
-    await this.quizModel.findByIdAndDelete(id).exec();
-  }
-
-  // Quiz duplication logic
-  async duplicateQuiz(id: string): Promise<any> {
-    const orig = await this.getQuiz(id);
-    if (!orig) throw new NotFoundException('Quiz to duplicate not found');
-
-    const duplicatedQuiz = new this.quizModel({
-      quizTitle: `Copy of ${orig.quizTitle}`,
-      description: orig.description,
-      difficulty: orig.difficulty,
-      startTime: orig.startTime,
-      endTime: orig.endTime,
-      status: 'Draft',
-      totalMarks: orig.totalMarks,
-      duration: orig.duration,
-      passingMarks: orig.passingMarks,
-      negativeMarkingEnabled: orig.negativeMarkingEnabled,
-      negativeMarkingValue: orig.negativeMarkingValue,
-      shuffleQuestions: orig.shuffleQuestions,
-      shuffleOptions: orig.shuffleOptions,
-      resultsPublished: false,
-      course: orig.course,
-      category: orig.category,
-      settings: orig.settings,
-      questions: orig.questions.map((q: any) => {
-        const qId = new Types.ObjectId();
-        return {
-          _id: qId.toString(),
-          questionText: q.questionText,
-          questionType: q.questionType,
-          mark: q.mark,
-          correctAnswerText: q.correctAnswerText,
-          orderIndex: q.orderIndex,
-          explanation: q.explanation,
-          caseSensitive: q.caseSensitive,
-          sampleAnswer: q.sampleAnswer,
-          options: q.options.map((opt: any) => ({
-            _id: new Types.ObjectId().toString(),
-            optionText: opt.optionText,
-            isCorrect: opt.isCorrect,
-          })),
-        };
-      }),
+  // Prepares the quiz for student (no correct keys, randomizes if shuffle enabled)
+  async getQuizForStudent(id: string) {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        questions: {
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            question: {
+              include: {
+                options: {
+                  select: { id: true, optionText: true },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
-    return duplicatedQuiz.save();
-  }
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${id} not found`);
+    }
 
-  // Question & Option CRUD & updates
-  async addQuestion(
-    quizId: string,
-    questionText: string,
-    questionType: string,
-    mark: number,
-    correctAnswerText?: string,
-    optionsData?: { optionText: string; isCorrect: boolean }[],
-  ): Promise<any> {
-    const quiz = await this.quizModel.findById(quizId).exec();
-    if (!quiz) throw new NotFoundException(`Quiz not found`);
+    if (quiz.status !== 'Published') {
+      throw new BadRequestException('This quiz is not currently available.');
+    }
 
-    const questionId = new Types.ObjectId();
-    const options = (optionsData || []).map(o => ({
-      _id: new Types.ObjectId().toString(),
-      optionText: o.optionText,
-      isCorrect: o.isCorrect || false,
+    // Map questions to a cleaner structure and remove answers key
+    let mappedQuestions = quiz.questions.map((q) => ({
+      id: q.question.id,
+      questionText: q.question.question,
+      questionType: q.question.questionType,
+      mark: q.marks,
+      explanation: q.question.explanation,
+      caseSensitive: q.question.caseSensitive,
+      options: q.question.options,
     }));
 
-    const newQuestion = {
-      _id: questionId.toString(),
-      questionText,
-      questionType,
-      mark,
-      correctAnswerText: correctAnswerText || null,
-      orderIndex: quiz.questions.length,
-      options,
+    if (quiz.shuffleQuestions) {
+      mappedQuestions = this.shuffle(mappedQuestions);
+    }
+
+    if (quiz.shuffleOptions) {
+      mappedQuestions = mappedQuestions.map((q) => {
+        if (q.options && q.options.length > 0) {
+          q.options = this.shuffle(q.options);
+        }
+        return q;
+      });
+    }
+
+    return {
+      id: quiz.id,
+      title: quiz.title,
+      description: quiz.description,
+      instructions: quiz.instructions,
+      duration: quiz.duration,
+      timerMode: quiz.timerMode,
+      passingMarks: quiz.passingMarks,
+      maxAttempts: quiz.maxAttempts,
+      showResult: quiz.showResult,
+      questions: mappedQuestions,
     };
-
-    quiz.questions.push(newQuestion as any);
-    quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
-    await quiz.save();
-
-    return newQuestion;
   }
 
-  async getQuestion(id: string): Promise<any> {
-    const quiz = await this.quizModel.findOne({ 'questions._id': id }).exec();
-    if (!quiz) throw new NotFoundException(`Question not found`);
-    const question = quiz.questions.find(q => q._id.toString() === id.toString());
-    if (!question) throw new NotFoundException(`Question not found`);
-    return question;
-  }
-
-  async updateQuestion(
-    id: string,
-    data: {
-      questionText?: string;
-      questionType?: string;
-      mark?: number;
-      correctAnswerText?: string;
-      explanation?: string;
-      caseSensitive?: boolean;
-      sampleAnswer?: string;
-      options?: { optionText: string; isCorrect: boolean }[];
-    }
-  ): Promise<any> {
-    const quiz = await this.quizModel.findOne({ 'questions._id': id }).exec();
-    if (!quiz) throw new NotFoundException('Question not found');
-    const q = quiz.questions.find(q => q._id.toString() === id.toString());
-    if (!q) throw new NotFoundException('Question not found');
-
-    if (data.questionText !== undefined) q.questionText = data.questionText;
-    if (data.questionType !== undefined) q.questionType = data.questionType;
-    if (data.mark !== undefined) q.mark = data.mark;
-    if (data.correctAnswerText !== undefined) q.correctAnswerText = data.correctAnswerText || null;
-    if (data.explanation !== undefined) q.explanation = data.explanation || null;
-    if (data.caseSensitive !== undefined) q.caseSensitive = data.caseSensitive;
-    if (data.sampleAnswer !== undefined) q.sampleAnswer = data.sampleAnswer || null;
-
-    if (data.options !== undefined) {
-      q.options = data.options.map(opt => ({
-        _id: new Types.ObjectId().toString(),
-        optionText: opt.optionText,
-        isCorrect: opt.isCorrect,
-      })) as any;
+  async updateQuiz(id: string, body: any) {
+    const existing = await this.prisma.quiz.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException(`Quiz with ID ${id} not found`);
     }
 
-    quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
-    await quiz.save();
-    return q;
-  }
+    const data: any = {};
+    if (body.title !== undefined) data.title = body.title;
+    if (body.description !== undefined) data.description = body.description;
+    if (body.instructions !== undefined) data.instructions = body.instructions;
+    if (body.duration !== undefined) data.duration = parseInt(body.duration, 10);
+    if (body.timerMode !== undefined) data.timerMode = body.timerMode;
+    if (body.passingMarks !== undefined) data.passingMarks = parseInt(body.passingMarks, 10);
+    if (body.maxAttempts !== undefined) data.maxAttempts = parseInt(body.maxAttempts, 10);
+    if (body.shuffleQuestions !== undefined) data.shuffleQuestions = body.shuffleQuestions;
+    if (body.shuffleOptions !== undefined) data.shuffleOptions = body.shuffleOptions;
+    if (body.autoSubmit !== undefined) data.autoSubmit = body.autoSubmit;
+    if (body.showResult !== undefined) data.showResult = body.showResult;
+    if (body.status !== undefined) data.status = body.status;
+    if (body.categoryId !== undefined) data.categoryId = body.categoryId || null;
+    if (body.publishAt !== undefined) data.publishAt = body.publishAt ? new Date(body.publishAt) : null;
+    if (body.expireAt !== undefined) data.expireAt = body.expireAt ? new Date(body.expireAt) : null;
 
-  async deleteQuestion(id: string): Promise<void> {
-    const quiz = await this.quizModel.findOne({ 'questions._id': id }).exec();
-    if (quiz) {
-      quiz.questions = quiz.questions.filter(q => q._id.toString() !== id.toString());
-      quiz.questions.forEach((q, idx) => { q.orderIndex = idx; });
-      quiz.totalMarks = quiz.questions.reduce((sum, q) => sum + (q.mark || 0), 0);
-      await quiz.save();
-    }
-  }
-
-  async updateAnswerKey(questionId: string, correctOptionId: string): Promise<void> {
-    const quiz = await this.quizModel.findOne({ 'questions._id': questionId }).exec();
-    if (!quiz) throw new NotFoundException('Question not found');
-    const q = quiz.questions.find(q => q._id.toString() === questionId.toString());
-    if (!q) throw new NotFoundException('Question not found');
-    
-    q.options.forEach(opt => {
-      opt.isCorrect = opt._id.toString() === correctOptionId.toString();
+    return this.prisma.quiz.update({
+      where: { id },
+      data,
+      include: { course: true, category: true },
     });
-    await quiz.save();
   }
 
-  async reorderQuestions(quizId: string, questionIds: string[]): Promise<void> {
-    const quiz = await this.quizModel.findById(quizId).exec();
-    if (!quiz) throw new NotFoundException('Quiz not found');
+  async deleteQuiz(id: string) {
+    try {
+      await this.prisma.quiz.delete({ where: { id } });
+    } catch {
+      throw new NotFoundException(`Quiz with ID ${id} not found`);
+    }
+  }
 
-    const newQs: any[] = [];
+  // Duplicate an existing quiz with all its question linkages
+  async duplicateQuiz(id: string) {
+    const orig = await this.getQuiz(id);
+
+    const dup = await this.prisma.quiz.create({
+      data: {
+        courseId: orig.courseId,
+        title: `${orig.title} (Copy)`,
+        description: orig.description,
+        instructions: orig.instructions,
+        duration: orig.duration,
+        timerMode: orig.timerMode,
+        passingMarks: orig.passingMarks,
+        maxAttempts: orig.maxAttempts,
+        shuffleQuestions: orig.shuffleQuestions,
+        shuffleOptions: orig.shuffleOptions,
+        autoSubmit: orig.autoSubmit,
+        showResult: orig.showResult,
+        categoryId: orig.categoryId,
+        status: 'Draft',
+      },
+    });
+
+    // Copy over linkages
+    for (const q of orig.questions) {
+      await this.prisma.quizQuestion.create({
+        data: {
+          quizId: dup.id,
+          questionId: q.questionId,
+          displayOrder: q.displayOrder,
+          marks: q.marks,
+        },
+      });
+    }
+
+    return this.getQuiz(dup.id);
+  }
+
+  // Publish / Unpublish quiz validation
+  async publishQuiz(id: string) {
+    const quiz = await this.getQuiz(id);
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${id} not found`);
+    }
+
+    if (!quiz.title || quiz.title.trim() === '') {
+      throw new BadRequestException('Quiz Name is required.');
+    }
+    if (quiz.questions.length === 0) {
+      throw new BadRequestException('At least one question is required to publish.');
+    }
+    if (quiz.timerMode !== 'No Timer' && quiz.duration <= 0) {
+      throw new BadRequestException('Duration must be greater than 0 if timer is enabled.');
+    }
+
+    return this.prisma.quiz.update({
+      where: { id },
+      data: { status: 'Published' },
+    });
+  }
+
+  async unpublishQuiz(id: string) {
+    const quiz = await this.prisma.quiz.findUnique({ where: { id } });
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${id} not found`);
+    }
+    return this.prisma.quiz.update({
+      where: { id },
+      data: { status: 'Draft' },
+    });
+  }
+
+  // Question assignments to quiz
+  async addQuestionsToQuiz(quizId: string, questionIds: string[], marks: number = 1) {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: { questions: true },
+    });
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizId} not found`);
+    }
+
+    let nextOrder = quiz.questions.length;
     for (const qId of questionIds) {
-      const found = quiz.questions.find(q => q._id.toString() === qId.toString());
-      if (found) newQs.push(found);
+      // Check if already in quiz
+      const exists = quiz.questions.some((q) => q.questionId === qId);
+      if (!exists) {
+        await this.prisma.quizQuestion.create({
+          data: {
+            quizId,
+            questionId: qId,
+            displayOrder: nextOrder++,
+            marks,
+          },
+        });
+      }
     }
 
-    quiz.questions.forEach(q => {
-      if (!newQs.some(nq => nq._id.toString() === q._id.toString())) {
-        newQs.push(q);
-      }
+    return this.getQuiz(quizId);
+  }
+
+  async removeQuestionFromQuiz(quizId: string, questionId: string) {
+    await this.prisma.quizQuestion.deleteMany({
+      where: { quizId, questionId },
     });
 
-    newQs.forEach((q, index) => {
-      q.orderIndex = index;
+    // Re-adjust display orders
+    const remaining = await this.prisma.quizQuestion.findMany({
+      where: { quizId },
+      orderBy: { displayOrder: 'asc' },
     });
 
-    quiz.questions = newQs;
-    await quiz.save();
+    for (let i = 0; i < remaining.length; i++) {
+      await this.prisma.quizQuestion.update({
+        where: { id: remaining[i].id },
+        data: { displayOrder: i },
+      });
+    }
+
+    return this.getQuiz(quizId);
   }
 
-  // Media attachments logger
-  async logMediaAttachment(fileName: string, filePath: string, fileType: string): Promise<MediaAttachmentEntity> {
-    const att = new this.mediaModel({ fileName, filePath, fileType });
-    return att.save();
+  async reorderQuestions(quizId: string, questionIds: string[]) {
+    for (let i = 0; i < questionIds.length; i++) {
+      await this.prisma.quizQuestion.updateMany({
+        where: { quizId, questionId: questionIds[i] },
+        data: { displayOrder: i },
+      });
+    }
+    return this.getQuiz(quizId);
   }
 
-  // Access checkers
-  getQuizAccessStatus(quiz: any): 'not-started' | 'active' | 'closed' | 'stopped' {
-    if (quiz.status === 'Force stopped') return 'stopped';
-    if (quiz.status === 'Closed' || quiz.status === 'Archived') return 'closed';
-    
-    const now = new Date();
-    if (now < quiz.startTime) return 'not-started';
-    if (now > quiz.endTime) return 'closed';
-    return 'active';
+  async updateQuizQuestionMarks(quizId: string, questionId: string, marks: number) {
+    await this.prisma.quizQuestion.updateMany({
+      where: { quizId, questionId },
+      data: { marks },
+    });
+    return this.getQuiz(quizId);
   }
 
-  // Student specific clean details fetching
-  async getQuizForStudent(quizId: string): Promise<any> {
-    const quiz = await this.quizModel.findById(quizId)
-      .populate('course')
-      .populate('category')
-      .exec();
-
+  // Timing/Start Attempt endpoints
+  async startQuizAttempt(quizId: string, studentId: string) {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id: quizId },
+    });
     if (!quiz) {
       throw new NotFoundException(`Quiz not found`);
     }
 
-    const access = this.getQuizAccessStatus(quiz);
-    if (access !== 'active') {
-      return {
-        id: quiz._id,
-        quizTitle: quiz.quizTitle,
-        startTime: quiz.startTime,
-        endTime: quiz.endTime,
-        duration: quiz.duration,
-        passingMarks: quiz.passingMarks,
-        status: quiz.status,
-        accessStatus: access,
-        message: access === 'not-started' ? 'Quiz has not started yet.' : 'Quiz is closed.',
-        questions: [],
-      };
+    // Check attempts count
+    const attemptCount = await this.prisma.quizSubmission.count({
+      where: { quizId, studentId },
+    });
+    if (attemptCount >= quiz.maxAttempts) {
+      throw new BadRequestException(`Maximum attempts limit (${quiz.maxAttempts}) reached for this quiz.`);
     }
 
-    const cleanQuestions = quiz.questions.map(q => ({
-      id: q._id,
-      questionText: q.questionText,
-      questionType: q.questionType,
-      mark: q.mark,
-      options: q.options.map(o => ({
-        id: o._id,
-        optionText: o.optionText,
-      })),
-    }));
+    const submission = await this.prisma.quizSubmission.create({
+      data: {
+        quizId,
+        studentId,
+        startedAt: new Date(),
+      },
+    });
 
     return {
-      id: quiz._id,
-      quizTitle: quiz.quizTitle,
-      startTime: quiz.startTime,
-      endTime: quiz.endTime,
-      duration: quiz.duration,
-      passingMarks: quiz.passingMarks,
-      shuffleQuestions: quiz.shuffleQuestions,
-      shuffleOptions: quiz.shuffleOptions,
-      status: quiz.status,
-      accessStatus: access,
-      maxAttempts: quiz.settings?.maxAttempts ?? 1,
-      showResultsImmediately: quiz.settings?.showResultsImmediately ?? true,
-      questions: cleanQuestions,
+      submissionId: submission.id,
+      startedAt: submission.startedAt,
+      durationMinutes: quiz.duration,
     };
   }
 
-  // Timed student submission with automated grading engine
-  async submitQuiz(
-    quizId: string,
-    studentId: string,
-    selectedAnswers: { questionId: string; selectedOptionId?: string; selectedOptionIds?: string[]; typedAnswerText?: string }[],
-    timeTakenSeconds: number = 0,
-  ): Promise<any> {
-    const quiz = await this.quizModel.findById(quizId).populate('course').exec();
-    if (!quiz) throw new NotFoundException(`Quiz not found`);
-
-    const access = this.getQuizAccessStatus(quiz);
-    const now = new Date();
-    const graceTime = new Date(quiz.endTime.getTime() + 60000);
-    
-    if (quiz.status === 'Force stopped' || quiz.status === 'Closed' || quiz.status === 'Archived' || now > graceTime) {
-      throw new BadRequestException('Quiz submission blocked: Time limit exceeded or quiz not active.');
-    }
-
-    const student = await this.studentModel.findById(studentId).exec();
-    if (!student) throw new NotFoundException('Student account not found');
-
-    // Handle multiple attempts restrictions using Settings maxAttempts limit
-    const attemptsCount = await this.submissionModel.countDocuments({
-      quiz: quizId,
-      student: studentId,
+  // Submissions and Grading
+  async submitQuiz(data: {
+    submissionId: string;
+    answers: { questionId: string; selectedOptionIds?: string[]; typedAnswerText?: string }[];
+  }) {
+    const submission = await this.prisma.quizSubmission.findUnique({
+      where: { id: data.submissionId },
+      include: {
+        quiz: {
+          include: {
+            questions: {
+              include: {
+                question: { include: { options: true } },
+              },
+            },
+          },
+        },
+      },
     });
-    const maxAttempts = quiz.settings?.maxAttempts ?? 1;
-    if (attemptsCount >= maxAttempts) {
-      throw new BadRequestException(`Submission blocked: You have reached the maximum allowed attempts (${maxAttempts}) for this quiz.`);
+
+    if (!submission) {
+      throw new NotFoundException('Quiz attempt submission not found.');
+    }
+    if (submission.submittedAt) {
+      throw new BadRequestException('This quiz attempt has already been submitted.');
     }
 
-    let rawScore = 0;
-    let correctCount = 0;
-    let wrongCount = 0;
-    let unansweredCount = 0;
-    let hasSubjective = false;
+    const quiz = submission.quiz;
+    const submittedTime = new Date();
 
-    const studentAnswersEntities: any[] = [];
+    // SERVER-SIDE TIMER VALIDATION
+    // Allow an extra 30 seconds grace period for network latency
+    const allowedDurationMs = quiz.duration * 60 * 1000 + 30000;
+    const elapsedMs = submittedTime.getTime() - submission.startedAt.getTime();
+    const isLate = quiz.timerMode !== 'No Timer' && elapsedMs > allowedDurationMs;
 
-    for (const q of quiz.questions) {
-      if (q.questionType === 'Subjective' || q.questionType === 'ESSAY') {
-        hasSubjective = true;
-      }
+    let totalScore = 0;
+    const studentAnswersData: any[] = [];
 
-      const submissionAns = selectedAnswers.find(ans => ans.questionId.toString() === q._id.toString());
-      
-      // Check if unanswered
-      if (!submissionAns || 
-          (q.questionType !== 'Subjective' && q.questionType !== 'ESSAY' && q.questionType !== 'FILL_BLANK' && q.questionType !== 'SHORT_ANSWER' && !submissionAns.selectedOptionId && (!submissionAns.selectedOptionIds || submissionAns.selectedOptionIds.length === 0)) ||
-          ((q.questionType === 'FILL_BLANK' || q.questionType === 'SHORT_ANSWER' || q.questionType === 'FillBlank') && (!submissionAns.typedAnswerText || !submissionAns.typedAnswerText.trim())) ||
-          ((q.questionType === 'Subjective' || q.questionType === 'ESSAY') && (!submissionAns.typedAnswerText || !submissionAns.typedAnswerText.trim()))
-      ) {
-        unansweredCount++;
-        const blankSa = {
-          question: q,
-          selectedOption: null,
-          typedAnswerText: null,
-          isCorrect: false,
-          awardedMarks: 0,
-        };
-        studentAnswersEntities.push(blankSa);
-        continue;
-      }
+    for (const qLink of quiz.questions) {
+      const q = qLink.question;
+      const sAns = data.answers.find((a) => a.questionId === q.id);
 
-      // Objective Single selection type MCQ & TF
-      if (q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF') {
-        const opt = q.options.find(o => o._id.toString() === submissionAns.selectedOptionId?.toString());
-        if (!opt) {
-          unansweredCount++;
-          continue;
-        }
+      let marksAwarded = 0;
+      let isEvaluated = true;
 
-        const isCorrect = opt.isCorrect;
-        let awardedMarks = 0;
-
-        if (isCorrect) {
-          correctCount++;
-          awardedMarks = q.mark;
-          rawScore += q.mark;
-        } else {
-          wrongCount++;
-          if (quiz.negativeMarkingEnabled) {
-            awardedMarks = -Math.abs(quiz.negativeMarkingValue || 0);
-            rawScore -= Math.abs(quiz.negativeMarkingValue || 0);
+      if (sAns) {
+        if (q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF') {
+          const selectedId = sAns.selectedOptionIds?.[0];
+          const correctOpt = q.options.find((o) => o.isCorrect);
+          if (selectedId && correctOpt && selectedId === correctOpt.id) {
+            marksAwarded = qLink.marks;
           }
-        }
+        } else if (q.questionType === 'MCQ_MULTIPLE') {
+          const selectedIds = sAns.selectedOptionIds || [];
+          const correctOptIds = q.options.filter((o) => o.isCorrect).map((o) => o.id);
+          
+          const correctCount = selectedIds.filter((id) => correctOptIds.includes(id)).length;
+          const incorrectCount = selectedIds.filter((id) => !correctOptIds.includes(id)).length;
 
-        const sa = {
-          question: q,
-          selectedOption: opt,
-          isCorrect,
-          awardedMarks,
-        };
-        studentAnswersEntities.push(sa);
-
-      } else if (q.questionType === 'MCQ_MULTIPLE') {
-        // Multiple Select MCQ Choice Checking
-        const selectedIds = submissionAns.selectedOptionIds || (submissionAns.selectedOptionId ? [submissionAns.selectedOptionId] : []);
-        const correctOpts = q.options.filter(o => o.isCorrect);
-        const correctIds = correctOpts.map(o => o._id.toString());
-        
-        // Exact match comparison
-        const isCorrect = selectedIds.length === correctIds.length && 
-                          selectedIds.every(id => correctIds.includes(id.toString()));
-        let awardedMarks = 0;
-
-        if (isCorrect) {
-          correctCount++;
-          awardedMarks = q.mark;
-          rawScore += q.mark;
-        } else {
-          wrongCount++;
-          if (quiz.negativeMarkingEnabled) {
-            awardedMarks = -Math.abs(quiz.negativeMarkingValue || 0);
-            rawScore -= Math.abs(quiz.negativeMarkingValue || 0);
+          if (correctCount === correctOptIds.length && incorrectCount === 0) {
+            marksAwarded = qLink.marks;
           }
+        } else if (q.questionType === 'FILL_BLANK' || q.questionType === 'SHORT_ANSWER') {
+          const typed = sAns.typedAnswerText?.trim() || '';
+          const correctPatterns = (q.correctAnswerText || '').split('|').map((p) => p.trim());
+
+          const isCorrect = correctPatterns.some((pattern) => {
+            if (q.caseSensitive) {
+              return typed === pattern;
+            } else {
+              return typed.toLowerCase() === pattern.toLowerCase();
+            }
+          });
+
+          if (isCorrect) {
+            marksAwarded = qLink.marks;
+          }
+        } else if (q.questionType === 'ESSAY') {
+          // Manual grading required
+          isEvaluated = false;
+          marksAwarded = 0;
         }
 
-        const firstSelected = q.options.find(o => o._id.toString() === selectedIds[0]?.toString()) || null;
-        const sa = {
-          question: q,
-          selectedOption: firstSelected,
-          typedAnswerText: JSON.stringify(selectedIds),
-          isCorrect,
-          awardedMarks,
-        };
-        studentAnswersEntities.push(sa);
-
-      } else if (q.questionType === 'FILL_BLANK' || q.questionType === 'SHORT_ANSWER' || q.questionType === 'FillBlank') {
-        // Blank key checks (case-sensitive or insensitive)
-        const typed = (submissionAns.typedAnswerText || '').trim();
-        const correctText = q.correctAnswerText || '';
-        let isCorrect = false;
-        let accepted: string[] = [];
-        
-        try {
-          accepted = JSON.parse(correctText);
-          if (!Array.isArray(accepted)) accepted = [correctText];
-        } catch (e) {
-          accepted = correctText.split('|');
-        }
-
-        isCorrect = accepted.some(ans => {
-          const val1 = q.caseSensitive ? typed : typed.toLowerCase();
-          const val2 = q.caseSensitive ? ans.trim() : ans.trim().toLowerCase();
-          return val1 === val2;
+        studentAnswersData.push({
+          questionId: q.id,
+          selectedOptionIds: sAns.selectedOptionIds || [],
+          typedAnswerText: sAns.typedAnswerText || null,
+          marksAwarded,
+          isEvaluated,
         });
 
-        let awardedMarks = 0;
-
-        if (isCorrect) {
-          correctCount++;
-          awardedMarks = q.mark;
-          rawScore += q.mark;
-        } else {
-          wrongCount++;
-          if (quiz.negativeMarkingEnabled) {
-            awardedMarks = -Math.abs(quiz.negativeMarkingValue || 0);
-            rawScore -= Math.abs(quiz.negativeMarkingValue || 0);
-          }
-        }
-
-        const sa = {
-          question: q,
-          selectedOption: null,
-          typedAnswerText: typed,
-          isCorrect,
-          awardedMarks,
-        };
-        studentAnswersEntities.push(sa);
-
-      } else if (q.questionType === 'Subjective' || q.questionType === 'ESSAY') {
-        const sa = {
-          question: q,
-          selectedOption: null,
-          typedAnswerText: submissionAns.typedAnswerText || '',
-          isCorrect: false,
-          awardedMarks: null, // Pending evaluation
-        };
-        studentAnswersEntities.push(sa);
+        totalScore += marksAwarded;
+      } else {
+        // No answer provided
+        studentAnswersData.push({
+          questionId: q.id,
+          selectedOptionIds: [],
+          typedAnswerText: null,
+          marksAwarded: 0,
+          isEvaluated: q.questionType !== 'ESSAY',
+        });
       }
     }
 
-    let status = 'Pending Evaluation';
-    if (!hasSubjective) {
-      status = rawScore >= quiz.passingMarks ? 'Pass' : 'Fail';
+    // Apply cap or penalize score if late
+    if (isLate) {
+      console.log('Submission marked as late. Applying time validation policy.');
+      // Auto-submit could cap marks or flags, we can store late flag
     }
 
-    const percentage = (rawScore / (quiz.totalMarks || 100)) * 100;
-    
-    // Evaluate Grade
-    let grade = '';
-    if (!hasSubjective) {
-      if (percentage >= 80) grade = 'Excellent';
-      else if (percentage >= 60) grade = 'Passed';
-      else if (percentage >= 40) grade = 'Average';
-      else grade = 'Failed';
-    }
+    const passed = totalScore >= quiz.passingMarks;
+    const timeTakenSeconds = Math.round(elapsedMs / 1000);
 
-    const submission = new this.submissionModel({
-      studentName: student.name,
-      collegeName: student.collegeName,
-      courseId: (quiz.course as any).courseId,
-      courseName: (quiz.course as any).courseName,
-      score: rawScore,
-      totalMarks: quiz.totalMarks,
-      percentage: Math.max(0, percentage),
-      correctCount,
-      wrongCount,
-      unansweredCount,
-      status,
-      timeTakenSeconds,
-      grade,
-      quiz: quizId,
-      student: studentId,
-      studentAnswers: studentAnswersEntities,
+    // Save submission answers and score
+    await this.prisma.studentAnswer.createMany({
+      data: studentAnswersData.map((ans) => ({
+        submissionId: submission.id,
+        questionId: ans.questionId,
+        selectedOptionIds: ans.selectedOptionIds,
+        typedAnswerText: ans.typedAnswerText,
+        marksAwarded: ans.marksAwarded,
+        isEvaluated: ans.isEvaluated,
+      })),
     });
 
-    return submission.save();
+    return this.prisma.quizSubmission.update({
+      where: { id: submission.id },
+      data: {
+        submittedAt: submittedTime,
+        score: totalScore,
+        passed,
+        timeTakenSeconds,
+      },
+      include: {
+        quiz: true,
+        answers: true,
+      },
+    });
   }
 
-  async evaluateSubmission(
-    submissionId: string,
-    evaluations: { questionId: string; marks: number }[],
-  ): Promise<any> {
-    const sub = await this.submissionModel.findById(submissionId).populate('quiz').exec();
-    if (!sub) throw new NotFoundException('Submission not found');
+  async getStudentResult(submissionId: string) {
+    const sub = await this.prisma.quizSubmission.findUnique({
+      where: { id: submissionId },
+      include: {
+        quiz: {
+          include: {
+            questions: {
+              include: {
+                question: { include: { options: true } },
+              },
+            },
+          },
+        },
+        answers: true,
+      },
+    });
 
-    for (const grading of evaluations) {
-      const sa = sub.studentAnswers.find(answer => answer.question._id.toString() === grading.questionId.toString());
-      if (!sa) continue;
-
-      sa.awardedMarks = grading.marks;
-      sa.isCorrect = grading.marks > 0;
+    if (!sub) {
+      throw new NotFoundException('Submission not found.');
     }
 
-    let newScore = 0;
-    let pendingCount = 0;
-    let correctCount = 0;
-    let wrongCount = 0;
-    let unansweredCount = 0;
-
-    for (const sa of sub.studentAnswers) {
-      if (sa.awardedMarks === null) {
-        pendingCount++;
-      } else {
-        newScore += sa.awardedMarks;
-        if (sa.awardedMarks > 0) {
-          correctCount++;
-        } else if (sa.awardedMarks < 0 || (sa.awardedMarks === 0 && sa.selectedOption !== null)) {
-          wrongCount++;
-        } else {
-          unansweredCount++;
-        }
-      }
-    }
-
-    sub.score = newScore;
-    sub.percentage = Math.max(0, (newScore / (sub.totalMarks || 100)) * 100);
-    sub.correctCount = correctCount;
-    sub.wrongCount = wrongCount;
-    sub.unansweredCount = unansweredCount;
-
-    if (pendingCount === 0) {
-      const passingPercentage = (sub.quiz as any).settings?.passingPercentage ?? 40;
-      const pass = (sub.totalMarks > 0 && passingPercentage > 0) ? (sub.percentage >= passingPercentage) : (newScore >= (sub.quiz as any).passingMarks);
-      sub.status = pass ? 'Pass' : 'Fail';
-      
-      if (sub.percentage >= 80) sub.grade = 'Excellent';
-      else if (sub.percentage >= 60) sub.grade = 'Passed';
-      else if (sub.percentage >= 40) sub.grade = 'Average';
-      else sub.grade = 'Failed';
-    } else {
-      sub.status = 'Pending Evaluation';
-      sub.grade = '';
-    }
-
-    return sub.save();
-  }
-
-  async getSubmissions(): Promise<any[]> {
-    return this.submissionModel.find()
-      .populate({ path: 'quiz', populate: { path: 'course' } })
-      .sort({ createdAt: -1 })
-      .exec();
-  }
-
-  async getSubmissionDetail(id: string): Promise<any> {
-    const sub = await this.submissionModel.findById(id).populate('quiz').exec();
-    if (!sub) throw new NotFoundException(`Submission not found`);
     return sub;
   }
 
-  async getStudentSubmissionResult(id: string, studentId: string): Promise<any> {
-    const sub = await this.submissionModel.findOne({ _id: new Types.ObjectId(id) as any, student: new Types.ObjectId(studentId) as any }).populate('quiz').exec();
-    if (!sub) throw new NotFoundException(`Submission not found for this student`);
-
-    const showAnswers = (sub.quiz as any).resultsPublished || ((sub.quiz as any).settings?.showResultsImmediately && sub.status !== 'Pending Evaluation');
-
-    return {
-      id: sub._id,
-      studentName: sub.studentName,
-      courseId: sub.courseId,
-      courseName: sub.courseName,
-      score: sub.score,
-      totalMarks: sub.totalMarks,
-      percentage: sub.percentage,
-      correctCount: sub.correctCount,
-      wrongCount: sub.wrongCount,
-      unansweredCount: sub.unansweredCount,
-      status: sub.status,
-      timeTakenSeconds: sub.timeTakenSeconds,
-      grade: sub.grade,
-      submittedAt: sub.submittedAt,
-      quiz: {
-        id: (sub.quiz as any)._id,
-        quizTitle: (sub.quiz as any).quizTitle,
-        resultsPublished: (sub.quiz as any).resultsPublished,
-        difficulty: (sub.quiz as any).difficulty,
-        showResultsImmediately: (sub.quiz as any).settings?.showResultsImmediately,
+  async getSubmissionsList() {
+    return this.prisma.quizSubmission.findMany({
+      include: {
+        quiz: { include: { course: true } },
+        student: true,
       },
-      studentAnswers: showAnswers ? sub.studentAnswers.map(sa => ({
-        id: sa._id,
-        isCorrect: sa.isCorrect,
-        typedAnswerText: sa.typedAnswerText,
-        awardedMarks: sa.awardedMarks,
-        selectedOption: sa.selectedOption ? {
-          id: sa.selectedOption._id,
-          optionText: sa.selectedOption.optionText,
-          isCorrect: sa.selectedOption.isCorrect,
-        } : null,
-        question: {
-          id: sa.question._id,
-          questionText: sa.question.questionText,
-          questionType: sa.question.questionType,
-          mark: sa.question.mark,
-          explanation: sa.question.explanation,
-          correctAnswerText: sa.question.correctAnswerText,
-          options: sa.question.options.map(o => ({
-            id: o._id,
-            optionText: o.optionText,
-            isCorrect: o.isCorrect
-          }))
-        }
-      })) : []
-    };
+      orderBy: { submittedAt: 'desc' },
+    });
   }
 
-  async getAttemptStats(quizId: string, studentId: string): Promise<any> {
-    const submissions = await this.submissionModel.find({
-      quiz: quizId,
-      student: studentId,
-    }).sort({ submittedAt: 1 }).exec();
+  async getSubmission(id: string) {
+    const sub = await this.prisma.quizSubmission.findUnique({
+      where: { id },
+      include: {
+        quiz: {
+          include: {
+            questions: {
+              include: {
+                question: { include: { options: true } },
+              },
+            },
+          },
+        },
+        student: true,
+        answers: true,
+      },
+    });
 
-    const totalAttempts = submissions.length;
-    if (totalAttempts === 0) {
+    if (!sub) {
+      throw new NotFoundException('Submission not found.');
+    }
+
+    return sub;
+  }
+
+  async evaluateEssayAnswers(submissionId: string, evaluations: { questionId: string; marksAwarded: number; feedback?: string }[]) {
+    const sub = await this.prisma.quizSubmission.findUnique({
+      where: { id: submissionId },
+      include: { answers: true, quiz: true },
+    });
+
+    if (!sub) {
+      throw new NotFoundException('Submission not found.');
+    }
+
+    let addedScore = 0;
+
+    for (const evalItem of evaluations) {
+      const answer = sub.answers.find((a) => a.questionId === evalItem.questionId);
+      if (answer) {
+        await this.prisma.studentAnswer.update({
+          where: { id: answer.id },
+          data: {
+            marksAwarded: evalItem.marksAwarded,
+            isEvaluated: true,
+            feedback: evalItem.feedback || null,
+          },
+        });
+        addedScore += evalItem.marksAwarded - answer.marksAwarded;
+      }
+    }
+
+    const updatedSubmission = await this.prisma.quizSubmission.findUnique({
+      where: { id: submissionId },
+      include: { answers: true, quiz: true },
+    });
+
+    if (!updatedSubmission) {
+      throw new NotFoundException('Submission not found');
+    }
+
+    const newScore = updatedSubmission.answers.reduce((acc, curr) => acc + curr.marksAwarded, 0);
+    const passed = newScore >= updatedSubmission.quiz.passingMarks;
+
+    return this.prisma.quizSubmission.update({
+      where: { id: submissionId },
+      data: {
+        score: newScore,
+        passed,
+      },
+      include: { answers: true },
+    });
+  }
+
+  async getLeaderboard(quizId: string) {
+    return this.prisma.quizSubmission.findMany({
+      where: { quizId, submittedAt: { not: null } },
+      include: { student: true },
+      orderBy: [
+        { score: 'desc' },
+        { timeTakenSeconds: 'asc' },
+      ],
+      take: 20,
+    });
+  }
+
+  async getAnalytics(quizId: string) {
+    const submissions = await this.prisma.quizSubmission.findMany({
+      where: { quizId, submittedAt: { not: null } },
+    });
+
+    if (submissions.length === 0) {
       return {
         totalAttempts: 0,
-        bestScore: 0,
-        latestScore: 0,
         averageScore: 0,
         highestScore: 0,
-        lowestScore: 0,
-        scoreHistory: []
+        passRate: 0,
       };
     }
 
-    const scores = submissions.map(s => s.score);
+    const scores = submissions.map((s) => s.score);
+    const totalAttempts = submissions.length;
+    const averageScore = scores.reduce((a, b) => a + b, 0) / totalAttempts;
     const highestScore = Math.max(...scores);
-    const lowestScore = Math.min(...scores);
-    const averageScore = Number((scores.reduce((sum, s) => sum + s, 0) / totalAttempts).toFixed(2));
-    const latestScore = submissions[totalAttempts - 1].score;
-    const bestScore = highestScore;
+    const passCount = submissions.filter((s) => s.passed).length;
+    const passRate = (passCount / totalAttempts) * 100;
 
     return {
       totalAttempts,
-      bestScore,
-      latestScore,
       averageScore,
       highestScore,
-      lowestScore,
-      scoreHistory: submissions.map((s, index) => ({
-        attemptNumber: index + 1,
-        score: s.score,
-        percentage: s.percentage,
-        submittedAt: s.submittedAt,
-        grade: s.grade
-      }))
+      passRate,
     };
   }
 
-  async getLeaderboard(quizId: string): Promise<any[]> {
-    return this.submissionModel.find({ quiz: quizId })
-      .populate('student')
-      .sort({ score: -1, submittedAt: 1 })
-      .exec();
-  }
-
-  async getAnalytics(quizId: string): Promise<any> {
-    const quiz = await this.quizModel.findById(quizId).exec();
-    if (!quiz) throw new NotFoundException('Quiz not found');
-
-    const submissions = await this.submissionModel.find({ quiz: quizId }).exec();
-
-    const count = submissions.length;
-    if (count === 0) {
-      return {
-        totalAttempts: 0,
-        averageScore: 0,
-        passPercentage: 0,
-        failPercentage: 0,
-        questionAnalysis: [],
-      };
+  // Shuffle Helper
+  private shuffle(array: any[]) {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
     }
-
-    const sumScore = submissions.reduce((sum, s) => sum + s.score, 0);
-    const passCount = submissions.filter(s => s.status === 'Pass').length;
-    const failCount = submissions.filter(s => s.status === 'Fail').length;
-
-    const questionAnalysis = quiz.questions.map(q => {
-      const answers: any[] = [];
-      submissions.forEach(sub => {
-        const ans = sub.studentAnswers.find(sa => sa.question._id.toString() === q._id.toString());
-        if (ans) answers.push(ans);
-      });
-
-      const totalAnswers = answers.length;
-      const correct = answers.filter(a => a.isCorrect).length;
-      const wrong = answers.filter(a => a.awardedMarks !== null && a.awardedMarks < 0).length;
-      const blank = totalAnswers - (correct + wrong);
-
-      return {
-        questionId: q._id,
-        questionText: q.questionText,
-        correctRatio: totalAnswers > 0 ? (correct / totalAnswers) * 100 : 0,
-        wrongRatio: totalAnswers > 0 ? (wrong / totalAnswers) * 100 : 0,
-        blankRatio: totalAnswers > 0 ? (blank / totalAnswers) * 100 : 0,
-      };
-    });
-
-    return {
-      totalAttempts: count,
-      averageScore: Number((sumScore / count).toFixed(2)),
-      passPercentage: Number(((passCount / count) * 100).toFixed(1)),
-      failPercentage: Number(((failCount / count) * 100).toFixed(1)),
-      questionAnalysis,
-    };
-  }
-
-  async generateCSVReport(): Promise<string> {
-    const submissions = await this.getSubmissions();
-    let csv = 'Student Name,College Name,Course ID,Course Name,Quiz Title,Score,Total Marks,Percentage,Status,Submitted At\n';
-    submissions.forEach(s => {
-      csv += `"${s.studentName}","${s.collegeName}","${s.courseId}","${s.courseName}","${(s.quiz as any)?.quizTitle}",${s.score},${s.totalMarks},${s.percentage.toFixed(1)},"${s.status}","${s.submittedAt.toISOString()}"\n`;
-    });
-    return csv;
+    return copy;
   }
 }

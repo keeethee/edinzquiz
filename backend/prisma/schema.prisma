@@ -1,0 +1,206 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Student {
+  id                    String                 @id @default(uuid())
+  name                  String
+  email                 String                 @unique
+  passwordHash          String
+  collegeName           String
+  registeredAt          DateTime               @default(now())
+  submissions           QuizSubmission[]
+  assignmentSubmissions AssignmentSubmission[]
+
+  @@map("students")
+}
+
+model Course {
+  id         String         @id @default(uuid())
+  courseId   String         @unique
+  courseName String
+  duration   String
+  status     String         @default("Active") // "Active" | "Inactive"
+  quizzes    Quiz[]
+  questions  QuestionBank[]
+  assignments Assignment[]
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@map("courses")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  quizzes     Quiz[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Quiz {
+  id               String         @id @default(uuid())
+  courseId         String
+  course           Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  categoryId       String?
+  category         Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  title            String
+  description      String?
+  instructions     String?
+  duration         Int            @default(60) // in minutes
+  timerMode        String         @default("No Timer") // "No Timer" | "Quiz Timer" | "Question Timer"
+  passingMarks     Int            @default(40)
+  maxAttempts      Int            @default(1)
+  shuffleQuestions Boolean        @default(false)
+  shuffleOptions   Boolean        @default(false)
+  autoSubmit       Boolean        @default(false)
+  showResult       Boolean        @default(false)
+  status           String         @default("Draft") // "Draft" | "Published" | "Archived"
+  publishAt        DateTime?
+  expireAt         DateTime?
+  createdById      String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  questions        QuizQuestion[]
+  submissions      QuizSubmission[]
+
+  @@map("quizzes")
+}
+
+model QuestionBank {
+  id                String         @id @default(uuid())
+  courseId          String
+  course            Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  question          String
+  questionType      String         @default("MCQ_SINGLE") // "MCQ_SINGLE" | "MCQ_MULTIPLE" | "TF" | "FILL_BLANK" | "SHORT_ANSWER" | "ESSAY"
+  difficulty        String         @default("Medium") // "Easy" | "Medium" | "Hard"
+  status            String         @default("Active")
+  explanation       String?
+  caseSensitive     Boolean        @default(false)
+  sampleAnswer      String?
+  correctAnswerText String?
+  options           QuestionOption[]
+  quizQuestions     QuizQuestion[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@map("question_bank")
+}
+
+model QuestionOption {
+  id         String       @id @default(uuid())
+  questionId String
+  question   QuestionBank @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionText String
+  isCorrect  Boolean      @default(false)
+
+  @@map("question_options")
+}
+
+model QuizQuestion {
+  id           String       @id @default(uuid())
+  quizId       String
+  quiz         Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     QuestionBank @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  displayOrder Int
+  marks        Int          @default(1)
+
+  @@unique([quizId, questionId])
+  @@map("quiz_questions")
+}
+
+model QuizSubmission {
+  id              String          @id @default(uuid())
+  quizId          String
+  quiz            Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId       String?
+  student         Student?        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentName     String?
+  collegeName     String?
+  startedAt       DateTime        @default(now())
+  submittedAt     DateTime?
+  score           Float           @default(0)
+  passed          Boolean         @default(false)
+  timeTakenSeconds Int            @default(0)
+  answers         StudentAnswer[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("quiz_submissions")
+}
+
+model StudentAnswer {
+  id               String         @id @default(uuid())
+  submissionId     String
+  submission       QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId       String
+  selectedOptionIds String[]
+  typedAnswerText  String?
+  marksAwarded     Float          @default(0)
+  isEvaluated      Boolean        @default(false)
+  feedback         String?
+
+  @@map("student_answers")
+}
+
+model Assignment {
+  id          String                 @id @default(uuid())
+  courseId    String
+  course      Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  deadline    DateTime
+  submissions AssignmentSubmission[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@map("assignments")
+}
+
+model AssignmentSubmission {
+  id           String     @id @default(uuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String?
+  student      Student?   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentName  String?
+  collegeName  String?
+  fileName     String
+  fileUrl      String
+  submittedAt  DateTime   @default(now())
+  marks        Float?
+  feedback     String?
+
+  @@map("assignment_submissions")
+}
+
+model MediaAttachment {
+  id         String   @id @default(uuid())
+  fileName   String
+  fileUrl    String
+  mimeType   String
+  uploadedAt DateTime @default(now())
+
+  @@map("media_attachments")
+}

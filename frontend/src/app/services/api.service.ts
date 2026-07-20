@@ -3,23 +3,23 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Course {
-  id: number;
-  courseId: string; // display ID like 'CS-101'
+  id: string;
+  courseId: string; // display ID like 'devops'
   courseName: string;
   duration?: string;
   status: string;
 }
 
 export interface Option {
-  id: number;
+  id: string;
   optionText: string;
   isCorrect?: boolean;
 }
 
 export interface Question {
-  id: number;
+  id: string;
   questionText: string;
-  questionType: string; // 'MCQ_SINGLE' | 'MCQ_MULTIPLE' | 'TF' | 'FILL_BLANK' | 'SHORT_ANSWER' | 'ESSAY' | 'MCQ' | 'FillBlank' | 'Subjective'
+  questionType: string; // 'MCQ_SINGLE' | 'MCQ_MULTIPLE' | 'TF' | 'FILL_BLANK' | 'SHORT_ANSWER' | 'ESSAY'
   mark: number;
   correctAnswerText?: string;
   options: Option[];
@@ -30,42 +30,45 @@ export interface Question {
 }
 
 export interface Quiz {
-  id: number;
+  id: string;
   quizTitle: string;
   startTime: string;
   endTime: string;
-  status: string; // 'Draft' | 'Published' | 'Closed' | 'Force stopped' | 'Archived'
+  status: string; // 'Draft' | 'Published' | 'Archived'
   totalMarks: number;
   duration: number; // in minutes
   passingMarks: number;
-  negativeMarkingEnabled: boolean;
-  negativeMarkingValue: number;
+  timerMode: string; // 'No Timer' | 'Quiz Timer' | 'Question Timer'
+  maxAttempts: number;
   shuffleQuestions: boolean;
   shuffleOptions: boolean;
-  resultsPublished: boolean;
+  autoSubmit: boolean;
+  showResult: boolean;
+  resultsPublished?: boolean;
+  negativeMarkingEnabled?: boolean;
+  negativeMarkingValue?: number;
+  courseId?: string;
+  instructions?: string;
   course?: Course;
-  questions?: Question[];
+  questions?: any[];
   description?: string;
   difficulty?: string; // 'Easy' | 'Medium' | 'Hard'
-  category?: { id: number; name: string } | null;
-  settings?: {
-    maxAttempts: number;
-    passingPercentage: number;
-    showResultsImmediately: boolean;
-  };
+  category?: { id: string; name: string } | null;
+  publishAt?: string;
+  expireAt?: string;
 }
 
 export interface StudentAnswer {
-  id: number;
+  id: string;
   isCorrect: boolean;
   typedAnswerText: string | null;
-  awardedMarks: number | null; // Null represents 'Pending Evaluation'
+  awardedMarks: number | null;
   question: Question;
   selectedOption: Option | null;
 }
 
 export interface QuizSubmission {
-  id: number;
+  id: string;
   studentName: string;
   collegeName: string;
   courseId: string;
@@ -76,7 +79,7 @@ export interface QuizSubmission {
   correctCount: number;
   wrongCount: number;
   unansweredCount: number;
-  status: string; // 'Pass' | 'Fail' | 'Pending Evaluation'
+  status: string;
   submittedAt: string;
   timeTakenSeconds?: number;
   grade?: string;
@@ -86,7 +89,7 @@ export interface QuizSubmission {
 }
 
 export interface Assignment {
-  id: number;
+  id: string;
   title: string;
   description?: string;
   deadline: string;
@@ -94,7 +97,7 @@ export interface Assignment {
 }
 
 export interface AssignmentSubmission {
-  id: number;
+  id: string;
   studentName: string;
   collegeName: string;
   courseName: string;
@@ -135,7 +138,16 @@ export class ApiService {
     return this.http.post<any>(`${this.baseUrl}/auth/student/login`, { email, password: pass });
   }
 
-  // Courses
+  // Admin auth endpoints
+  loginAdmin(email: string, pass: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/auth/login`, { email, password: pass });
+  }
+
+  getProfile(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/auth/profile`, this.getHeaders());
+  }
+
+  // Courses API
   getCourses(): Observable<Course[]> {
     return this.http.get<Course[]>(`${this.baseUrl}/courses`, this.getHeaders());
   }
@@ -144,175 +156,172 @@ export class ApiService {
     return this.http.post<Course>(`${this.baseUrl}/courses`, { courseId, courseName, duration, status }, this.getHeaders());
   }
 
-  updateCourse(id: number, courseId: string, courseName: string, duration?: string, status?: string): Observable<Course> {
+  updateCourse(id: string, courseId: string, courseName: string, duration?: string, status?: string): Observable<Course> {
     return this.http.patch<Course>(`${this.baseUrl}/courses/${id}`, { courseId, courseName, duration, status }, this.getHeaders());
   }
 
-  deleteCourse(id: number): Observable<void> {
+  deleteCourse(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/courses/${id}`, this.getHeaders());
   }
 
-  getCourse(id: number): Observable<Course> {
+  getCourseDetail(id: string): Observable<Course> {
     return this.http.get<Course>(`${this.baseUrl}/courses/${id}`, this.getHeaders());
   }
 
-  // Student public course lookup by display ID code
   lookupCourse(courseIdCode: string): Observable<Course> {
     return this.http.get<Course>(`${this.baseUrl}/courses/lookup/${courseIdCode}`);
   }
 
-  // Categories API
+  // Quiz Categories API
   getCategories(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/quizzes/categories`, this.getHeaders());
   }
 
+  createCategory(name: string, description?: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/quizzes/categories`, { name, description }, this.getHeaders());
+  }
+
   // Quizzes API
-  getQuizzes(courseId: number): Observable<Quiz[]> {
+  getQuizzes(courseId?: string): Observable<Quiz[]> {
+    const url = courseId ? `${this.baseUrl}/quizzes?courseId=${courseId}` : `${this.baseUrl}/quizzes`;
+    return this.http.get<Quiz[]>(url, this.getHeaders());
+  }
+
+  getQuizzesByCourse(courseId: string): Observable<Quiz[]> {
     return this.http.get<Quiz[]>(`${this.baseUrl}/quizzes/course/${courseId}`);
   }
 
-  getQuiz(id: number): Observable<Quiz> {
+  getQuizDetail(id: string): Observable<Quiz> {
     return this.http.get<Quiz>(`${this.baseUrl}/quizzes/${id}`, this.getHeaders());
   }
 
-  getQuizForStudent(id: number): Observable<any> {
+  getQuizForStudent(id: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/quizzes/student/${id}`, this.getHeaders());
   }
 
-  createQuiz(
-    courseId: number,
-    quizTitle: string,
-    startTime: string,
-    endTime: string,
-    totalMarks: number,
-    duration: number = 60,
-    passingMarks: number = 40,
-    negativeMarkingEnabled: boolean = false,
-    negativeMarkingValue: number = 0,
-    shuffleQuestions: boolean = false,
-    shuffleOptions: boolean = false,
-    description?: string,
-    difficulty: string = 'Medium',
-    categoryId?: number,
-    settings?: { maxAttempts?: number; passingPercentage?: number; showResultsImmediately?: boolean }
-  ): Observable<Quiz> {
-    return this.http.post<Quiz>(
-      `${this.baseUrl}/quizzes`,
-      {
-        courseId,
-        quizTitle,
-        startTime,
-        endTime,
-        totalMarks,
-        duration,
-        passingMarks,
-        negativeMarkingEnabled,
-        negativeMarkingValue,
-        shuffleQuestions,
-        shuffleOptions,
-        description,
-        difficulty,
-        categoryId,
-        settings
-      },
-      this.getHeaders()
-    );
+  createQuiz(data: any): Observable<Quiz> {
+    return this.http.post<Quiz>(`${this.baseUrl}/quizzes`, data, this.getHeaders());
   }
 
-  updateQuizTiming(id: number, startTime?: string, endTime?: string, status?: string, resultsPublished?: boolean): Observable<Quiz> {
-    return this.http.patch<Quiz>(`${this.baseUrl}/quizzes/${id}/timing`, { startTime, endTime, status, resultsPublished }, this.getHeaders());
-  }
-
-  updateQuiz(id: number, data: any): Observable<Quiz> {
+  updateQuiz(id: string, data: any): Observable<Quiz> {
     return this.http.patch<Quiz>(`${this.baseUrl}/quizzes/${id}`, data, this.getHeaders());
   }
 
-  duplicateQuiz(id: number): Observable<Quiz> {
-    return this.http.post<Quiz>(`${this.baseUrl}/quizzes/${id}/duplicate`, {}, this.getHeaders());
-  }
-
-  deleteQuiz(id: number): Observable<void> {
+  deleteQuiz(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/quizzes/${id}`, this.getHeaders());
   }
 
-  // Questions API
-  addQuestion(
-    quizId: number,
-    questionText: string,
-    questionType: string,
-    mark: number,
-    correctAnswerText?: string,
-    options?: { optionText: string; isCorrect: boolean }[]
-  ): Observable<Question> {
-    return this.http.post<Question>(`${this.baseUrl}/quizzes/questions`, { quizId, questionText, questionType, mark, correctAnswerText, options }, this.getHeaders());
+  duplicateQuiz(id: string): Observable<Quiz> {
+    return this.http.post<Quiz>(`${this.baseUrl}/quizzes/${id}/duplicate`, {}, this.getHeaders());
   }
 
-  updateQuestion(id: number, data: any): Observable<Question> {
-    return this.http.patch<Question>(`${this.baseUrl}/quizzes/questions/${id}`, data, this.getHeaders());
+  publishQuiz(id: string): Observable<Quiz> {
+    return this.http.patch<Quiz>(`${this.baseUrl}/quizzes/${id}/publish`, {}, this.getHeaders());
   }
 
-  deleteQuestion(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/quizzes/questions/${id}`, this.getHeaders());
+  unpublishQuiz(id: string): Observable<Quiz> {
+    return this.http.patch<Quiz>(`${this.baseUrl}/quizzes/${id}/unpublish`, {}, this.getHeaders());
   }
 
-  updateAnswerKey(questionId: number, correctOptionId: number): Observable<any> {
-    return this.http.patch<any>(`${this.baseUrl}/quizzes/questions/${questionId}/answer-key`, { correctOptionId }, this.getHeaders());
+  // Question Bank API
+  getQuestionBank(params: {
+    courseId?: string;
+    difficulty?: string;
+    questionType?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<any> {
+    let query = '';
+    const parts: string[] = [];
+    if (params.courseId) parts.push(`courseId=${params.courseId}`);
+    if (params.difficulty) parts.push(`difficulty=${params.difficulty}`);
+    if (params.questionType) parts.push(`questionType=${params.questionType}`);
+    if (params.search) parts.push(`search=${encodeURIComponent(params.search)}`);
+    if (params.page) parts.push(`page=${params.page}`);
+    if (params.limit) parts.push(`limit=${params.limit}`);
+    
+    if (parts.length > 0) {
+      query = '?' + parts.join('&');
+    }
+    return this.http.get<any>(`${this.baseUrl}/question-bank${query}`, this.getHeaders());
   }
 
-  reorderQuestions(quizId: number, questionIds: number[]): Observable<any> {
+  getQuestionFromBank(id: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/question-bank/${id}`, this.getHeaders());
+  }
+
+  createQuestionInBank(data: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/question-bank`, data, this.getHeaders());
+  }
+
+  updateQuestionInBank(id: string, data: any): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/question-bank/${id}`, data, this.getHeaders());
+  }
+
+  deleteQuestionFromBank(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/question-bank/${id}`, this.getHeaders());
+  }
+
+  // Quiz Questions Linkage API
+  addQuestionsToQuiz(quizId: string, questionIds: string[], marks?: number): Observable<Quiz> {
+    return this.http.post<Quiz>(`${this.baseUrl}/quizzes/${quizId}/questions`, { questionIds, marks }, this.getHeaders());
+  }
+
+  removeQuestionFromQuiz(quizId: string, questionId: string): Observable<Quiz> {
+    return this.http.delete<Quiz>(`${this.baseUrl}/quizzes/${quizId}/questions/${questionId}`, this.getHeaders());
+  }
+
+  updateQuizQuestionMarks(quizId: string, questionId: string, marks: number): Observable<Quiz> {
+    return this.http.patch<Quiz>(`${this.baseUrl}/quizzes/${quizId}/questions/${questionId}/marks`, { marks }, this.getHeaders());
+  }
+
+  reorderQuestions(quizId: string, questionIds: string[]): Observable<any> {
     return this.http.patch<any>(`${this.baseUrl}/quizzes/${quizId}/questions/reorder`, { questionIds }, this.getHeaders());
   }
 
-  // Upload quiz files/images
+  // Upload media
   uploadMedia(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<any>(`${this.baseUrl}/quizzes/media/upload`, formData, this.getHeaders());
   }
 
-  // Submissions API
-  submitQuiz(quizId: number, studentId: number, answers: { questionId: number; selectedOptionId?: number; selectedOptionIds?: number[]; typedAnswerText?: string }[], timeTakenSeconds: number = 0): Observable<QuizSubmission> {
-    return this.http.post<QuizSubmission>(`${this.baseUrl}/quizzes/submit`, { quizId, studentId, answers, timeTakenSeconds }, this.getHeaders());
+  // Student quiz attempts
+  startQuizAttempt(quizId: string, studentId: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/quizzes/${quizId}/start`, { studentId }, this.getHeaders());
   }
 
-  getStudentSubmissionResult(id: number, studentId: number): Observable<QuizSubmission> {
-    return this.http.post<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/student-result/${id}`, { studentId }, this.getHeaders());
+  submitQuiz(submissionId: string, answers: any[]): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/quizzes/submit`, { submissionId, answers }, this.getHeaders());
   }
 
-  getAttemptStats(quizId: number, studentId: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/quizzes/${quizId}/attempt-stats`, { studentId }, this.getHeaders());
+  getStudentSubmissionResult(id: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/quizzes/submissions/student-result/${id}`, this.getHeaders());
   }
 
   getQuizSubmissions(): Observable<QuizSubmission[]> {
     return this.http.get<QuizSubmission[]>(`${this.baseUrl}/quizzes/submissions/list`, this.getHeaders());
   }
 
-
-  getQuizSubmissionDetail(id: number): Observable<QuizSubmission> {
+  getQuizSubmissionDetail(id: string): Observable<QuizSubmission> {
     return this.http.get<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/${id}`, this.getHeaders());
   }
 
-  exportQuizSubmissions(): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/quizzes/submissions/export`, {
-      ...this.getHeaders(),
-      responseType: 'blob'
-    });
-  }
-
-  evaluateSubmission(id: number, evaluations: { questionId: number; marks: number }[]): Observable<QuizSubmission> {
+  evaluateSubmission(id: string, evaluations: { questionId: string; marksAwarded: number; feedback?: string }[]): Observable<QuizSubmission> {
     return this.http.patch<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/${id}/evaluate`, { evaluations }, this.getHeaders());
   }
 
-  getLeaderboard(quizId: number): Observable<QuizSubmission[]> {
+  getLeaderboard(quizId: string): Observable<QuizSubmission[]> {
     return this.http.get<QuizSubmission[]>(`${this.baseUrl}/quizzes/${quizId}/leaderboard`, this.getHeaders());
   }
 
-  getAnalytics(quizId: number): Observable<any> {
+  getAnalytics(quizId: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/quizzes/${quizId}/analytics`, this.getHeaders());
   }
 
   // Assignments API
-  getAssignments(courseId: number): Observable<Assignment[]> {
+  getAssignments(courseId: string): Observable<Assignment[]> {
     return this.http.get<Assignment[]>(`${this.baseUrl}/assignments/course/${courseId}`, this.getHeaders());
   }
 
@@ -327,15 +336,15 @@ export class ApiService {
     );
   }
 
-  createAssignment(courseId: number, title: string, description: string, deadline: string): Observable<Assignment> {
+  createAssignment(courseId: string, title: string, description: string, deadline: string): Observable<Assignment> {
     return this.http.post<Assignment>(`${this.baseUrl}/assignments`, { courseId, title, description, deadline }, this.getHeaders());
   }
 
-  deleteAssignment(id: number): Observable<void> {
+  deleteAssignment(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/assignments/${id}`, this.getHeaders());
   }
 
-  updateAssignment(id: number, payload: Partial<Assignment>): Observable<Assignment> {
+  updateAssignment(id: string, payload: Partial<Assignment>): Observable<Assignment> {
     return this.http.patch<Assignment>(`${this.baseUrl}/assignments/${id}`, payload, this.getHeaders());
   }
 
@@ -343,11 +352,11 @@ export class ApiService {
     return this.http.get<AssignmentSubmission[]>(`${this.baseUrl}/assignments/submissions`, this.getHeaders());
   }
 
-  gradeAssignmentSubmission(id: number, marks: number, feedback: string): Observable<AssignmentSubmission> {
+  gradeAssignmentSubmission(id: string, marks: number, feedback: string): Observable<AssignmentSubmission> {
     return this.http.patch<AssignmentSubmission>(`${this.baseUrl}/assignments/submissions/${id}/grade`, { marks, feedback }, this.getHeaders());
   }
 
-  downloadSubmissionFile(id: number): Observable<Blob> {
+  downloadSubmissionFile(id: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/assignments/submissions/${id}/download`, {
       ...this.getHeaders(),
       responseType: 'blob'

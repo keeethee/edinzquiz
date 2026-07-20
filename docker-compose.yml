@@ -10,11 +10,11 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/edinz_quiz
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/edinz_quiz?schema=public
     env_file:
       - ./backend/.env
     depends_on:
-      - mongodb
+      - postgres
 
   frontend:
     build:
@@ -27,14 +27,18 @@ services:
     depends_on:
       - backend
 
-  mongodb:
-    image: mongo:latest
-    container_name: edinz-mongodb
+  postgres:
+    image: postgres:15-alpine
+    container_name: edinz-postgres
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=edinz_quiz
     volumes:
-      - mongo-data:/data/db
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  mongo-data:
+  postgres-data:

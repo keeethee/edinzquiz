@@ -1,0 +1,112 @@
+<div class="page-container grid-layout">
+  
+  <!-- Left Side: Create Course Card -->
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>✨ Create Course</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="form-content">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Course Code (Unique)</mat-label>
+        <input matInput [(ngModel)]="newCourseIdCode" placeholder="e.g. DEVOPS" style="text-transform: uppercase;" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Course Name</mat-label>
+        <input matInput [(ngModel)]="newCourseName" placeholder="e.g. Cloud and DevOps Bootcamp" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Duration (Optional)</mat-label>
+        <input matInput [(ngModel)]="newCourseDuration" placeholder="e.g. 4 Months" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="newCourseStatus">
+          <mat-option value="Active">Active</mat-option>
+          <mat-option value="Inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" class="full-width" (click)="createCourse()">
+        🚀 Publish Course
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Right Side: Active Courses List -->
+  <mat-card class="list-card">
+    <mat-card-header>
+      <mat-card-title>📚 Active Courses</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="list-content">
+      <div *ngFor="let course of courses()" class="course-row">
+        <div class="course-info">
+          <h3 class="course-name">
+            <span class="code-pill">{{ course.courseId }}</span>
+            {{ course.courseName }}
+          </h3>
+          <div class="meta-row">
+            <span class="duration" *ngIf="course.duration">⏱️ {{ course.duration }}</span>
+            <span class="status-pill" [class.active]="course.status === 'Active'">
+              {{ course.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button mat-icon-button color="primary" (click)="editCourse(course)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteCourse(course.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="courses().length === 0" class="empty-state">
+        No courses found. Add a course to get started!
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Edit Dialog / Modal Overlay (Inline styled for neat overlay) -->
+  <div class="edit-modal-overlay" *ngIf="editingCourse()">
+    <mat-card class="edit-modal-card">
+      <mat-card-header>
+        <mat-card-title>✏️ Edit Course Details</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="form-content">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Course Code</mat-label>
+          <input matInput [(ngModel)]="editingCourse()!.courseId" style="text-transform: uppercase;" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Course Name</mat-label>
+          <input matInput [(ngModel)]="editingCourse()!.courseName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Duration</mat-label>
+          <input matInput [(ngModel)]="editingCourse()!.duration" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="editingCourse()!.status">
+            <mat-option value="Active">Active</mat-option>
+            <mat-option value="Inactive">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="modal-actions">
+          <button mat-button (click)="cancelEdit()">Cancel</button>
+          <button mat-raised-button color="primary" (click)="saveCourseEdit()">Save Changes</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>

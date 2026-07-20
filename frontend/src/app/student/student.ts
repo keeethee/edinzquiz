@@ -42,9 +42,9 @@ export class StudentComponent implements OnInit, OnDestroy {
   quizQuestions: Partial<Question>[] = [];
   
   // Quiz Responses
-  selectedOptions: Record<number, number> = {}; // questionId -> optionId (for MCQ/TF)
-  selectedOptionsMultiple: Record<number, Record<number, boolean>> = {}; // questionId -> optionId -> boolean
-  typedAnswers: Record<number, string> = {};    // questionId -> text (for FillBlank/Subjective)
+  selectedOptions: Record<string, string> = {}; // questionId -> optionId (for MCQ/TF)
+  selectedOptionsMultiple: Record<string, Record<string, boolean>> = {}; // questionId -> optionId -> boolean
+  typedAnswers: Record<string, string> = {};    // questionId -> text (for FillBlank/Subjective)
   
   quizStep: 'search' | 'dashboard' | 'details' | 'attempt' | 'success' | 'result' = 'search';
   quizStartedAt: Date | null = null;
@@ -216,7 +216,7 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   // ==================== QUIZ MODULE ====================
 
-  loadQuizzes(courseId: number) {
+  loadQuizzes(courseId: string) {
     this.apiService.getQuizzes(courseId).subscribe({
       next: (list) => {
         this.quizzes = list.filter(q => q.status !== 'Draft');
@@ -245,7 +245,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     return now >= start && now <= end && !this.hasSubmittedQuiz(q.id);
   }
 
-  hasSubmittedQuiz(quizId: number): boolean {
+  hasSubmittedQuiz(quizId: string): boolean {
     return this.allSubmissions.some(s => s.quiz?.id === quizId);
   }
 
@@ -254,51 +254,40 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.quizStep = 'details';
   }
 
+  currentSubmissionId = '';
+
   onQuizDetailsConfirm() {
     this.errorMsg = '';
     if (!this.loggedInStudent) return;
 
     this.apiService.getQuizForStudent(this.selectedQuiz.id).subscribe({
       next: (res) => {
-        if (res.accessStatus !== 'active') {
-          this.errorMsg = res.message || 'Quiz is not active.';
-          this.quizStep = 'dashboard';
-          return;
-        }
+        this.apiService.startQuizAttempt(this.selectedQuiz.id, this.loggedInStudent!.id.toString()).subscribe({
+          next: (attempt) => {
+            this.currentSubmissionId = attempt.submissionId;
 
-        // Setup questions & optionally shuffle them
-        let loadedQs: Question[] = res.questions;
-        if (res.shuffleQuestions) {
-          loadedQs = this.shuffleArray(loadedQs);
-        }
-        if (res.shuffleOptions) {
-          loadedQs.forEach(q => {
-            if (q.options) {
-              q.options = this.shuffleArray(q.options);
-            }
-          });
-        }
+            // Setup questions & optionally shuffle them
+            let loadedQs: Question[] = res.questions;
+            this.quizQuestions = loadedQs;
+            this.selectedOptions = {};
+            this.typedAnswers = {};
 
-        this.quizQuestions = loadedQs;
-        this.selectedOptions = {};
-        this.typedAnswers = {};
+            // Load saved draft if present
+            this.restoreAttemptDraft();
 
-        // Load saved draft if present
-        this.restoreAttemptDraft();
+            this.quizStep = 'attempt';
+            this.quizStartedAt = new Date(attempt.startedAt || new Date());
 
-        this.quizStep = 'attempt';
-        this.quizStartedAt = new Date();
+            // Timer calculation
+            this.countdownSeconds = res.duration * 60;
 
-        // Timer calculation
-        const endTimeMs = new Date(res.endTime).getTime();
-        const nowMs = new Date().getTime();
-        const durationSec = (res.duration || 60) * 60;
-        
-        const secondsUntilEnd = Math.max(0, Math.floor((endTimeMs - nowMs) / 1000));
-        this.countdownSeconds = Math.min(secondsUntilEnd, durationSec);
-
-        this.startTimer();
-        this.startAutoSave();
+            this.startTimer();
+            this.startAutoSave();
+          },
+          error: (err) => {
+            this.errorMsg = err.error?.message || 'Failed to start quiz attempt. You may have reached the maximum attempts limit.';
+          }
+        });
       },
       error: () => {
         this.errorMsg = 'Failed to load quiz attempt. Please try again.';
@@ -402,7 +391,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  toggleOptionSelection(questionId: number, optionId: number) {
+  toggleOptionSelection(questionId: string, optionId: string) {
     if (!this.selectedOptionsMultiple[questionId]) {
       this.selectedOptionsMultiple[questionId] = {};
     }
@@ -410,21 +399,21 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.saveAttemptDraft();
   }
 
-  isOptionSelected(questionId: number, optionId: number): boolean {
+  isOptionSelected(questionId: string, optionId: string): boolean {
     return !!(this.selectedOptionsMultiple[questionId] && this.selectedOptionsMultiple[questionId][optionId]);
   }
 
-  isOptionSelectedInSubmission(sa: StudentAnswer, optId: number): boolean {
+  isOptionSelectedInSubmission(sa: StudentAnswer, optId: string): boolean {
     if (!sa) return false;
     if (sa.selectedOption && sa.selectedOption.id === optId) return true;
     if (sa.typedAnswerText) {
       try {
         const ids = JSON.parse(sa.typedAnswerText);
         if (Array.isArray(ids)) {
-          return ids.includes(optId);
+          return ids.map(String).includes(optId.toString());
         }
       } catch (e) {
-        return sa.typedAnswerText.split(',').map(Number).includes(optId);
+        return sa.typedAnswerText.split(',').map(s => s.trim()).includes(optId.toString());
       }
     }
     return false;
@@ -437,46 +426,36 @@ export class StudentComponent implements OnInit, OnDestroy {
 
     if (!this.loggedInStudent) return;
 
-    // Calculate time taken
-    let timeTakenSeconds = 0;
-    if (this.quizStartedAt) {
-      timeTakenSeconds = Math.round((new Date().getTime() - this.quizStartedAt.getTime()) / 1000);
-    }
-
     // Build answers list
     const answersArray = this.quizQuestions.map(q => {
       const ansObj: any = { questionId: q.id };
       if (q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF') {
-        ansObj.selectedOptionId = this.selectedOptions[q.id!];
+        const selId = this.selectedOptions[q.id as any];
+        ansObj.selectedOptionIds = selId ? [selId.toString()] : [];
       } else if (q.questionType === 'MCQ_MULTIPLE') {
-        const selectedMap = this.selectedOptionsMultiple[q.id!] || {};
+        const selectedMap = this.selectedOptionsMultiple[q.id as any] || {};
         ansObj.selectedOptionIds = Object.keys(selectedMap)
-          .filter(k => selectedMap[Number(k)])
-          .map(k => Number(k));
+          .filter(k => selectedMap[k as any])
+          .map(k => k.toString());
       } else {
-        ansObj.typedAnswerText = this.typedAnswers[q.id!];
+        ansObj.typedAnswerText = this.typedAnswers[q.id as any] || '';
       }
       return ansObj;
     });
 
     this.apiService.submitQuiz(
-      this.selectedQuiz.id,
-      this.loggedInStudent.id,
-      answersArray,
-      timeTakenSeconds
+      this.currentSubmissionId,
+      answersArray
     ).subscribe({
       next: (res) => {
         this.clearAttemptDraft();
         this.successMsg = 'Quiz submitted successfully!';
         
         // Fetch student-result details and attempt stats
-        this.apiService.getStudentSubmissionResult(res.id, this.loggedInStudent!.id).subscribe(detail => {
+        this.apiService.getStudentSubmissionResult(res.id).subscribe(detail => {
           this.resultSubmission = detail;
           this.quizStep = 'result';
-        });
-
-        this.apiService.getAttemptStats(this.selectedQuiz.id, this.loggedInStudent!.id).subscribe(stats => {
-          this.attemptStats = stats;
+          this.cdr.detectChanges();
         });
 
         this.loadHistoricalResults();
@@ -524,7 +503,7 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   // ==================== ASSIGNMENTS MODULE ====================
 
-  loadAssignments(courseId: number) {
+  loadAssignments(courseId: string) {
     this.apiService.getAssignments(courseId).subscribe({
       next: (list) => {
         this.assignments = list;
@@ -545,7 +524,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     });
   }
 
-  getSubmissionForAssignment(assignmentId: number): AssignmentSubmission | null {
+  getSubmissionForAssignment(assignmentId: string): AssignmentSubmission | null {
     return this.studentSubmissions.find(s => s.assignment && s.assignment.id === assignmentId) || null;
   }
 
@@ -628,7 +607,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.apiService.getStudentSubmissionResult(sub.id, this.loggedInStudent!.id).subscribe({
+    this.apiService.getStudentSubmissionResult(sub.id).subscribe({
       next: (res) => {
         this.detailedSubmission = res;
       },

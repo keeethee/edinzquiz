@@ -1,43 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { AssignmentEntity, AssignmentDocument } from '../../entities/assignment.entity';
-import { AssignmentSubmissionEntity, AssignmentSubmissionDocument } from '../../entities/assignment-submission.entity';
-import { CourseEntity, CourseDocument } from '../../entities/course.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AssignmentService {
-  constructor(
-    @InjectModel(AssignmentEntity.name)
-    private assignmentModel: Model<AssignmentDocument>,
-    @InjectModel(AssignmentSubmissionEntity.name)
-    private submissionModel: Model<AssignmentSubmissionDocument>,
-    @InjectModel(CourseEntity.name)
-    private courseModel: Model<CourseDocument>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(courseId: string, title: string, description: string, deadline: Date): Promise<any> {
-    const course = await this.courseModel.findById(courseId).exec();
+    const course = await this.prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
     }
-    const assignment = new this.assignmentModel({
-      title,
-      description,
-      deadline,
-      course: courseId,
+
+    return this.prisma.assignment.create({
+      data: {
+        title,
+        description,
+        deadline: new Date(deadline),
+        courseId,
+      },
     });
-    return assignment.save();
   }
 
   async getAssignmentsByCourse(courseId: string): Promise<any[]> {
-    return this.assignmentModel.find({ course: courseId })
-      .sort({ deadline: 1 })
-      .exec();
+    return this.prisma.assignment.findMany({
+      where: { courseId },
+      orderBy: { deadline: 'asc' },
+    });
   }
 
   async findOne(id: string): Promise<any> {
-    const assignment = await this.assignmentModel.findById(id).populate('course').exec();
+    const assignment = await this.prisma.assignment.findUnique({
+      where: { id },
+      include: { course: true },
+    });
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${id} not found`);
     }
@@ -45,8 +40,9 @@ export class AssignmentService {
   }
 
   async delete(id: string): Promise<void> {
-    const result = await this.assignmentModel.findByIdAndDelete(id).exec();
-    if (!result) {
+    try {
+      await this.prisma.assignment.delete({ where: { id } });
+    } catch {
       throw new NotFoundException(`Assignment with ID ${id} not found`);
     }
   }
@@ -58,38 +54,46 @@ export class AssignmentService {
     assignmentId: string,
     file: Express.Multer.File,
   ): Promise<any> {
-    const course = await this.courseModel.findById(courseId).exec();
+    const course = await this.prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
     }
-    const assignment = await this.assignmentModel.findById(assignmentId).exec();
+    const assignment = await this.prisma.assignment.findUnique({ where: { id: assignmentId } });
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    const submission = new this.submissionModel({
-      studentName,
-      collegeName,
-      courseName: course.courseName,
-      fileName: file.originalname,
-      filePath: file.path,
-      course: courseId,
-      assignment: assignmentId,
+    return this.prisma.assignmentSubmission.create({
+      data: {
+        studentName,
+        collegeName,
+        fileName: file.originalname,
+        fileUrl: file.path.replace(/\\/g, '/'),
+        assignmentId,
+      },
     });
-
-    return submission.save();
   }
 
   async getSubmissions(): Promise<any[]> {
-    return this.submissionModel.find()
-      .populate('course')
-      .populate('assignment')
-      .sort({ submittedAt: -1 })
-      .exec();
+    return this.prisma.assignmentSubmission.findMany({
+      include: {
+        assignment: {
+          include: { course: true },
+        },
+      },
+      orderBy: { submittedAt: 'desc' },
+    });
   }
 
   async getSubmission(id: string): Promise<any> {
-    const submission = await this.submissionModel.findById(id).populate('course').exec();
+    const submission = await this.prisma.assignmentSubmission.findUnique({
+      where: { id },
+      include: {
+        assignment: {
+          include: { course: true },
+        },
+      },
+    });
     if (!submission) {
       throw new NotFoundException(`Submission with ID ${id} not found`);
     }
@@ -97,26 +101,42 @@ export class AssignmentService {
   }
 
   async gradeSubmission(id: string, marks: number, feedback: string): Promise<any> {
-    const submission = await this.getSubmission(id);
-    submission.marks = marks;
-    submission.feedback = feedback;
-    return submission.save();
+    const submission = await this.findOne(id);
+    return this.prisma.assignmentSubmission.update({
+      where: { id },
+      data: {
+        marks: parseFloat(marks as any),
+        feedback,
+      },
+    });
   }
 
   async getStudentSubmissions(studentName: string, collegeName: string): Promise<any[]> {
-    return this.submissionModel.find({ studentName, collegeName })
-      .populate('course')
-      .populate('assignment')
-      .sort({ submittedAt: -1 })
-      .exec();
+    return this.prisma.assignmentSubmission.findMany({
+      where: { studentName, collegeName },
+      include: {
+        assignment: {
+          include: { course: true },
+        },
+      },
+      orderBy: { submittedAt: 'desc' },
+    });
   }
 
-  async updateAssignment(id: string, attrs: Partial<AssignmentEntity>): Promise<any> {
-    const assignment = await this.assignmentModel.findById(id).exec();
+  async updateAssignment(id: string, attrs: any): Promise<any> {
+    const assignment = await this.prisma.assignment.findUnique({ where: { id } });
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${id} not found`);
     }
-    Object.assign(assignment, attrs);
-    return assignment.save();
+
+    const data: any = {};
+    if (attrs.title !== undefined) data.title = attrs.title;
+    if (attrs.description !== undefined) data.description = attrs.description;
+    if (attrs.deadline !== undefined) data.deadline = new Date(attrs.deadline);
+
+    return this.prisma.assignment.update({
+      where: { id },
+      data,
+    });
   }
 }
