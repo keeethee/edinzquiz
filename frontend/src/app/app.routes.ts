@@ -8,6 +8,7 @@ import { CreateQuizComponent } from './features/quizzes/pages/create-quiz/create
 import { EditQuizComponent } from './features/quizzes/pages/edit-quiz/edit-quiz';
 import { QuizPreviewComponent } from './features/quizzes/pages/preview-quiz/preview-quiz';
 import { AssignmentsComponent } from './features/assignments/assignments';
+import { ImportQuestionsComponent } from './features/questions/import/import-questions';
 import { AuthGuard } from './guards/auth.guard';
 import { unsavedChangesGuard } from './guards/unsaved-changes.guard';
 
@@ -25,6 +26,7 @@ export const routes: Routes = [
       { path: 'quizzes/create', component: CreateQuizComponent },
       { path: 'quizzes/edit/:id', component: EditQuizComponent, canDeactivate: [unsavedChangesGuard] },
       { path: 'quizzes/preview/:id', component: QuizPreviewComponent },
+      { path: 'questions/import', component: ImportQuestionsComponent },
       { path: 'assignments', component: AssignmentsComponent }
     ]
   },

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Course {
@@ -358,6 +358,28 @@ export class ApiService {
 
   downloadSubmissionFile(id: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/assignments/submissions/${id}/download`, {
+      ...this.getHeaders(),
+      responseType: 'blob'
+    });
+  }
+
+  importQuestions(courseId: string, file: File): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('courseId', courseId);
+    return this.http.post<any>(`${this.baseUrl}/question-bank/import`, formData, { headers });
+  }
+
+  bulkSaveQuestions(courseId: string, questions: any[]): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/question-bank/bulk-save`, { courseId, questions }, this.getHeaders());
+  }
+
+  downloadQuestionTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/question-bank/template/download`, {
       ...this.getHeaders(),
       responseType: 'blob'
     });

@@ -168,4 +168,180 @@ export class QuestionService {
       data: { status: 'Inactive' },
     });
   }
+
+  async importQuestions(file: Express.Multer.File, courseId: string) {
+    const XLSX = await import('xlsx');
+    
+    if (!file || !file.buffer) {
+      throw new Error('No file uploaded or file buffer is empty');
+    }
+
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    
+    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+    const totalRows = rows.length;
+    const errors: { row: number; message: string }[] = [];
+    const questions: any[] = [];
+    const seenQuestionTexts = new Set<string>();
+
+    const existingDbQuestions = await this.prisma.questionBank.findMany({
+      where: { courseId, status: 'Active' },
+      select: { question: true },
+    });
+    const dbQuestionTexts = new Set(existingDbQuestions.map(q => q.question.toLowerCase().trim()));
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowNum = i + 2; // Excel row numbering starts at 1 (header is row 1)
+
+      const normalizedRow: any = {};
+      Object.keys(row).forEach(key => {
+        normalizedRow[key.trim().toLowerCase()] = String(row[key]).trim();
+      });
+
+      const questionText = normalizedRow['question'] || '';
+      if (!questionText) {
+        errors.push({ row: rowNum, message: 'Question is empty' });
+        continue;
+      }
+
+      const questionTextLower = questionText.toLowerCase().trim();
+      if (seenQuestionTexts.has(questionTextLower)) {
+        errors.push({ row: rowNum, message: `Duplicate question text in sheet: "${questionText}"` });
+        continue;
+      }
+      seenQuestionTexts.add(questionTextLower);
+
+      const isDuplicateInDb = dbQuestionTexts.has(questionTextLower);
+
+      const correctAnswer = normalizedRow['correct answer'] || normalizedRow['correct_answer'] || normalizedRow['answer'] || '';
+      if (!correctAnswer) {
+        errors.push({ row: rowNum, message: 'Correct Answer is empty' });
+        continue;
+      }
+
+      let qType = normalizedRow['question type'] || normalizedRow['questiontype'] || normalizedRow['type'] || 'MCQ_SINGLE';
+      qType = qType.toUpperCase().replace(/\s+/g, '_');
+      if (qType === 'MCQ' || qType === 'SINGLE') qType = 'MCQ_SINGLE';
+      if (qType === 'MULTIPLE' || qType === 'MCQ_MULTIPLE') qType = 'MCQ_MULTIPLE';
+      if (qType === 'TRUE/FALSE' || qType === 'TRUE_FALSE') qType = 'TF';
+      
+      const supportedTypes = ['MCQ_SINGLE', 'MCQ_MULTIPLE', 'TF', 'FILL_BLANK', 'SHORT_ANSWER', 'ESSAY'];
+      if (!supportedTypes.includes(qType)) {
+        errors.push({ row: rowNum, message: `Unsupported question type: "${qType}"` });
+        continue;
+      }
+
+      let difficulty = normalizedRow['difficulty'] || 'Medium';
+      difficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
+      if (!['Easy', 'Medium', 'Hard'].includes(difficulty)) {
+        difficulty = 'Medium';
+      }
+
+      const marksVal = normalizedRow['marks'] !== undefined && normalizedRow['marks'] !== '' ? Number(normalizedRow['marks']) : 1;
+      if (isNaN(marksVal)) {
+        errors.push({ row: rowNum, message: 'Marks must be a numeric value' });
+        continue;
+      }
+
+      const explanation = normalizedRow['explanation'] || '';
+      const sampleAnswer = normalizedRow['sample answer'] || normalizedRow['sample_answer'] || '';
+      const correctAnswerText = normalizedRow['correct answer text'] || normalizedRow['correct_answer_text'] || '';
+
+      const optionA = row['Option A'] || row['option A'] || row['option a'] || '';
+      const optionB = row['Option B'] || row['option B'] || row['option b'] || '';
+      const optionC = row['Option C'] || row['option C'] || row['option c'] || '';
+      const optionD = row['Option D'] || row['option D'] || row['option d'] || '';
+
+      const options: { optionText: string; isCorrect: boolean; key: string }[] = [];
+      if (optionA) options.push({ optionText: String(optionA).trim(), isCorrect: false, key: 'A' });
+      if (optionB) options.push({ optionText: String(optionB).trim(), isCorrect: false, key: 'B' });
+      if (optionC) options.push({ optionText: String(optionC).trim(), isCorrect: false, key: 'C' });
+      if (optionD) options.push({ optionText: String(optionD).trim(), isCorrect: false, key: 'D' });
+
+      if (qType === 'TF' && options.length === 0) {
+        options.push({ optionText: 'True', isCorrect: false, key: 'A' });
+        options.push({ optionText: 'False', isCorrect: false, key: 'B' });
+      }
+
+      const correctKeys = correctAnswer.split(/[;,]+/).map((s: string) => s.trim().toUpperCase());
+      
+      let matchedCorrectCount = 0;
+      options.forEach(opt => {
+        if (correctKeys.includes(opt.key) || correctKeys.includes(opt.optionText.toUpperCase())) {
+          opt.isCorrect = true;
+          matchedCorrectCount++;
+        }
+      });
+
+      if (['MCQ_SINGLE', 'MCQ_MULTIPLE', 'TF'].includes(qType) && matchedCorrectCount === 0) {
+        errors.push({ row: rowNum, message: `Correct Answer "${correctAnswer}" does not match any of the provided options` });
+        continue;
+      }
+
+      if (qType === 'MCQ_SINGLE' && matchedCorrectCount > 1) {
+        errors.push({ row: rowNum, message: 'MCQ_SINGLE question cannot have multiple correct options' });
+        continue;
+      }
+
+      questions.push({
+        question: questionText,
+        questionType: qType,
+        difficulty,
+        marks: marksVal,
+        explanation,
+        sampleAnswer: sampleAnswer || correctAnswerText || correctAnswer,
+        correctAnswerText: correctAnswerText || correctAnswer,
+        options: options.map(o => ({ optionText: o.optionText, isCorrect: o.isCorrect })),
+        isDuplicateInDb,
+      });
+    }
+
+    const successCount = questions.length;
+    const failedCount = errors.length;
+
+    return {
+      totalRows,
+      successCount,
+      failedCount,
+      questions,
+      errors,
+    };
+  }
+
+  async bulkSave(courseId: string, questions: any[]) {
+    return this.prisma.$transaction(async (tx) => {
+      const createdQuestions = [];
+      for (const q of questions) {
+        const item = await tx.questionBank.create({
+          data: {
+            courseId,
+            question: q.question,
+            questionType: q.questionType,
+            difficulty: q.difficulty,
+            explanation: q.explanation || null,
+            caseSensitive: q.caseSensitive || false,
+            sampleAnswer: q.sampleAnswer || null,
+            correctAnswerText: q.correctAnswerText || null,
+            options: q.options && q.options.length > 0
+              ? {
+                  create: q.options.map((opt: any) => ({
+                    optionText: opt.optionText,
+                    isCorrect: opt.isCorrect,
+                  })),
+                }
+              : undefined,
+          },
+          include: {
+            options: true,
+          },
+        });
+        createdQuestions.push(item);
+      }
+      return createdQuestions;
+    });
+  }
 }

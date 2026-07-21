@@ -23,6 +23,7 @@ import { AuthService } from '../services/auth.service';
         <a mat-button routerLink="/admin/courses" routerLinkActive="active-link">Courses</a>
         <a mat-button routerLink="/admin/quizzes" routerLinkActive="active-link">Quizzes</a>
         <a mat-button routerLink="/admin/assignments" routerLinkActive="active-link">Assignments</a>
+        <a mat-button routerLink="/admin/questions/import" routerLinkActive="active-link">Import Questions</a>
         <button mat-button class="logout-btn" (click)="logout()">
           <mat-icon>logout</mat-icon> Logout
         </button>
