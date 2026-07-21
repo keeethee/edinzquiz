@@ -1173,6 +1173,77 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
   }
 
+  importQuestionsFromExcel(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    event.target.value = '';
+
+    if (!this.selectedCourseId) {
+      alert('Please select a course for this quiz first.');
+      return;
+    }
+
+    this.isSaving = true;
+    this.apiService.importQuestions(this.selectedCourseId, file).subscribe({
+      next: (res) => {
+        this.isSaving = false;
+        if (!res.questions || res.questions.length === 0) {
+          alert('No questions were found in the uploaded file.');
+          return;
+        }
+
+        const formQuestions = this.quizForm.get('questions') as FormArray;
+        let addedCount = 0;
+
+        res.questions.forEach((q: any) => {
+          // Build options FormArray
+          const optionsArray: FormArray = this.fb.array([]);
+          if (q.options) {
+            q.options.forEach((o: any) => {
+              optionsArray.push(this.fb.group({
+                id: [o.id],
+                optionText: [o.optionText, Validators.required],
+                isCorrect: [o.isCorrect || false]
+              }));
+            });
+          }
+
+          // Push question group
+          formQuestions.push(this.fb.group({
+            id: [q.id],
+            questionText: [q.question, Validators.required],
+            questionType: [q.questionType],
+            mark: [q.mark || 1, [Validators.required, Validators.min(0)]],
+            explanation: [q.explanation || ''],
+            caseSensitive: [q.caseSensitive || false],
+            sampleAnswer: [q.sampleAnswer || ''],
+            correctAnswerText: [q.correctAnswerText || ''],
+            options: optionsArray
+          }));
+          addedCount++;
+        });
+
+        this.quizForm.markAsDirty();
+
+        if (res.errors && res.errors.length > 0) {
+          const errMsgs = res.errors.map((e: any) => `Row ${e.row}: ${e.error}`).join('\n');
+          alert(`Successfully imported ${addedCount} questions, but found ${res.errors.length} error(s):\n${errMsgs}`);
+        } else {
+          alert(`Successfully imported ${addedCount} questions from Excel directly into the Quiz!`);
+        }
+
+        if (this.activeQuestionIndex === null && formQuestions.length > 0) {
+          this.activeQuestionIndex = formQuestions.length - addedCount;
+        }
+      },
+      error: (err) => {
+        this.isSaving = false;
+        alert(err.error?.message || 'Failed to import Excel spreadsheet.');
+      }
+    });
+  }
+
   // ==================== LEADERBOARD & ANALYTICS ====================
   
   openLeaderboard(quiz: Quiz) {
