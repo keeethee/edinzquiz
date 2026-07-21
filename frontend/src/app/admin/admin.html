@@ -14,6 +14,7 @@
     <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignments'" (click)="switchTab('assignments')">Assignments</button>
     <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">Quiz Submissions</button>
     <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">Homework grading</button>
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'import-questions'" (click)="switchTab('import-questions')">Import Questions</button>
     
     <button class="neo-btn neo-btn-danger" style="padding: 0.6rem 1.2rem;" (click)="logout()">
       Logout
@@ -183,8 +184,8 @@
                 <span>📅 Open: {{ q.startTime | date:'medium' }}</span>
                 <span>⌛ Close: {{ q.endTime | date:'medium' }}</span>
                 <span>⏱️ {{ q.duration }} mins</span>
-                <span>🎯 Passing: {{ q.settings?.passingPercentage || 40 }}% ({{ q.passingMarks }} pts)</span>
-                <span>🔄 Max Attempts: {{ q.settings?.maxAttempts || 1 }}</span>
+                <span>🎯 Passing: {{ getPassingPercentage(q) }}% ({{ q.passingMarks }} pts)</span>
+                <span>🔄 Max Attempts: {{ q.maxAttempts || 1 }}</span>
                 <span>💯 Total Marks: {{ q.totalMarks }}</span>
               </div>
 
@@ -941,6 +942,11 @@
         </table>
       </div>
     </div>
+  </div>
+
+  <!-- ==================== IMPORT QUESTIONS TAB ==================== -->
+  <div *ngIf="activeTab === 'import-questions'">
+    <app-import-questions></app-import-questions>
   </div>
 
   <!-- EDIT ASSIGNMENT MODAL OVERLAY -->

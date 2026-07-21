@@ -304,6 +304,13 @@ export class ApiService {
     return this.http.get<QuizSubmission[]>(`${this.baseUrl}/quizzes/submissions/list`, this.getHeaders());
   }
 
+  exportQuizSubmissions(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/quizzes/submissions/export`, {
+      headers: this.getHeaders().headers,
+      responseType: 'blob'
+    });
+  }
+
   getQuizSubmissionDetail(id: string): Observable<QuizSubmission> {
     return this.http.get<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/${id}`, this.getHeaders());
   }
