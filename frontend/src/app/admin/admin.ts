@@ -8,17 +8,15 @@ import { AuthService } from '../services/auth.service';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { Subscription, interval } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { ImportQuestionsComponent } from '../features/questions/import/import-questions';
-
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, DragDropModule, ImportQuestionsComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, DragDropModule],
   templateUrl: './admin.html',
   styleUrls: ['./admin.css']
 })
 export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate {
-  activeTab: 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' | 'import-questions' = 'courses';
+  activeTab: 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' = 'courses';
   String = String;
 
   // Shared state
@@ -124,7 +122,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.router.navigate(['/admin/login']);
   }
 
-  switchTab(tab: 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' | 'import-questions') {
+  switchTab(tab: 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub') {
     if (this.isQuizEditorOpen) {
       if (!this.canDeactivate()) return;
       this.stopAutosaveLoop();
@@ -156,8 +154,6 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       this.loadQuizSubmissions();
     } else if (tab === 'assign-sub') {
       this.loadAssignmentSubmissions();
-    } else if (tab === 'import-questions') {
-      this.loadCourses();
     }
   }
 
