@@ -371,7 +371,7 @@ export class ApiService {
   }
 
   importQuestions(courseId: string, file: File): Observable<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('edinz_admin_token');
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
