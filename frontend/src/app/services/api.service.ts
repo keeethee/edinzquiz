@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 export interface Course {
   id: string;
@@ -184,19 +184,27 @@ export class ApiService {
   // Quizzes API
   getQuizzes(courseId?: string): Observable<Quiz[]> {
     const url = courseId ? `${this.baseUrl}/quizzes?courseId=${courseId}` : `${this.baseUrl}/quizzes`;
-    return this.http.get<Quiz[]>(url, this.getHeaders());
+    return this.http.get<any[]>(url, this.getHeaders()).pipe(
+      map(list => list.map(q => this.mapQuizResponse(q)))
+    );
   }
 
   getQuizzesByCourse(courseId: string): Observable<Quiz[]> {
-    return this.http.get<Quiz[]>(`${this.baseUrl}/quizzes/course/${courseId}`);
+    return this.http.get<any[]>(`${this.baseUrl}/quizzes/course/${courseId}`).pipe(
+      map(list => list.map(q => this.mapQuizResponse(q)))
+    );
   }
 
   getQuizDetail(id: string): Observable<Quiz> {
-    return this.http.get<Quiz>(`${this.baseUrl}/quizzes/${id}`, this.getHeaders());
+    return this.http.get<any>(`${this.baseUrl}/quizzes/${id}`, this.getHeaders()).pipe(
+      map(q => this.mapQuizResponse(q))
+    );
   }
 
   getQuizForStudent(id: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/quizzes/student/${id}`, this.getHeaders());
+    return this.http.get<any>(`${this.baseUrl}/quizzes/student/${id}`, this.getHeaders()).pipe(
+      map(q => this.mapQuizResponse(q))
+    );
   }
 
   createQuiz(data: any): Observable<Quiz> {
@@ -390,5 +398,26 @@ export class ApiService {
       ...this.getHeaders(),
       responseType: 'blob'
     });
+  }
+
+  private mapQuizResponse(q: any): Quiz {
+    if (!q) return q;
+
+    // Compute totalMarks
+    let totalMarks = 0;
+    if (q.questions && q.questions.length > 0) {
+      totalMarks = q.questions.reduce((sum: number, item: any) => {
+        const m = item.marks !== undefined ? item.marks : (item.question?.mark || item.mark || 0);
+        return sum + m;
+      }, 0);
+    }
+
+    return {
+      ...q,
+      quizTitle: q.title || q.quizTitle,
+      startTime: q.publishAt || q.startTime,
+      endTime: q.expireAt || q.endTime,
+      totalMarks: totalMarks || q.totalMarks || 0
+    };
   }
 }
