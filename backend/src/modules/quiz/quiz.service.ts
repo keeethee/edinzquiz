@@ -43,7 +43,7 @@ export class QuizService {
     return this.prisma.quiz.create({
       data: {
         courseId: data.courseId,
-        title: data.title,
+        title: data.title || (data as any).quizTitle || '',
         description: data.description || null,
         instructions: data.instructions || null,
         duration: data.duration,
@@ -192,7 +192,8 @@ export class QuizService {
     }
 
     const data: any = {};
-    if (body.title !== undefined) data.title = body.title;
+    const titleVal = body.title !== undefined ? body.title : body.quizTitle;
+    if (titleVal !== undefined) data.title = titleVal;
     if (body.description !== undefined) data.description = body.description;
     if (body.instructions !== undefined) data.instructions = body.instructions;
     if (body.duration !== undefined) data.duration = parseInt(body.duration, 10);
