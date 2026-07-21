@@ -946,7 +946,7 @@
 
   <!-- ==================== IMPORT QUESTIONS TAB ==================== -->
   <div *ngIf="activeTab === 'import-questions'">
-    <app-import-questions></app-import-questions>
+    <app-import-questions (backToDashboard)="switchTab('quizzes')"></app-import-questions>
   </div>
 
   <!-- EDIT ASSIGNMENT MODAL OVERLAY -->

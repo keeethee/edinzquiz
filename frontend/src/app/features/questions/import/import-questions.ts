@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -32,9 +32,9 @@ import { ImportSummaryComponent } from './import-summary';
     <div class="page-container">
       <div class="header-row">
         <div class="header-left">
-          <a routerLink="/admin" class="back-link">
+          <button (click)="goBack()" class="back-link" style="background: none; border: none; color: #3b82f6; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-family: inherit; font-size: 1rem; padding: 0;">
             <mat-icon>arrow_back</mat-icon> Back to Dashboard
-          </a>
+          </button>
           <h2 class="title">📥 Bulk Question Import</h2>
         </div>
       </div>
@@ -290,9 +290,15 @@ import { ImportSummaryComponent } from './import-summary';
   `]
 })
 export class ImportQuestionsComponent implements OnInit {
+  @Output() backToDashboard = new EventEmitter<void>();
+
   step = signal<number>(1);
   courses = signal<Course[]>([]);
   selectedCourseId = signal<string>('');
+
+  goBack() {
+    this.backToDashboard.emit();
+  }
   
   // Wizards state lists
   parsedQuestions = signal<any[]>([]);
