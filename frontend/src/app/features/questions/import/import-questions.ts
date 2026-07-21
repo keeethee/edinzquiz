@@ -291,6 +291,7 @@ import { ImportSummaryComponent } from './import-summary';
 })
 export class ImportQuestionsComponent implements OnInit {
   @Output() backToDashboard = new EventEmitter<void>();
+  @Output() importCompleted = new EventEmitter<void>();
 
   step = signal<number>(1);
   courses = signal<Course[]>([]);
@@ -368,7 +369,8 @@ export class ImportQuestionsComponent implements OnInit {
         this.isSaving.set(false);
         this.isLoading.set(false);
         alert(`Successfully imported ${this.parsedQuestions().length} questions to the Question Bank.`);
-        this.router.navigate(['/admin']);
+        this.importCompleted.emit();
+        this.backToDashboard.emit();
       },
       error: (err: any) => {
         this.errorMessage.set(err.error?.message || 'Bulk insert transaction failed.');

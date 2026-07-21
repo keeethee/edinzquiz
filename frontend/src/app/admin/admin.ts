@@ -486,6 +486,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.validationErrors = [];
     this.activeQuestionIndex = null;
     this.lastAutosavedTime = '';
+    this.loadQuestionBankPool();
     
     if (quiz) {
       this.isSaving = true;
@@ -1092,6 +1093,84 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   getPassingPercentage(q: Quiz): number {
     if (!q || !q.totalMarks) return 40;
     return Math.round((q.passingMarks / q.totalMarks) * 100);
+  }
+
+  // --- Question Bank Selection State ---
+  questionBankPool: any[] = [];
+  showQuestionBankModal: boolean = false;
+  selectedBankQuestionIds: string[] = [];
+
+  loadQuestionBankPool() {
+    if (!this.selectedCourseId) return;
+    this.apiService.getQuestionBank({ courseId: this.selectedCourseId, limit: 100 }).subscribe({
+      next: (res) => {
+        this.questionBankPool = res.questions || [];
+      },
+      error: () => {
+        console.error('Failed to load question bank pool');
+      }
+    });
+  }
+
+  openQuestionBankSelector() {
+    this.showQuestionBankModal = true;
+    this.selectedBankQuestionIds = [];
+    this.loadQuestionBankPool();
+  }
+
+  toggleBankQuestionSelection(qId: string) {
+    const idx = this.selectedBankQuestionIds.indexOf(qId);
+    if (idx > -1) {
+      this.selectedBankQuestionIds.splice(idx, 1);
+    } else {
+      this.selectedBankQuestionIds.push(qId);
+    }
+  }
+
+  isBankQuestionSelected(qId: string): boolean {
+    return this.selectedBankQuestionIds.includes(qId);
+  }
+
+  addSelectedQuestionsToQuiz() {
+    const formQuestions = this.quizForm.get('questions') as FormArray;
+    
+    this.selectedBankQuestionIds.forEach(qId => {
+      const bq = this.questionBankPool.find(q => q.id === qId);
+      if (!bq) return;
+      
+      // Build options array
+      const optionsArray: FormArray = this.fb.array([]);
+      if (bq.options) {
+        bq.options.forEach((o: any) => {
+          optionsArray.push(this.fb.group({
+            id: [o.id],
+            optionText: [o.optionText, Validators.required],
+            isCorrect: [o.isCorrect || false]
+          }));
+        });
+      }
+      
+      // Push question group
+      formQuestions.push(this.fb.group({
+        id: [bq.id],
+        questionText: [bq.question, Validators.required],
+        questionType: [bq.questionType],
+        mark: [bq.mark || 1, [Validators.required, Validators.min(0)]],
+        explanation: [bq.explanation || ''],
+        caseSensitive: [bq.caseSensitive || false],
+        sampleAnswer: [bq.sampleAnswer || ''],
+        correctAnswerText: [bq.correctAnswerText || ''],
+        options: optionsArray
+      }));
+    });
+    
+    this.selectedBankQuestionIds = [];
+    this.showQuestionBankModal = false;
+    this.quizForm.markAsDirty();
+    
+    if (this.activeQuestionIndex === null && formQuestions.length > 0) {
+      this.activeQuestionIndex = formQuestions.length - 1;
+    }
   }
 
   // ==================== LEADERBOARD & ANALYTICS ====================
