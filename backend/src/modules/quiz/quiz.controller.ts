@@ -21,13 +21,7 @@ export class QuizController {
     return this.quizService.createCategory(name, description);
   }
 
-  // Quiz CRUD
-  @UseGuards(AuthGuard)
-  @Post()
-  createQuiz(@Body() body: any) {
-    return this.quizService.createQuiz(body);
-  }
-
+  // Quiz list
   @Get()
   getQuizzes(@Query('courseId') courseId?: string) {
     return this.quizService.findAll(courseId);
@@ -38,15 +32,60 @@ export class QuizController {
     return this.quizService.getQuizzesByCourse(courseId);
   }
 
+  // Submissions endpoints (MUST be defined before wildcard :id routes)
+  @Post('submit')
+  submitQuiz(@Body() body: any) {
+    return this.quizService.submitQuiz(body);
+  }
+
+  @Get('submissions/student-result/:id')
+  getStudentResult(@Param('id') id: string) {
+    return this.quizService.getStudentResult(id);
+  }
+
   @UseGuards(AuthGuard)
-  @Get(':id')
-  getQuiz(@Param('id') id: string) {
-    return this.quizService.getQuiz(id);
+  @Get('submissions/list')
+  getSubmissionsList() {
+    return this.quizService.getSubmissionsList();
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('submissions/:id')
+  getSubmission(@Param('id') id: string) {
+    return this.quizService.getSubmission(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('submissions/:id/evaluate')
+  evaluateEssayAnswers(
+    @Param('id') id: string,
+    @Body('evaluations') evaluations: any[],
+  ) {
+    return this.quizService.evaluateEssayAnswers(id, evaluations);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('submissions/:id')
+  deleteSubmission(@Param('id') id: string) {
+    return this.quizService.deleteSubmission(id);
+  }
+
+  // Quiz CRUD & Wildcards
+  @UseGuards(AuthGuard)
+  @Post()
+  createQuiz(@Body() body: any) {
+    return this.quizService.createQuiz(body);
   }
 
   @Get('student/:id')
   getQuizForStudent(@Param('id') id: string) {
     return this.quizService.getQuizForStudent(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  getQuiz(@Param('id') id: string) {
+    return this.quizService.getQuiz(id);
   }
 
   @UseGuards(AuthGuard)
@@ -119,50 +158,12 @@ export class QuizController {
     return this.quizService.reorderQuestions(id, questionIds);
   }
 
-  // Student attempts and Submissions
   @Post(':id/start')
   startQuizAttempt(
     @Param('id') id: string,
     @Body('studentId') studentId: string,
   ) {
     return this.quizService.startQuizAttempt(id, studentId);
-  }
-
-  @Post('submit')
-  submitQuiz(@Body() body: any) {
-    return this.quizService.submitQuiz(body);
-  }
-
-  @Get('submissions/student-result/:id')
-  getStudentResult(@Param('id') id: string) {
-    return this.quizService.getStudentResult(id);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('submissions/list')
-  getSubmissionsList() {
-    return this.quizService.getSubmissionsList();
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('submissions/:id')
-  getSubmission(@Param('id') id: string) {
-    return this.quizService.getSubmission(id);
-  }
-
-  @UseGuards(AuthGuard)
-  @Patch('submissions/:id/evaluate')
-  evaluateEssayAnswers(
-    @Param('id') id: string,
-    @Body('evaluations') evaluations: any[],
-  ) {
-    return this.quizService.evaluateEssayAnswers(id, evaluations);
-  }
-
-  @UseGuards(AuthGuard)
-  @Delete('submissions/:id')
-  deleteSubmission(@Param('id') id: string) {
-    return this.quizService.deleteSubmission(id);
   }
 
   @Get(':id/leaderboard')
