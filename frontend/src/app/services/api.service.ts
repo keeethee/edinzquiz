@@ -333,6 +333,10 @@ export class ApiService {
     return this.http.patch<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/${id}/evaluate`, { evaluations }, this.getHeaders());
   }
 
+  deleteQuizSubmission(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/quizzes/submissions/${id}`, this.getHeaders());
+  }
+
   getLeaderboard(quizId: string): Observable<QuizSubmission[]> {
     return this.http.get<QuizSubmission[]>(`${this.baseUrl}/quizzes/${quizId}/leaderboard`, this.getHeaders());
   }

@@ -1437,6 +1437,25 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     });
   }
 
+  deleteQuizSubmission(submissionId: string) {
+    if (!confirm('Are you sure you want to delete this quiz submission?')) return;
+    this.errorMsg = '';
+    this.successMsg = '';
+
+    this.apiService.deleteQuizSubmission(submissionId).subscribe({
+      next: () => {
+        this.successMsg = 'Quiz submission deleted successfully.';
+        if (this.detailedSubmission?.id === submissionId) {
+          this.detailedSubmission = null;
+        }
+        this.loadQuizSubmissions();
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Failed to delete submission.';
+      }
+    });
+  }
+
   exportSubmissions() {
     this.apiService.exportQuizSubmissions().subscribe({
       next: (blob: Blob) => {

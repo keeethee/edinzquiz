@@ -694,9 +694,14 @@
                 {{ s.submittedAt | date:'medium' }}
               </td>
               <td style="padding: 1rem 1.5rem; text-align: right;">
-                <button class="neo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="viewQuizSubmissionDetail(s.id)">
-                  {{ s.status === 'Pending Evaluation' ? 'Grade Answer' : 'Details' }}
-                </button>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                  <button class="neo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="viewQuizSubmissionDetail(s.id)">
+                    {{ s.status === 'Pending Evaluation' ? 'Grade Answer' : 'Details' }}
+                  </button>
+                  <button class="neo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-color: rgba(239, 68, 68, 0.4); color: var(--danger-color);" (click)="deleteQuizSubmission(s.id)" title="Delete Submission">
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

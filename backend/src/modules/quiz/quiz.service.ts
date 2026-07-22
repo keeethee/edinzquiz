@@ -778,6 +778,13 @@ export class QuizService {
       highestScore,
       passRate,
     };
+  async deleteSubmission(id: string) {
+    const sub = await this.prisma.quizSubmission.findUnique({ where: { id } });
+    if (!sub) {
+      throw new NotFoundException('Submission not found.');
+    }
+    await this.prisma.studentAnswer.deleteMany({ where: { submissionId: id } });
+    return this.prisma.quizSubmission.delete({ where: { id } });
   }
 
   // Shuffle Helper

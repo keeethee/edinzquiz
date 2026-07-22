@@ -159,6 +159,12 @@ export class QuizController {
     return this.quizService.evaluateEssayAnswers(id, evaluations);
   }
 
+  @UseGuards(AuthGuard)
+  @Delete('submissions/:id')
+  deleteSubmission(@Param('id') id: string) {
+    return this.quizService.deleteSubmission(id);
+  }
+
   @Get(':id/leaderboard')
   getLeaderboard(@Param('id') id: string) {
     return this.quizService.getLeaderboard(id);
