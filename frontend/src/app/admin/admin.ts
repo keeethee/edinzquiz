@@ -260,11 +260,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   // ==================== QUIZZES ====================
 
   onCourseChangeForQuiz() {
-    if (this.selectedCourseId) {
-      this.loadQuizzes(this.selectedCourseId);
-      this.selectedQuiz = null;
-      this.quizCurrentPage = 1;
-    }
+    this.loadQuizzes(this.selectedCourseId || '');
+    this.selectedQuiz = null;
+    this.quizCurrentPage = 1;
   }
 
   loadQuizzes(courseId: string) {

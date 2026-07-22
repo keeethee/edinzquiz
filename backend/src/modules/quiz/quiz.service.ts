@@ -67,8 +67,17 @@ export class QuizService {
   }
 
   async findAll(courseId?: string) {
+    const whereCondition: any = {};
+    if (courseId && courseId.trim() !== '') {
+      whereCondition.OR = [
+        { courseId: courseId },
+        { course: { id: courseId } },
+        { course: { courseId: { equals: courseId, mode: 'insensitive' } } },
+      ];
+    }
+
     return this.prisma.quiz.findMany({
-      where: courseId ? { courseId } : {},
+      where: whereCondition,
       include: {
         course: true,
         category: true,

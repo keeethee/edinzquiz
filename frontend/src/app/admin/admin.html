@@ -130,15 +130,16 @@
         <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
           <h3 style="font-size: 1.2rem; margin: 0;">Select Target Course:</h3>
           <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="onCourseChangeForQuiz()" style="max-width: 350px;">
+            <option value="">-- All Courses --</option>
             <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
           </select>
         </div>
-        <button *ngIf="selectedCourseId" class="neo-btn neo-btn-primary" (click)="openQuizEditor()">
+        <button class="neo-btn neo-btn-primary" (click)="openQuizEditor()">
           + Create New Quiz
         </button>
       </div>
 
-      <div *ngIf="selectedCourseId">
+      <div>
         <!-- Advanced Filters Bar -->
         <div class="neo-card" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem;">
           <div style="display: flex; gap: 1rem; align-items: center;">
