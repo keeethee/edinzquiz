@@ -1487,18 +1487,35 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   downloadHomework(sub: AssignmentSubmission) {
+    if (!sub || !sub.id) return;
     this.apiService.downloadSubmissionFile(sub.id).subscribe({
       next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = sub.fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const lowerName = (sub.fileName || '').toLowerCase();
+        let mimeType = blob.type;
+        if (lowerName.endsWith('.pdf')) {
+          mimeType = 'application/pdf';
+        } else if (lowerName.endsWith('.png')) {
+          mimeType = 'image/png';
+        } else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) {
+          mimeType = 'image/jpeg';
+        }
+
+        const typedBlob = new Blob([blob], { type: mimeType });
+        const url = window.URL.createObjectURL(typedBlob);
+
+        if (mimeType.startsWith('application/pdf') || mimeType.startsWith('image/')) {
+          window.open(url, '_blank');
+        } else {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = sub.fileName || 'homework-file';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
       },
       error: () => {
-        this.errorMsg = 'Failed to download homework file.';
+        this.errorMsg = 'Failed to view or download homework file.';
       }
     });
   }

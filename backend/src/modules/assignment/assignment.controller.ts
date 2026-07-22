@@ -2,6 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Param, Body, Query, Res, NotFound
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as path from 'path';
 import * as express from 'express';
 import * as fs from 'fs';
 import { AssignmentService } from './assignment.service';
@@ -104,10 +105,21 @@ export class AssignmentController {
     @Res() res: express.Response,
   ): Promise<void> {
     const submission = await this.assignmentService.getSubmission(id);
-    if (!fs.existsSync(submission.filePath)) {
+    const filePath = submission.fileUrl || (submission as any).filePath;
+    if (!filePath) {
+      throw new NotFoundException('File path missing in submission metadata');
+    }
+    
+    let absolutePath = path.resolve(process.cwd(), filePath);
+    if (!fs.existsSync(absolutePath)) {
+      absolutePath = path.resolve(process.cwd(), 'backend', filePath);
+    }
+
+    if (!fs.existsSync(absolutePath)) {
       throw new NotFoundException('File not found on server');
     }
-    res.download(submission.filePath, submission.fileName);
+
+    res.sendFile(absolutePath);
   }
 
   @UseGuards(AuthGuard)
