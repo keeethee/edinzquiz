@@ -629,6 +629,7 @@ export class QuizService {
       include: {
         quiz: {
           include: {
+            course: true,
             questions: {
               include: {
                 question: { include: { options: true } },
@@ -668,6 +669,7 @@ export class QuizService {
       include: {
         quiz: {
           include: {
+            course: true,
             questions: {
               include: {
                 question: { include: { options: true } },

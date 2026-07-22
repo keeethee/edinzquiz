@@ -648,7 +648,7 @@
         <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 2rem;">
           <div>
             <h2 style="font-size: 1.4rem; margin-bottom: 0.3rem;">Detailed Review: {{ detailedSubmission.quiz?.quizTitle }}</h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">Course: {{ detailedSubmission.courseId }} - {{ detailedSubmission.courseName }}</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Course: {{ (detailedSubmission.courseId && detailedSubmission.courseId !== '-') ? detailedSubmission.courseId : (detailedSubmission.quiz?.course?.courseId || 'General') }} - {{ (detailedSubmission.courseName && detailedSubmission.courseName !== '-') ? detailedSubmission.courseName : (detailedSubmission.quiz?.course?.courseName || 'General Course') }}</p>
           </div>
           <button class="neo-btn" (click)="detailedSubmission = null">Back to Results</button>
         </div>
