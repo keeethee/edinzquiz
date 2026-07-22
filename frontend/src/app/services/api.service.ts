@@ -84,6 +84,7 @@ export interface QuizSubmission {
   wrongCount: number;
   unansweredCount: number;
   status: string;
+  passed?: boolean;
   submittedAt: string;
   timeTakenSeconds?: number;
   grade?: string;

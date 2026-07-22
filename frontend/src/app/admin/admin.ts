@@ -83,6 +83,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   // --- Quiz Submissions Tab State ---
   quizSubmissions: QuizSubmission[] = [];
+  subFilterCourseId: string = '';
+  subFilterStatus: string = '';
   detailedSubmission: QuizSubmission | null = null;
   
   // Subjective grading helper
@@ -1399,6 +1401,32 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.errorMsg = 'Failed to load quiz submissions.';
       }
     });
+  }
+
+  get filteredQuizSubmissions(): QuizSubmission[] {
+    let list = this.quizSubmissions || [];
+
+    // Filter by Course
+    if (this.subFilterCourseId && this.subFilterCourseId.trim() !== '') {
+      list = list.filter(s => 
+        s.courseId === this.subFilterCourseId || 
+        s.quiz?.courseId === this.subFilterCourseId ||
+        s.quiz?.course?.id === this.subFilterCourseId
+      );
+    }
+
+    // Filter by Status (Pass / Fail / Pending)
+    if (this.subFilterStatus && this.subFilterStatus.trim() !== '') {
+      if (this.subFilterStatus === 'Pass') {
+        list = list.filter(s => s.status === 'Pass' || s.passed === true);
+      } else if (this.subFilterStatus === 'Fail') {
+        list = list.filter(s => s.status === 'Fail' || s.passed === false);
+      } else if (this.subFilterStatus === 'Pending') {
+        list = list.filter(s => s.status === 'Pending Evaluation');
+      }
+    }
+
+    return list;
   }
 
   viewQuizSubmissionDetail(id: string) {
