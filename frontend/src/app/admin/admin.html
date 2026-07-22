@@ -678,7 +678,7 @@
                 <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ s.collegeName }}</span>
               </td>
               <td style="padding: 1rem 1.5rem;">
-                <span style="font-size: 0.8rem; color: var(--accent-color); font-weight: 600; display: block;">{{ s.courseId }} - {{ s.courseName }}</span>
+                <span style="font-size: 0.8rem; color: var(--accent-color); font-weight: 600; display: block;">{{ s.courseName && s.courseName !== '-' ? s.courseName : s.courseId }}</span>
                 <span style="font-size: 0.9rem; font-weight: 550;">{{ s.quiz?.quizTitle }}</span>
               </td>
               <td style="padding: 1rem 1.5rem;">
