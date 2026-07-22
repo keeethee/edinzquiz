@@ -451,12 +451,24 @@ export class ApiService {
     const course = quiz.course || {};
     const student = sub.student || {};
     const questions = quiz.questions || [];
-
-    const totalMarks = questions.reduce((sum: number, q: any) => sum + (q.marks || q.mark || 0), 0) || quiz.totalMarks || 0;
-    const score = sub.score || 0;
-    const percentage = totalMarks > 0 ? (score / totalMarks) * 100 : 0;
-
     const answersList = sub.answers || sub.studentAnswers || [];
+
+    let computedTotalMarks = questions.reduce((sum: number, q: any) => {
+      const m = q.marks !== undefined ? q.marks : (q.mark !== undefined ? q.mark : (q.question?.mark || 1));
+      return sum + Number(m || 1);
+    }, 0);
+
+    if (computedTotalMarks === 0) {
+      computedTotalMarks = answersList.length || questions.length || (sub.score > 0 ? sub.score : 0);
+    }
+
+    const score = sub.score || 0;
+    if (score > computedTotalMarks) {
+      computedTotalMarks = score;
+    }
+
+    const totalMarks = computedTotalMarks;
+    const percentage = totalMarks > 0 ? Math.min(100, Math.round((score / totalMarks) * 100)) : 0;
 
     let correctCount = 0;
     let wrongCount = 0;
