@@ -599,15 +599,23 @@
     <div class="neo-card flex-between" style="padding: 1.25rem 2rem; margin-bottom: 2rem;">
       <h3 style="font-size: 1.2rem;">Select Target Course:</h3>
       <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="onCourseChangeForAssignment()" style="max-width: 350px;">
+        <option value="">-- All Courses --</option>
         <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
       </select>
     </div>
 
-    <div *ngIf="selectedCourseId" class="grid-2">
+    <div class="grid-2">
       <!-- Create Homework Form -->
       <div class="neo-card">
         <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Homework</h3>
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div *ngIf="!selectedCourseId">
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course</label>
+            <select class="neo-select" [(ngModel)]="newAssignCourseId" name="assignCourseId">
+              <option value="">-- Select Target Course --</option>
+              <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+            </select>
+          </div>
           <div>
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Assignment Title</label>
             <input type="text" class="neo-input" placeholder="e.g. Lab assignment 1: Arrays" [(ngModel)]="newAssignTitle" name="assignTitle" />
@@ -796,16 +804,27 @@
 
   <!-- ==================== HOMEWORK GRADING TAB ==================== -->
   <div *ngIf="activeTab === 'assign-sub'">
+    <!-- Course Selector Header -->
+    <div class="neo-card flex-between" style="padding: 1.25rem 2rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+        <h3 style="font-size: 1.2rem; margin: 0;">Select Target Course:</h3>
+        <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="loadAssignmentSubmissions()" style="max-width: 350px;">
+          <option value="">-- All Courses --</option>
+          <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+        </select>
+      </div>
+    </div>
+
     <h2 style="font-size: 1.4rem; margin-bottom: 1.5rem;">Student Homework Submissions</h2>
     
     <div class="neo-card">
-      <div *ngIf="assignSubmissions.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">No homework files uploaded yet.</div>
+      <div *ngIf="assignSubmissions.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">No homework files uploaded for this course yet.</div>
       
       <div *ngIf="assignSubmissions.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
         <div *ngFor="let sub of assignSubmissions" class="neo-card-inset flex-between" style="padding: 1.25rem; flex-wrap: wrap; gap: 1rem;">
           <div>
             <h4 style="font-size: 1.05rem; font-weight: 600;">{{ sub.studentName }}</h4>
-            <p style="font-size: 0.85rem; color: var(--text-secondary);">Course: {{ sub.courseName }} | Assignment: {{ sub.assignment?.title || 'General' }} | File: <a href="javascript:void(0)" (click)="downloadHomework(sub)" style="color: var(--accent-color); font-weight: 550;">{{ sub.fileName }}</a></p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Course: {{ sub.assignment?.course?.courseName || sub.courseName || 'N/A' }} | Assignment: {{ sub.assignment?.title || 'General' }} | File: <a href="javascript:void(0)" (click)="downloadHomework(sub)" style="color: var(--accent-color); font-weight: 550;">{{ sub.fileName }}</a></p>
             <p style="font-size: 0.8rem; color: var(--text-muted);">Uploaded on: {{ sub.submittedAt | date:'medium' }}</p>
           </div>
 

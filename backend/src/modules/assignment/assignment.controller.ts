@@ -93,8 +93,8 @@ export class AssignmentController {
 
   @UseGuards(AuthGuard)
   @Get('submissions')
-  getSubmissions(): Promise<AssignmentSubmissionEntity[]> {
-    return this.assignmentService.getSubmissions();
+  getSubmissions(@Query('courseId') courseId?: string): Promise<AssignmentSubmissionEntity[]> {
+    return this.assignmentService.getSubmissions(courseId);
   }
 
   @UseGuards(AuthGuard)

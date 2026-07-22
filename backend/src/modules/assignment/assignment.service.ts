@@ -22,8 +22,18 @@ export class AssignmentService {
   }
 
   async getAssignmentsByCourse(courseId: string): Promise<any[]> {
+    const whereCondition: any = {};
+    if (courseId && courseId !== 'all' && courseId.trim() !== '') {
+      whereCondition.OR = [
+        { courseId: courseId },
+        { course: { id: courseId } },
+        { course: { courseId: { equals: courseId, mode: 'insensitive' } } },
+      ];
+    }
+
     return this.prisma.assignment.findMany({
-      where: { courseId },
+      where: whereCondition,
+      include: { course: true },
       orderBy: { deadline: 'asc' },
     });
   }
@@ -74,8 +84,20 @@ export class AssignmentService {
     });
   }
 
-  async getSubmissions(): Promise<any[]> {
+  async getSubmissions(courseId?: string): Promise<any[]> {
+    const whereCondition: any = {};
+    if (courseId && courseId !== 'all' && courseId.trim() !== '') {
+      whereCondition.assignment = {
+        OR: [
+          { courseId: courseId },
+          { course: { id: courseId } },
+          { course: { courseId: { equals: courseId, mode: 'insensitive' } } },
+        ],
+      };
+    }
+
     return this.prisma.assignmentSubmission.findMany({
+      where: whereCondition,
       include: {
         assignment: {
           include: { course: true },

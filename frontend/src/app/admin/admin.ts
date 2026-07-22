@@ -71,6 +71,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   analyticsData: any = null;
 
   publishedAssignments: Assignment[] = [];
+  newAssignCourseId: string = '';
   newAssignTitle: string = '';
   newAssignDesc: string = '';
   newAssignDeadline: string = '';
@@ -1284,12 +1285,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   // ==================== ASSIGNMENTS ====================
 
   onCourseChangeForAssignment() {
-    if (this.selectedCourseId) {
-      this.loadAssignments(this.selectedCourseId);
-    }
+    this.loadAssignments(this.selectedCourseId || '');
   }
 
-  loadAssignments(courseId: string) {
+  loadAssignments(courseId: string = '') {
     this.apiService.getAssignments(courseId).subscribe({
       next: (list) => {
         this.publishedAssignments = list;
@@ -1303,14 +1302,18 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   createAssignment() {
     this.errorMsg = '';
     this.successMsg = '';
-    if (!this.selectedCourseId) return;
+    const courseIdToUse = this.selectedCourseId || this.newAssignCourseId;
+    if (!courseIdToUse) {
+      this.errorMsg = 'Please select a course for this assignment.';
+      return;
+    }
     if (!this.newAssignTitle.trim() || !this.newAssignDeadline) {
       this.errorMsg = 'Title and deadline are required.';
       return;
     }
 
     this.apiService.createAssignment(
-      this.selectedCourseId,
+      courseIdToUse,
       this.newAssignTitle,
       this.newAssignDesc,
       this.newAssignDeadline
@@ -1320,7 +1323,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.newAssignTitle = '';
         this.newAssignDesc = '';
         this.newAssignDeadline = '';
-        this.loadAssignments(this.selectedCourseId!);
+        this.newAssignCourseId = '';
+        this.loadAssignments(this.selectedCourseId || '');
       },
       error: () => {
         this.errorMsg = 'Failed to publish assignment.';
@@ -1472,7 +1476,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   loadAssignmentSubmissions() {
-    this.apiService.getAssignmentSubmissions().subscribe({
+    this.apiService.getAssignmentSubmissions(this.selectedCourseId || '').subscribe({
       next: (list) => {
         this.assignSubmissions = list;
       },

@@ -346,8 +346,9 @@ export class ApiService {
   }
 
   // Assignments API
-  getAssignments(courseId: string): Observable<Assignment[]> {
-    return this.http.get<Assignment[]>(`${this.baseUrl}/assignments/course/${courseId}`, this.getHeaders());
+  getAssignments(courseId?: string): Observable<Assignment[]> {
+    const target = (courseId && courseId.trim() !== '') ? courseId : 'all';
+    return this.http.get<Assignment[]>(`${this.baseUrl}/assignments/course/${target}`, this.getHeaders());
   }
 
   submitAssignment(formData: FormData): Observable<AssignmentSubmission> {
@@ -373,8 +374,9 @@ export class ApiService {
     return this.http.patch<Assignment>(`${this.baseUrl}/assignments/${id}`, payload, this.getHeaders());
   }
 
-  getAssignmentSubmissions(): Observable<AssignmentSubmission[]> {
-    return this.http.get<AssignmentSubmission[]>(`${this.baseUrl}/assignments/submissions`, this.getHeaders());
+  getAssignmentSubmissions(courseId?: string): Observable<AssignmentSubmission[]> {
+    const query = (courseId && courseId.trim() !== '') ? `?courseId=${courseId}` : '';
+    return this.http.get<AssignmentSubmission[]>(`${this.baseUrl}/assignments/submissions${query}`, this.getHeaders());
   }
 
   gradeAssignmentSubmission(id: string, marks: number, feedback: string): Observable<AssignmentSubmission> {
