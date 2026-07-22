@@ -202,9 +202,7 @@ export class ApiService {
   }
 
   getQuizForStudent(id: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/quizzes/student/${id}`, this.getHeaders()).pipe(
-      map(q => this.mapQuizResponse(q))
-    );
+    return this.http.get<any>(`${this.baseUrl}/quizzes/student/${id}`, this.getHeaders());
   }
 
   createQuiz(data: any): Observable<Quiz> {

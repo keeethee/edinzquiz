@@ -211,11 +211,97 @@ export class QuizService {
     if (body.publishAt !== undefined) data.publishAt = body.publishAt ? new Date(body.publishAt) : null;
     if (body.expireAt !== undefined) data.expireAt = body.expireAt ? new Date(body.expireAt) : null;
 
-    return this.prisma.quiz.update({
+    const updated = await this.prisma.quiz.update({
       where: { id },
       data,
       include: { course: true, category: true },
     });
+
+    if (Array.isArray(body.questions)) {
+      await this.prisma.quizQuestion.deleteMany({ where: { quizId: id } });
+
+      let order = 0;
+      for (const qItem of body.questions) {
+        order++;
+        let questionId = qItem.questionId || qItem.id;
+
+        let qBankRecord: any = null;
+        if (questionId) {
+          qBankRecord = await this.prisma.questionBank.findUnique({
+            where: { id: questionId },
+            include: { options: true }
+          });
+        }
+
+        if (!qBankRecord && qItem.questionText) {
+          qBankRecord = await this.prisma.questionBank.create({
+            data: {
+              courseId: existing.courseId,
+              question: qItem.questionText,
+              questionType: qItem.questionType || 'MCQ_SINGLE',
+              explanation: qItem.explanation || null,
+              caseSensitive: qItem.caseSensitive || false,
+              sampleAnswer: qItem.sampleAnswer || null,
+              correctAnswerText: qItem.correctAnswerText || null,
+              mark: qItem.mark || 1,
+            }
+          });
+          questionId = qBankRecord.id;
+
+          if (Array.isArray(qItem.options)) {
+            for (const opt of qItem.options) {
+              if (opt.optionText) {
+                await this.prisma.questionOption.create({
+                  data: {
+                    questionId,
+                    optionText: opt.optionText,
+                    isCorrect: !!opt.isCorrect,
+                  }
+                });
+              }
+            }
+          }
+        } else if (qBankRecord && qItem.questionText) {
+          await this.prisma.questionBank.update({
+            where: { id: questionId },
+            data: {
+              question: qItem.questionText,
+              questionType: qItem.questionType || qBankRecord.questionType,
+              explanation: qItem.explanation !== undefined ? qItem.explanation : qBankRecord.explanation,
+              mark: qItem.mark || qBankRecord.mark,
+            }
+          });
+
+          if (Array.isArray(qItem.options)) {
+            await this.prisma.questionOption.deleteMany({ where: { questionId } });
+            for (const opt of qItem.options) {
+              if (opt.optionText) {
+                await this.prisma.questionOption.create({
+                  data: {
+                    questionId,
+                    optionText: opt.optionText,
+                    isCorrect: !!opt.isCorrect,
+                  }
+                });
+              }
+            }
+          }
+        }
+
+        if (questionId) {
+          await this.prisma.quizQuestion.create({
+            data: {
+              quizId: id,
+              questionId,
+              displayOrder: order,
+              marks: qItem.mark || 1,
+            }
+          });
+        }
+      }
+    }
+
+    return this.getQuiz(id);
   }
 
   async deleteQuiz(id: string) {
