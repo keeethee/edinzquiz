@@ -307,7 +307,9 @@ export class ApiService {
   }
 
   getQuizSubmissions(): Observable<QuizSubmission[]> {
-    return this.http.get<QuizSubmission[]>(`${this.baseUrl}/quizzes/submissions/list`, this.getHeaders());
+    return this.http.get<any[]>(`${this.baseUrl}/quizzes/submissions/list`, this.getHeaders()).pipe(
+      map(list => (list || []).map(sub => this.mapQuizSubmission(sub)))
+    );
   }
 
   exportQuizSubmissions(): Observable<Blob> {
@@ -318,7 +320,9 @@ export class ApiService {
   }
 
   getQuizSubmissionDetail(id: string): Observable<QuizSubmission> {
-    return this.http.get<QuizSubmission>(`${this.baseUrl}/quizzes/submissions/${id}`, this.getHeaders());
+    return this.http.get<any>(`${this.baseUrl}/quizzes/submissions/${id}`, this.getHeaders()).pipe(
+      map(sub => this.mapQuizSubmission(sub))
+    );
   }
 
   evaluateSubmission(id: string, evaluations: { questionId: string; marksAwarded: number; feedback?: string }[]): Observable<QuizSubmission> {
@@ -433,6 +437,83 @@ export class ApiService {
       endTime: q.expireAt || q.endTime || '',
       totalMarks: totalMarks || q.totalMarks || 0,
       questions: mappedQuestions
+    };
+  }
+
+  private mapQuizSubmission(sub: any): QuizSubmission {
+    if (!sub) return sub;
+
+    const quiz = sub.quiz || {};
+    const course = quiz.course || {};
+    const student = sub.student || {};
+    const questions = quiz.questions || [];
+
+    const totalMarks = questions.reduce((sum: number, q: any) => sum + (q.marks || q.mark || 0), 0) || quiz.totalMarks || 0;
+    const score = sub.score || 0;
+    const percentage = totalMarks > 0 ? (score / totalMarks) * 100 : 0;
+
+    let status = 'Pending Evaluation';
+    if (sub.isEvaluated) {
+      status = score >= (quiz.passingMarks || 0) ? 'Pass' : 'Fail';
+    }
+
+    const answersList = sub.answers || sub.studentAnswers || [];
+
+    const mappedAnswers = questions.map((qq: any) => {
+      const qObj = qq.question || qq;
+      const questionId = qObj.id || qq.questionId;
+      const sa = answersList.find((a: any) => a.questionId === questionId || a.question?.id === questionId);
+
+      const options = (qObj.options || []).map((opt: any) => ({
+        id: opt.id,
+        optionText: opt.optionText || opt.text || '',
+        isCorrect: opt.isCorrect || false
+      }));
+
+      const selectedOpts = sa ? (Array.isArray(sa.selectedOptions) ? sa.selectedOptions : (sa.selectedOptionId ? [sa.selectedOptionId] : (sa.selectedOption ? [sa.selectedOption.id] : []))) : [];
+
+      return {
+        id: sa?.id || questionId,
+        questionId: questionId,
+        awardedMarks: sa ? (sa.marksAwarded !== undefined ? sa.marksAwarded : sa.awardedMarks) : null,
+        selectedOptions: selectedOpts,
+        selectedOptionId: selectedOpts[0] || null,
+        typedAnswer: sa?.typedAnswer || sa?.essayAnswer || '',
+        essayAnswer: sa?.essayAnswer || '',
+        question: {
+          id: questionId,
+          questionText: qObj.question || qObj.questionText || '',
+          questionType: qObj.questionType || 'MCQ_SINGLE',
+          mark: qq.marks !== undefined ? qq.marks : (qObj.mark || 1),
+          explanation: qObj.explanation,
+          options: options
+        }
+      };
+    });
+
+    return {
+      id: sub.id,
+      studentName: student.name || sub.studentName || 'Student',
+      collegeName: student.collegeName || sub.collegeName || 'N/A',
+      courseId: course.courseId || sub.courseId || '-',
+      courseName: course.courseName || sub.courseName || '-',
+      score: score,
+      totalMarks: totalMarks,
+      percentage: percentage,
+      correctCount: sub.correctCount || 0,
+      wrongCount: sub.wrongCount || 0,
+      unansweredCount: sub.unansweredCount || 0,
+      status: status,
+      submittedAt: sub.submittedAt,
+      quiz: {
+        id: quiz.id,
+        quizTitle: quiz.title || quiz.quizTitle || 'Quiz',
+        totalMarks: totalMarks,
+        passingMarks: quiz.passingMarks || 0,
+        ...quiz
+      },
+      student: student,
+      studentAnswers: mappedAnswers
     };
   }
 }

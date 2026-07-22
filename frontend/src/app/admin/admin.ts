@@ -1032,6 +1032,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   isOptionSelectedInSubmission(sa: any, optId: string): boolean {
     if (!sa) return false;
     if (sa.selectedOption && sa.selectedOption.id === optId) return true;
+    if (sa.selectedOptionId === optId) return true;
+    if (Array.isArray(sa.selectedOptions)) return sa.selectedOptions.includes(optId);
     if (sa.typedAnswerText) {
       try {
         const ids = JSON.parse(sa.typedAnswerText);
