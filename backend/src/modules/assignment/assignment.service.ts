@@ -101,7 +101,7 @@ export class AssignmentService {
   }
 
   async gradeSubmission(id: string, marks: number, feedback: string): Promise<any> {
-    const submission = await this.findOne(id);
+    const submission = await this.getSubmission(id);
     return this.prisma.assignmentSubmission.update({
       where: { id },
       data: {
