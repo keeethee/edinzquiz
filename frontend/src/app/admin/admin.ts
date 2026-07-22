@@ -1493,18 +1493,21 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.successMsg = '';
     if (!this.selectedSubToGrade) return;
 
+    const targetSub = this.selectedSubToGrade;
+    this.selectedSubToGrade = null; // Close modal immediately on click
+
     this.apiService.gradeAssignmentSubmission(
-      this.selectedSubToGrade.id,
+      targetSub.id,
       this.gradeMarks,
       this.gradeFeedback
     ).subscribe({
       next: (updated) => {
-        this.successMsg = `Homework graded for ${updated.studentName}.`;
-        this.selectedSubToGrade = null;
+        this.successMsg = `Homework graded successfully for ${updated.studentName || targetSub.studentName}.`;
         this.loadAssignmentSubmissions();
       },
-      error: () => {
-        this.errorMsg = 'Failed to save grade details.';
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Failed to save grade details.';
+        this.loadAssignmentSubmissions();
       }
     });
   }
