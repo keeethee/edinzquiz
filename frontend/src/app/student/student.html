@@ -610,31 +610,30 @@
 
               <div class="flex-center" style="gap: 1.5rem;">
                 
-                <!-- If published: show scores -->
-                <div *ngIf="sub.quiz?.resultsPublished" style="text-align: right;">
+                <!-- If evaluated or graded: show scores -->
+                <div *ngIf="sub.status === 'Pass' || sub.status === 'Fail' || sub.quiz?.showResult" style="text-align: right;">
                   <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Final Score</span>
                   <strong style="font-size: 1.15rem; color: var(--accent-color);">{{ sub.score }}/{{ sub.totalMarks }}</strong>
                   <span style="font-size: 0.85rem; color: var(--text-secondary); display: block;">({{ sub.percentage | number:'1.0-1' }}%)</span>
                 </div>
 
-                <!-- If not published: show pending publication -->
-                <div *ngIf="!sub.quiz?.resultsPublished" style="text-align: right;">
+                <!-- If not evaluated: show pending publication -->
+                <div *ngIf="sub.status !== 'Pass' && sub.status !== 'Fail' && !sub.quiz?.showResult" style="text-align: right;">
                   <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Score Status</span>
                   <span style="font-size: 0.9rem; color: var(--warning-color); font-weight: 550;">Pending Publication</span>
                 </div>
 
                 <!-- Status Badge -->
                 <div>
-                  <span *ngIf="sub.status === 'Pass' && sub.quiz?.resultsPublished" class="badge badge-completed">Passed</span>
-                  <span *ngIf="sub.status === 'Fail' && sub.quiz?.resultsPublished" class="badge badge-overdue">Failed</span>
-                  <span *ngIf="sub.status === 'Pending Evaluation'" class="badge badge-pending">Pending Grading</span>
-                  <span *ngIf="sub.status !== 'Pending Evaluation' && !sub.quiz?.resultsPublished" class="badge badge-pending">Graded</span>
+                  <span *ngIf="sub.status === 'Pass'" class="badge badge-completed">Passed</span>
+                  <span *ngIf="sub.status === 'Fail'" class="badge badge-overdue">Failed</span>
+                  <span *ngIf="sub.status === 'Pending Evaluation' || (sub.status !== 'Pass' && sub.status !== 'Fail')" class="badge badge-pending">Pending Grading</span>
                 </div>
 
                 <!-- Action Button -->
                 <button 
                   class="neo-btn" 
-                  [disabled]="!sub.quiz?.resultsPublished" 
+                  [disabled]="sub.status !== 'Pass' && sub.status !== 'Fail' && !sub.quiz?.showResult" 
                   (click)="viewDetailedSubmissionBreakdown(sub)">
                   Review Answers
                 </button>

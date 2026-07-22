@@ -610,19 +610,16 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (!this.loggedInStudent) return;
     this.apiService.getQuizSubmissions().subscribe({
       next: (list) => {
-        // Filter submissions for this logged-in student
-        this.allSubmissions = list.filter(sub => sub.student?.id === this.loggedInStudent?.id);
+        this.allSubmissions = list.filter(sub => 
+          sub.student?.id === this.loggedInStudent?.id || 
+          sub.studentName === this.loggedInStudent?.name
+        );
       }
     });
   }
 
   viewDetailedSubmissionBreakdown(sub: QuizSubmission) {
-    if (!sub.quiz?.resultsPublished) {
-      alert('The correct answer key and analysis breakdown for this quiz have not been published by the admin yet.');
-      return;
-    }
-
-    this.apiService.getStudentSubmissionResult(sub.id).subscribe({
+    this.apiService.getQuizSubmissionDetail(sub.id).subscribe({
       next: (res) => {
         this.detailedSubmission = res;
       },

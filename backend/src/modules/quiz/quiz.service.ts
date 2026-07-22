@@ -650,7 +650,12 @@ export class QuizService {
   async getSubmissionsList() {
     return this.prisma.quizSubmission.findMany({
       include: {
-        quiz: { include: { course: true } },
+        quiz: {
+          include: {
+            course: true,
+            questions: true,
+          },
+        },
         student: true,
       },
       orderBy: { submittedAt: 'desc' },
