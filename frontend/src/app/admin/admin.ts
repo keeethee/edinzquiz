@@ -418,13 +418,26 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     let start = '';
     let end = '';
-    if (quiz) {
-      start = quiz.startTime.slice(0, 16);
-      end = quiz.endTime.slice(0, 16);
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    if (quiz && quiz.startTime) {
+      try {
+        start = new Date(quiz.startTime).toISOString().slice(0, 16);
+      } catch {
+        start = now.toISOString().slice(0, 16);
+      }
     } else {
-      const now = new Date();
       start = now.toISOString().slice(0, 16);
-      const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    if (quiz && quiz.endTime) {
+      try {
+        end = new Date(quiz.endTime).toISOString().slice(0, 16);
+      } catch {
+        end = tomorrow.toISOString().slice(0, 16);
+      }
+    } else {
       end = tomorrow.toISOString().slice(0, 16);
     }
 

@@ -403,21 +403,38 @@ export class ApiService {
   private mapQuizResponse(q: any): Quiz {
     if (!q) return q;
 
-    // Compute totalMarks
+    const mappedQuestions = (q.questions || []).map((item: any) => {
+      const qObj = item.question || item;
+      return {
+        id: item.id || qObj.id,
+        questionId: item.questionId || qObj.id,
+        questionText: qObj.question || qObj.questionText || '',
+        questionType: qObj.questionType || item.questionType || 'MCQ_SINGLE',
+        mark: item.marks !== undefined ? item.marks : (qObj.mark || 1),
+        explanation: qObj.explanation || item.explanation || '',
+        caseSensitive: qObj.caseSensitive || item.caseSensitive || false,
+        sampleAnswer: qObj.sampleAnswer || item.sampleAnswer || '',
+        correctAnswerText: qObj.correctAnswerText || item.correctAnswerText || '',
+        options: (qObj.options || item.options || []).map((o: any) => ({
+          id: o.id,
+          optionText: o.optionText || o.text || '',
+          isCorrect: o.isCorrect || false
+        }))
+      };
+    });
+
     let totalMarks = 0;
-    if (q.questions && q.questions.length > 0) {
-      totalMarks = q.questions.reduce((sum: number, item: any) => {
-        const m = item.marks !== undefined ? item.marks : (item.question?.mark || item.mark || 0);
-        return sum + m;
-      }, 0);
+    if (mappedQuestions.length > 0) {
+      totalMarks = mappedQuestions.reduce((sum: number, item: any) => sum + (item.mark || 0), 0);
     }
 
     return {
       ...q,
-      quizTitle: q.title || q.quizTitle,
-      startTime: q.publishAt || q.startTime,
-      endTime: q.expireAt || q.endTime,
-      totalMarks: totalMarks || q.totalMarks || 0
+      quizTitle: q.title || q.quizTitle || 'Untitled Quiz',
+      startTime: q.publishAt || q.startTime || '',
+      endTime: q.expireAt || q.endTime || '',
+      totalMarks: totalMarks || q.totalMarks || 0,
+      questions: mappedQuestions
     };
   }
 }
