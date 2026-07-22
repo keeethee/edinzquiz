@@ -60,11 +60,15 @@ export interface Quiz {
 
 export interface StudentAnswer {
   id: string;
-  isCorrect: boolean;
-  typedAnswerText: string | null;
+  isCorrect?: boolean;
+  typedAnswerText?: string | null;
+  typedAnswer?: string | null;
+  essayAnswer?: string | null;
   awardedMarks: number | null;
   question: Question;
-  selectedOption: Option | null;
+  selectedOption?: Option | null;
+  selectedOptions?: string[];
+  selectedOptionId?: string | null;
 }
 
 export interface QuizSubmission {

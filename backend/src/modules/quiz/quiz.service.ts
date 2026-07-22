@@ -726,6 +726,7 @@ export class QuizService {
       data: {
         score: newScore,
         passed,
+        isEvaluated: true,
       },
       include: { answers: true },
     });

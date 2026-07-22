@@ -1406,9 +1406,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.subjectiveGrades = {};
         
         res.studentAnswers?.forEach(sa => {
-          if (sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY') {
-            this.subjectiveGrades[sa.question.id] = sa.awardedMarks !== null ? sa.awardedMarks : 0;
-          }
+          this.subjectiveGrades[sa.question.id] = sa.awardedMarks !== null ? sa.awardedMarks : 0;
         });
       },
       error: () => {
@@ -1429,12 +1427,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     this.apiService.evaluateSubmission(this.detailedSubmission.id, evaluations).subscribe({
       next: (updated) => {
-        this.successMsg = `Evaluations saved for ${updated.studentName}.`;
-        this.viewQuizSubmissionDetail(updated.id);
+        this.successMsg = `Evaluations & score updated successfully!`;
+        this.viewQuizSubmissionDetail(this.detailedSubmission!.id);
         this.loadQuizSubmissions();
       },
-      error: () => {
-        this.errorMsg = 'Failed to save subjective grades.';
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Failed to save evaluated grades.';
       }
     });
   }

@@ -749,36 +749,38 @@
 
           <!-- Fill in the blank typed response review -->
           <div *ngIf="sa.question.questionType === 'FillBlank' || sa.question.questionType === 'FILL_BLANK' || sa.question.questionType === 'SHORT_ANSWER'" style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <p style="font-size: 0.9rem;">Student typed answer: <strong style="font-style: italic; color: var(--accent-color);">"{{ sa.typedAnswerText || '[Empty]' }}"</strong></p>
-            <p style="font-size: 0.85rem; color: var(--text-secondary);">Correct answer pattern: <strong style="color: var(--success-color);">{{ sa.question.correctAnswerText }}</strong></p>
+            <p style="font-size: 0.9rem;">Student typed answer: <strong style="font-style: italic; color: var(--accent-color);">"{{ sa.typedAnswer || sa.typedAnswerText || '[Empty]' }}"</strong></p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);" *ngIf="sa.question.correctAnswerText">Correct answer pattern: <strong style="color: var(--success-color);">{{ sa.question.correctAnswerText }}</strong></p>
           </div>
 
           <!-- Subjective typed response manual grading panel -->
           <div *ngIf="sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY'" style="display: flex; flex-direction: column; gap: 0.75rem;">
             <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 1rem 1.5rem; border-radius: 8px; font-style: italic; white-space: pre-wrap; font-size: 0.95rem;">
-              "{{ sa.typedAnswerText || '[No Answer Submitted]' }}"
+              "{{ sa.typedAnswer || sa.typedAnswerText || '[No Answer Submitted]' }}"
             </div>
-            
-            <!-- Manual grade inputs -->
-            <div class="flex-center" style="justify-content: flex-start; gap: 1rem; margin-top: 0.5rem;">
-              <span style="font-size: 0.9rem; font-weight: 550;">Award marks (0 - {{ sa.question.mark }}):</span>
-              <input 
-                type="number" 
-                class="neo-input" 
-                style="max-width: 100px; padding: 0.4rem 0.8rem;" 
-                min="0" 
-                [max]="sa.question.mark" 
-                step="0.5" 
-                [(ngModel)]="subjectiveGrades[sa.question.id]" 
-              />
-            </div>
+          </div>
+
+          <!-- Grade adjustment input for question -->
+          <div class="flex-center" style="justify-content: flex-start; gap: 1rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.08);">
+            <span style="font-size: 0.85rem; font-weight: 550; color: var(--text-secondary);">Award / Adjust Marks (0 - {{ sa.question.mark }}):</span>
+            <input 
+              type="number" 
+              class="neo-input" 
+              style="max-width: 100px; padding: 0.4rem 0.8rem;" 
+              min="0" 
+              [max]="sa.question.mark" 
+              step="0.5" 
+              [(ngModel)]="subjectiveGrades[sa.question.id]" 
+            />
           </div>
 
         </div>
       </div>
 
-      <!-- Save evaluations button (if has subjective) -->
-      <div style="margin-top: 2rem; text-align: right;">
+      <!-- Save evaluations button -->
+      <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <span *ngIf="successMsg" style="color: var(--success-color); font-weight: 600; font-size: 0.95rem;">✓ {{ successMsg }}</span>
+        <span *ngIf="!successMsg"></span>
         <button class="neo-btn neo-btn-primary" style="padding: 0.8rem 2rem;" (click)="saveSubjectiveGrades()">
           Save Evaluated Grades & Update Score
         </button>
