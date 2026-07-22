@@ -231,31 +231,30 @@
     <!-- 2. COMPREHENSIVE VISUAL QUIZ EDITOR VIEW -->
     <div *ngIf="isQuizEditorOpen" class="neo-card" style="border-color: var(--accent-color); padding: 1.5rem 2rem; position: relative;">
       <!-- Sticky Top Editor Bar -->
-      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-        <div>
-          <button class="neo-btn" style="padding: 0.45rem 1rem; margin-right: 1.25rem;" (click)="closeQuizEditor()">
+      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding: 1rem 1.25rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; background: rgba(15, 23, 42, 0.6); border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+          <button class="neo-btn" style="padding: 0.5rem 1.25rem; font-weight: 600;" (click)="closeQuizEditor()">
             ← Back to Dashboard
           </button>
-          <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; display: inline-flex;">
-            <span style="font-size: 1.4rem; font-weight: 700;">
-              📝 Editing:
-              {{ quizForm.get('quizTitle')?.value || 'New Quiz Assessment' }}
+          <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <span style="font-size: 1.3rem; font-weight: 700; color: #ffffff;">
+              📝 Editing: {{ (quizForm?.get('quizTitle')?.value) || 'New Quiz Assessment' }}
             </span>
-            <span class="badge" style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 0.85rem; padding: 0.25rem 0.6rem;">
+            <span class="badge" style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 0.85rem; padding: 0.3rem 0.75rem;">
               Course: {{ getSelectedCourseName() }}
             </span>
-            <span *ngIf="lastAutosavedTime" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--success-color); font-weight: 550;">
+            <span *ngIf="lastAutosavedTime" style="font-size: 0.8rem; color: var(--success-color); font-weight: 550;">
               {{ lastAutosavedTime }}
             </span>
-            <span *ngIf="isAutosaving" style="margin-left: 1.5rem; font-size: 0.8rem; color: var(--warning-color); font-weight: 550;">
+            <span *ngIf="isAutosaving" style="font-size: 0.8rem; color: var(--warning-color); font-weight: 550;">
               Saving draft...
             </span>
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.6rem; align-items: center;">
-          <span style="font-size: 0.85rem; color: var(--text-secondary); margin-right: 0.5rem;">
-            Total weight: <strong style="color: var(--accent-color);">{{ editorTotalMarks }} marks</strong>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <span style="font-size: 0.9rem; color: var(--text-secondary); margin-right: 0.5rem; font-weight: 500;">
+            Total weight: <strong style="color: var(--accent-color); font-size: 1rem;">{{ editorTotalMarks }} marks</strong>
           </span>
           <button class="neo-btn" (click)="saveQuizDraft()" [disabled]="isSaving || isAutosaving">
             {{ isSavingDraft ? 'Saving...' : 'Save Draft' }}

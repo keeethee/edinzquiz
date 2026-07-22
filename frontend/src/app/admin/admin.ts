@@ -433,30 +433,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       });
     }
 
-    let start = '';
-    let end = '';
     const now = new Date();
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-    if (quiz && quiz.startTime) {
-      try {
-        start = new Date(quiz.startTime).toISOString().slice(0, 16);
-      } catch {
-        start = now.toISOString().slice(0, 16);
-      }
-    } else {
-      start = now.toISOString().slice(0, 16);
-    }
-
-    if (quiz && quiz.endTime) {
-      try {
-        end = new Date(quiz.endTime).toISOString().slice(0, 16);
-      } catch {
-        end = tomorrow.toISOString().slice(0, 16);
-      }
-    } else {
-      end = tomorrow.toISOString().slice(0, 16);
-    }
+    const start = this.formatDateForInput(quiz?.startTime, now);
+    const end = this.formatDateForInput(quiz?.endTime, tomorrow);
 
     const totalMarks = quiz?.questions?.reduce((sum: number, q: any) => sum + (q.mark || 0), 0) || 0;
     let passingMarksVal = quiz?.passingMarks ?? 0;
@@ -466,6 +446,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     this.quizForm = this.fb.group({
       id: [quiz?.id || null],
+      courseId: [quiz?.courseId || this.selectedCourseId || ''],
       quizTitle: [quiz?.quizTitle || '', Validators.required],
       description: [quiz?.description || ''],
       difficulty: [quiz?.difficulty || 'Medium', Validators.required],
@@ -489,6 +470,21 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     if (questionsArray.length > 0) {
       this.activeQuestionIndex = 0;
+    }
+  }
+
+  formatDateForInput(dateVal: any, fallbackDate: Date): string {
+    try {
+      const d = dateVal ? new Date(dateVal) : fallbackDate;
+      if (isNaN(d.getTime())) {
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${fallbackDate.getFullYear()}-${pad(fallbackDate.getMonth() + 1)}-${pad(fallbackDate.getDate())}T${pad(fallbackDate.getHours())}:${pad(fallbackDate.getMinutes())}`;
+      }
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    } catch {
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      return `${fallbackDate.getFullYear()}-${pad(fallbackDate.getMonth() + 1)}-${pad(fallbackDate.getDate())}T${pad(fallbackDate.getHours())}:${pad(fallbackDate.getMinutes())}`;
     }
   }
 
@@ -1113,9 +1109,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   getSelectedCourseName(): string {
-    if (!this.selectedCourseId) return 'No Course Selected';
-    const course = this.courses.find(c => c.id === this.selectedCourseId);
-    return course ? `${course.courseId} - ${course.courseName}` : 'Unknown Course';
+    const courseIdToFind = this.selectedCourseId || (this.quizForm ? this.quizForm.get('courseId')?.value : null);
+    if (!courseIdToFind) return 'General Course';
+    const course = this.courses.find(c => c.id === courseIdToFind || c.courseId === courseIdToFind);
+    return course ? `(${course.courseId}) - ${course.courseName}` : 'General Course';
   }
 
   getPassingPercentage(q: Quiz): number {
