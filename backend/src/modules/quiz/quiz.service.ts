@@ -733,7 +733,6 @@ export class QuizService {
       data: {
         score: newScore,
         passed,
-        isEvaluated: true,
       },
       include: { answers: true },
     });
@@ -778,6 +777,8 @@ export class QuizService {
       highestScore,
       passRate,
     };
+  }
+
   async deleteSubmission(id: string) {
     const sub = await this.prisma.quizSubmission.findUnique({ where: { id } });
     if (!sub) {
