@@ -504,27 +504,33 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   openQuizEditor(quiz?: Quiz) {
-    this.isQuizEditorOpen = true;
     this.validationErrors = [];
     this.activeQuestionIndex = null;
     this.lastAutosavedTime = '';
+    
+    // Always initialize form synchronously first so quizForm is never null!
+    this.initQuizForm(quiz);
+    this.isQuizEditorOpen = true;
+    this.cdr.markForCheck();
+
     this.loadQuestionBankPool();
     
-    if (quiz) {
+    if (quiz && quiz.id) {
       this.isSaving = true;
       this.apiService.getQuizDetail(quiz.id).subscribe({
         next: (fullQuiz: Quiz) => {
           this.isSaving = false;
           this.initQuizForm(fullQuiz);
           this.startAutosaveLoop();
+          this.cdr.markForCheck();
         },
         error: () => {
           this.isSaving = false;
-          this.errorMsg = 'Failed to load quiz details.';
+          this.errorMsg = 'Failed to load full quiz details.';
+          this.cdr.markForCheck();
         }
       });
     } else {
-      this.initQuizForm();
       this.startAutosaveLoop();
     }
   }

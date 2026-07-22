@@ -346,7 +346,7 @@
         </div>
 
         <!-- B. EDITOR WORKSPACE -->
-        <div class="editor-workspace" [formGroup]="quizForm">
+        <div *ngIf="quizForm" class="editor-workspace" [formGroup]="quizForm">
           
           <!-- Case 1: Edit Quiz General settings -->
           <div *ngIf="activeQuestionIndex === null" style="display: flex; flex-direction: column; gap: 1.25rem;">
@@ -413,7 +413,7 @@
                   <input type="checkbox" formControlName="negativeMarkingEnabled" />
                   <span style="font-size: 0.9rem;">Enable Negative marking</span>
                 </label>
-                <div *ngIf="quizForm.get('negativeMarkingEnabled')?.value" style="margin-top: 0.25rem;">
+                <div *ngIf="quizForm?.get('negativeMarkingEnabled')?.value" style="margin-top: 0.25rem;">
                   <label style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:0.2rem;">Negative marks value</label>
                   <input type="number" class="neo-input" step="0.25" min="0" formControlName="negativeMarkingValue" style="max-width:120px; padding: 0.4rem;" />
                 </div>
