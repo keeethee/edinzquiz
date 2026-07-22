@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
@@ -101,7 +101,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     private authService: AuthService,
     private fb: FormBuilder,
     private router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -248,14 +249,20 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     if (!confirm('Are you sure you want to delete this course? This deletes quizzes, questions and submissions.')) {
       return;
     }
+    this.courses = this.courses.filter(c => c.id !== id);
+    if (this.selectedCourseId === id) this.selectedCourseId = null;
+    this.cdr.markForCheck();
+
     this.apiService.deleteCourse(id).subscribe({
       next: () => {
         this.successMsg = 'Course deleted.';
-        if (this.selectedCourseId === id) this.selectedCourseId = null;
         this.loadCourses();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMsg = 'Failed to delete course.';
+        this.loadCourses();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -266,15 +273,18 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.loadQuizzes(this.selectedCourseId || '');
     this.selectedQuiz = null;
     this.quizCurrentPage = 1;
+    this.cdr.markForCheck();
   }
 
   loadQuizzes(courseId: string) {
     this.apiService.getQuizzes(courseId).subscribe({
       next: (list) => {
         this.quizzes = list;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMsg = 'Failed to load quizzes.';
+        this.cdr.markForCheck();
       }
     });
   }
@@ -291,14 +301,20 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   deleteQuiz(id: string) {
-    if (!confirm('Delete this quiz and all its questions/submissions?')) return;
+    if (!confirm('Are you sure you want to delete this quiz?')) return;
+    this.quizzes = this.quizzes.filter(q => q.id !== id);
+    this.cdr.markForCheck();
+
     this.apiService.deleteQuiz(id).subscribe({
       next: () => {
         this.successMsg = 'Quiz deleted.';
-        this.loadQuizzes(this.selectedCourseId!);
+        this.loadQuizzes(this.selectedCourseId || '');
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMsg = 'Failed to delete quiz.';
+        this.loadQuizzes(this.selectedCourseId || '');
+        this.cdr.markForCheck();
       }
     });
   }
@@ -1472,16 +1488,23 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.errorMsg = '';
     this.successMsg = '';
 
+    // Optimistically update local array immediately on single click!
+    this.quizSubmissions = this.quizSubmissions.filter(s => s.id !== submissionId);
+    if (this.detailedSubmission?.id === submissionId) {
+      this.detailedSubmission = null;
+    }
+    this.cdr.markForCheck();
+
     this.apiService.deleteQuizSubmission(submissionId).subscribe({
       next: () => {
         this.successMsg = 'Quiz submission deleted successfully.';
-        if (this.detailedSubmission?.id === submissionId) {
-          this.detailedSubmission = null;
-        }
         this.loadQuizSubmissions();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.errorMsg = err.error?.message || 'Failed to delete submission.';
+        this.loadQuizSubmissions();
+        this.cdr.markForCheck();
       }
     });
   }

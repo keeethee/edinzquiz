@@ -84,6 +84,8 @@ model Quiz {
   questions        QuizQuestion[]
   submissions      QuizSubmission[]
 
+  @@index([courseId])
+  @@index([status])
   @@map("quizzes")
 }
 
@@ -104,6 +106,9 @@ model QuestionBank {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
+  @@index([courseId])
+  @@index([questionType])
+  @@index([difficulty])
   @@map("question_bank")
 }
 
@@ -114,6 +119,7 @@ model QuestionOption {
   optionText String
   isCorrect  Boolean      @default(false)
 
+  @@index([questionId])
   @@map("question_options")
 }
 
@@ -127,6 +133,7 @@ model QuizQuestion {
   marks        Int          @default(1)
 
   @@unique([quizId, questionId])
+  @@index([quizId])
   @@map("quiz_questions")
 }
 
@@ -147,6 +154,9 @@ model QuizSubmission {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
+  @@index([quizId])
+  @@index([studentId])
+  @@index([submittedAt])
   @@map("quiz_submissions")
 }
 
@@ -161,6 +171,8 @@ model StudentAnswer {
   isEvaluated      Boolean        @default(false)
   feedback         String?
 
+  @@index([submissionId])
+  @@index([questionId])
   @@map("student_answers")
 }
 
@@ -175,6 +187,7 @@ model Assignment {
   createdAt   DateTime               @default(now())
   updatedAt   DateTime               @updatedAt
 
+  @@index([courseId])
   @@map("assignments")
 }
 
@@ -192,6 +205,8 @@ model AssignmentSubmission {
   marks        Float?
   feedback     String?
 
+  @@index([assignmentId])
+  @@index([studentId])
   @@map("assignment_submissions")
 }
 
