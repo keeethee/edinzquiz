@@ -80,8 +80,19 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.authService.getStudent().subscribe(student => {
       this.loggedInStudent = student;
       if (student) {
+        const savedCourse = localStorage.getItem('edinz_active_course');
+        if (savedCourse) {
+          try {
+            this.activeCourse = JSON.parse(savedCourse);
+          } catch (e) {
+            this.activeCourse = null;
+          }
+        }
         this.resetState();
         this.loadHistoricalResults();
+      } else {
+        this.activeCourse = null;
+        localStorage.removeItem('edinz_active_course');
       }
     });
   }
@@ -157,6 +168,7 @@ export class StudentComponent implements OnInit, OnDestroy {
   onStudentLogout() {
     this.authService.logoutStudent();
     this.activeCourse = null;
+    localStorage.removeItem('edinz_active_course');
     this.allSubmissions = [];
   }
 
@@ -171,17 +183,20 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.apiService.lookupCourse(this.searchCourseIdCode.trim()).subscribe({
       next: (course) => {
         this.activeCourse = course;
+        localStorage.setItem('edinz_active_course', JSON.stringify(course));
         this.resetState();
       },
       error: () => {
         this.errorMsg = 'Course not found or is currently inactive.';
         this.activeCourse = null;
+        localStorage.removeItem('edinz_active_course');
       }
     });
   }
 
   exitCourse() {
     this.activeCourse = null;
+    localStorage.removeItem('edinz_active_course');
     this.resetState();
   }
 
