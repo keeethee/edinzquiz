@@ -123,14 +123,14 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   private getHeaders() {
-    let headers = {};
+    let headersConfig: { [header: string]: string } = {};
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('edinz_admin_token') || localStorage.getItem('edinz_student_token');
       if (token) {
-        headers = { 'Authorization': `Bearer ${token}` };
+        headersConfig['Authorization'] = `Bearer ${token}`;
       }
     }
-    return { headers };
+    return { headers: new HttpHeaders(headersConfig) };
   }
 
   // Student auth endpoints
