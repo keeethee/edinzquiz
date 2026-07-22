@@ -39,7 +39,7 @@
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div>
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Display ID (Unique Code)</label>
-            <input type="text" class="neo-input" placeholder="e.g. CS-101 or 412" [(ngModel)]="newCourseIdCode" name="courseIdCode" style="text-transform: uppercase;" />
+            <input type="text" class="neo-input" placeholder="e.g. devops26 or cs-101" [(ngModel)]="newCourseIdCode" name="courseIdCode" />
           </div>
           <div>
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Name</label>
@@ -94,7 +94,7 @@
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div>
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Course ID</label>
-            <input type="text" class="neo-input" [(ngModel)]="editingCourse.courseId" name="editCourseId" style="text-transform: uppercase;" />
+            <input type="text" class="neo-input" [(ngModel)]="editingCourse.courseId" name="editCourseId" />
           </div>
           <div>
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Course Name</label>

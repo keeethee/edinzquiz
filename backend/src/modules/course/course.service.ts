@@ -58,7 +58,10 @@ export class CourseService {
 
   async findByCourseId(courseId: string): Promise<any> {
     const course = await this.prisma.course.findFirst({
-      where: { courseId, status: 'Active' },
+      where: {
+        courseId: { equals: courseId, mode: 'insensitive' },
+        status: 'Active',
+      },
     });
     if (!course) {
       throw new NotFoundException(`Course with code "${courseId}" not found or is inactive.`);
