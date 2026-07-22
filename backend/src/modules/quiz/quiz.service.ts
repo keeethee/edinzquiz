@@ -243,7 +243,6 @@ export class QuizService {
               caseSensitive: qItem.caseSensitive || false,
               sampleAnswer: qItem.sampleAnswer || null,
               correctAnswerText: qItem.correctAnswerText || null,
-              mark: qItem.mark || 1,
             }
           });
           questionId = qBankRecord.id;
@@ -268,7 +267,6 @@ export class QuizService {
               question: qItem.questionText,
               questionType: qItem.questionType || qBankRecord.questionType,
               explanation: qItem.explanation !== undefined ? qItem.explanation : qBankRecord.explanation,
-              mark: qItem.mark || qBankRecord.mark,
             }
           });
 
