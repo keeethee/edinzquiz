@@ -456,12 +456,11 @@ export class ApiService {
     const score = sub.score || 0;
     const percentage = totalMarks > 0 ? (score / totalMarks) * 100 : 0;
 
-    let status = 'Pending Evaluation';
-    if (sub.isEvaluated) {
-      status = score >= (quiz.passingMarks || 0) ? 'Pass' : 'Fail';
-    }
-
     const answersList = sub.answers || sub.studentAnswers || [];
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let unansweredCount = 0;
 
     const mappedAnswers = questions.map((qq: any) => {
       const qObj = qq.question || qq;
@@ -474,26 +473,64 @@ export class ApiService {
         isCorrect: opt.isCorrect || false
       }));
 
-      const selectedOpts = sa ? (Array.isArray(sa.selectedOptions) ? sa.selectedOptions : (sa.selectedOptionId ? [sa.selectedOptionId] : (sa.selectedOption ? [sa.selectedOption.id] : []))) : [];
+      let selectedOpts: string[] = [];
+      if (sa) {
+        if (Array.isArray(sa.selectedOptions)) {
+          selectedOpts = sa.selectedOptions;
+        } else if (Array.isArray(sa.selectedOptionIds)) {
+          selectedOpts = sa.selectedOptionIds;
+        } else if (sa.selectedOptionId) {
+          selectedOpts = [sa.selectedOptionId];
+        } else if (sa.selectedOption?.id) {
+          selectedOpts = [sa.selectedOption.id];
+        }
+      }
+
+      const qMark = qq.marks !== undefined ? qq.marks : (qObj.mark || 1);
+      const awarded = sa ? (sa.marksAwarded !== undefined ? sa.marksAwarded : sa.awardedMarks) : null;
+
+      if (awarded !== null && awarded !== undefined) {
+        if (awarded > 0) {
+          correctCount++;
+        } else if (selectedOpts.length > 0 || sa?.typedAnswerText || sa?.essayAnswer) {
+          wrongCount++;
+        } else {
+          unansweredCount++;
+        }
+      } else {
+        if (selectedOpts.length === 0 && !sa?.typedAnswerText && !sa?.essayAnswer) {
+          unansweredCount++;
+        }
+      }
 
       return {
         id: sa?.id || questionId,
         questionId: questionId,
-        awardedMarks: sa ? (sa.marksAwarded !== undefined ? sa.marksAwarded : sa.awardedMarks) : null,
+        awardedMarks: awarded,
         selectedOptions: selectedOpts,
         selectedOptionId: selectedOpts[0] || null,
-        typedAnswer: sa?.typedAnswer || sa?.essayAnswer || '',
+        typedAnswerText: sa?.typedAnswerText || sa?.typedAnswer || sa?.essayAnswer || '',
+        typedAnswer: sa?.typedAnswer || sa?.typedAnswerText || sa?.essayAnswer || '',
         essayAnswer: sa?.essayAnswer || '',
         question: {
           id: questionId,
           questionText: qObj.question || qObj.questionText || '',
           questionType: qObj.questionType || 'MCQ_SINGLE',
-          mark: qq.marks !== undefined ? qq.marks : (qObj.mark || 1),
+          mark: qMark,
           explanation: qObj.explanation,
           options: options
         }
       };
     });
+
+    let status = 'Pending Evaluation';
+    if (sub.isEvaluated || sub.passed !== undefined) {
+      if (sub.isEvaluated) {
+        status = score >= (quiz.passingMarks || 0) ? 'Pass' : 'Fail';
+      } else if (sub.passed !== undefined && sub.passed !== null) {
+        status = sub.passed ? 'Pass' : 'Fail';
+      }
+    }
 
     return {
       id: sub.id,
@@ -504,9 +541,9 @@ export class ApiService {
       score: score,
       totalMarks: totalMarks,
       percentage: percentage,
-      correctCount: sub.correctCount || 0,
-      wrongCount: sub.wrongCount || 0,
-      unansweredCount: sub.unansweredCount || 0,
+      correctCount: correctCount,
+      wrongCount: wrongCount,
+      unansweredCount: unansweredCount,
       status: status,
       submittedAt: sub.submittedAt,
       quiz: {

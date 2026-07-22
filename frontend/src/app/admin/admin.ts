@@ -1428,7 +1428,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.apiService.evaluateSubmission(this.detailedSubmission.id, evaluations).subscribe({
       next: (updated) => {
         this.successMsg = `Evaluations & score updated successfully!`;
-        this.viewQuizSubmissionDetail(this.detailedSubmission!.id);
+        this.detailedSubmission = null;
         this.loadQuizSubmissions();
       },
       error: (err) => {

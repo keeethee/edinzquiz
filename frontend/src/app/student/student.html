@@ -720,9 +720,9 @@
                 [style.background]="opt.isCorrect ? 'rgba(16,185,129,0.06)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.15)')">
                 <span>{{ opt.optionText }}</span>
                 
-                <span *ngIf="opt.isCorrect" style="color: var(--success-color); font-weight: 600; font-size: 0.85rem;">Correct Answer Key</span>
-                <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && !opt.isCorrect" style="color: var(--danger-color); font-weight: 600; font-size: 0.85rem;">Your Selection</span>
                 <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && opt.isCorrect" style="color: var(--success-color); font-weight: 600; font-size: 0.85rem;">Your Selection (Correct)</span>
+                <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && !opt.isCorrect" style="color: var(--danger-color); font-weight: 600; font-size: 0.85rem;">Your Selection (Incorrect)</span>
+                <span *ngIf="!isOptionSelectedInSubmission(sa, opt.id) && opt.isCorrect" style="color: var(--success-color); font-weight: 600; font-size: 0.85rem;">Correct Answer Key</span>
               </div>
             </div>
 
