@@ -229,20 +229,35 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   getQuizStatusLabel(q: Quiz): string {
     if (q.status === 'Force stopped') return 'Stopped by Admin';
+    if (q.status === 'Closed' || q.status === 'Archived') return 'Closed / Ended';
+
     const now = new Date();
-    const start = new Date(q.startTime);
-    const end = new Date(q.endTime);
-    if (now < start) return 'Not Started Yet';
-    if (now > end) return 'Closed / Ended';
+    if (q.startTime) {
+      const start = new Date(q.startTime);
+      if (!isNaN(start.getTime()) && now < start) return 'Not Started Yet';
+    }
+    if (q.endTime) {
+      const end = new Date(q.endTime);
+      if (!isNaN(end.getTime()) && now > end) return 'Closed / Ended';
+    }
     return 'Active';
   }
 
   isQuizAttemptable(q: Quiz): boolean {
-    if (q.status === 'Force stopped' || q.status === 'Closed') return false;
+    if (q.status === 'Draft' || q.status === 'Force stopped' || q.status === 'Closed' || q.status === 'Archived') return false;
+    if (this.hasSubmittedQuiz(q.id)) return false;
+
     const now = new Date();
-    const start = new Date(q.startTime);
-    const end = new Date(q.endTime);
-    return now >= start && now <= end && !this.hasSubmittedQuiz(q.id);
+    if (q.startTime) {
+      const start = new Date(q.startTime);
+      if (!isNaN(start.getTime()) && now < start) return false;
+    }
+    if (q.endTime) {
+      const end = new Date(q.endTime);
+      if (!isNaN(end.getTime()) && now > end) return false;
+    }
+
+    return true;
   }
 
   hasSubmittedQuiz(quizId: string): boolean {

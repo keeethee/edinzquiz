@@ -167,8 +167,8 @@
             <div *ngFor="let q of quizzes" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
               <div>
                 <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ q.quizTitle }}</h4>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                  Time Window: {{ q.startTime | date:'short' }} to {{ q.endTime | date:'short' }}
+                <p style="font-size: 0.85rem; color: var(--text-secondary);" *ngIf="q.startTime || q.endTime">
+                  Time Window: {{ q.startTime ? (q.startTime | date:'short') : 'N/A' }} to {{ q.endTime ? (q.endTime | date:'short') : 'N/A' }}
                 </p>
                 <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
                   <span>Duration: <strong>{{ q.duration }} mins</strong></span>
@@ -181,9 +181,9 @@
                 <!-- Already Submitted badge -->
                 <span *ngIf="hasSubmittedQuiz(q.id)" class="badge badge-completed" style="padding: 0.5rem 1rem;">Submitted</span>
 
-                <!-- Active and not submitted -->
+                <!-- Active and attemptable -->
                 <button 
-                  *ngIf="isQuizAttemptable(q)" 
+                  *ngIf="!hasSubmittedQuiz(q.id) && isQuizAttemptable(q)" 
                   class="neo-btn neo-btn-primary" 
                   (click)="startQuizAttemptFlow(q)">
                   Start Attempt
