@@ -1133,6 +1133,21 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     return 'General Course';
   }
 
+  copyQuizLink(q: Quiz) {
+    const link = `${window.location.origin}/student`;
+    navigator.clipboard.writeText(link).then(() => {
+      this.successMsg = `Direct link for "${q.quizTitle}" copied to clipboard!`;
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.successMsg = '';
+        this.cdr.markForCheck();
+      }, 3000);
+    }).catch(() => {
+      this.errorMsg = 'Failed to copy link to clipboard.';
+      this.cdr.markForCheck();
+    });
+  }
+
   getAssignmentCourseName(a: Assignment): string {
     if (a.course) {
       return `(${a.course.courseId}) - ${a.course.courseName}`;

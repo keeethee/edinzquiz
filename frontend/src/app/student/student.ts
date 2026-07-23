@@ -231,6 +231,21 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   // ==================== QUIZ MODULE ====================
 
+  quizSearchText: string = '';
+
+  get filteredQuizzes(): Quiz[] {
+    let list = this.quizzes || [];
+    if (this.quizSearchText.trim()) {
+      const txt = this.quizSearchText.toLowerCase();
+      list = list.filter(q => q.quizTitle.toLowerCase().includes(txt) || (q.description && q.description.toLowerCase().includes(txt)));
+    }
+    return list;
+  }
+
+  get isTimerWarning(): boolean {
+    return this.countdownSeconds > 0 && this.countdownSeconds <= 120;
+  }
+
   loadQuizzes(courseId: string) {
     this.apiService.getQuizzes(courseId).subscribe({
       next: (list) => {

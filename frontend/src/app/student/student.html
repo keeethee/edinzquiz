@@ -157,14 +157,17 @@
       <!-- Quiz List Dashboard -->
       <div *ngIf="quizStep === 'dashboard'">
         <div class="neo-card">
-          <h2 style="font-size: 1.4rem; margin-bottom: 1.5rem;">Active & Upcoming Quizzes</h2>
+          <div class="flex-between" style="margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h2 style="font-size: 1.4rem; margin: 0;">Active & Upcoming Quizzes</h2>
+            <input type="text" class="neo-input" placeholder="🔍 Search quiz title..." [(ngModel)]="quizSearchText" style="max-width: 300px; font-size: 0.85rem;" />
+          </div>
           
-          <div *ngIf="quizzes.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-            No quizzes available for this course yet.
+          <div *ngIf="filteredQuizzes.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            No quizzes found for this course.
           </div>
 
-          <div *ngIf="quizzes.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
-            <div *ngFor="let q of quizzes; trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
+          <div *ngIf="filteredQuizzes.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div *ngFor="let q of filteredQuizzes; trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
               <div>
                 <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ q.quizTitle }}</h4>
                 <p style="font-size: 0.85rem; color: var(--text-secondary);" *ngIf="q.startTime || q.endTime">
@@ -246,7 +249,7 @@
           <div class="flex-center" style="gap: 1rem;">
             <div style="text-align: right;">
               <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Remaining Time</p>
-              <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--warning-color); margin: 0; font-family: monospace;">{{ countdownDisplay }}</h2>
+              <h2 [style.color]="isTimerWarning ? 'var(--danger-color)' : 'var(--warning-color)'" [class.blink]="isTimerWarning" style="font-size: 1.8rem; font-weight: 700; margin: 0; font-family: monospace;">{{ countdownDisplay }}</h2>
             </div>
           </div>
         </div>
