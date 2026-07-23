@@ -669,6 +669,23 @@ export class QuizService {
     });
   }
 
+  async exportSubmissionsCsv(): Promise<string> {
+    const list = await this.getSubmissionsList();
+    const headers = ['Student Name', 'College Name', 'Course Name', 'Quiz Title', 'Score', 'Total Marks', 'Percentage', 'Status', 'Submitted At'];
+    const rows = list.map((sub: any) => [
+      `"${(sub.student?.name || sub.studentName || '').replace(/"/g, '""')}"`,
+      `"${(sub.student?.collegeName || sub.collegeName || '').replace(/"/g, '""')}"`,
+      `"${(sub.quiz?.course?.courseName || sub.courseName || '').replace(/"/g, '""')}"`,
+      `"${(sub.quiz?.title || sub.quiz?.quizTitle || '').replace(/"/g, '""')}"`,
+      sub.score ?? 0,
+      sub.totalMarks ?? 0,
+      `"${sub.percentage ?? 0}%"`,
+      `"${sub.status || 'Submitted'}"`,
+      `"${sub.submittedAt ? new Date(sub.submittedAt).toISOString() : ''}"`
+    ]);
+    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  }
+
   async getSubmission(id: string) {
     const sub = await this.prisma.quizSubmission.findUnique({
       where: { id },

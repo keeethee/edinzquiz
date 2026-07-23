@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Res } from '@nestjs/common';
 import { QuizService } from './quiz.service';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -47,6 +47,15 @@ export class QuizController {
   @Get('submissions/list')
   getSubmissionsList() {
     return this.quizService.getSubmissionsList();
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('submissions/export')
+  async exportSubmissions(@Res() res: any) {
+    const csv = await this.quizService.exportSubmissionsCsv();
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="quiz_submissions_${Date.now()}.csv"`);
+    return res.send(csv);
   }
 
   @UseGuards(AuthGuard)

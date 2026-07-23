@@ -1536,20 +1536,68 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   exportSubmissions() {
-    this.apiService.exportQuizSubmissions().subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `quiz_results_${Date.now()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      },
-      error: () => {
-        this.errorMsg = 'Failed to export results.';
-      }
-    });
+    this.errorMsg = '';
+    this.successMsg = '';
+
+    const list = this.filteredQuizSubmissions.length > 0 ? this.filteredQuizSubmissions : this.quizSubmissions;
+    if (!list || list.length === 0) {
+      this.errorMsg = 'No submissions available to export.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    try {
+      const headers = ['Student Name', 'College Name', 'Course Name', 'Quiz Title', 'Score', 'Total Marks', 'Percentage', 'Correct', 'Wrong', 'Unanswered', 'Result Status', 'Submitted At'];
+      
+      const rows = list.map(sub => [
+        `"${(sub.studentName || '').replace(/"/g, '""')}"`,
+        `"${(sub.collegeName || '').replace(/"/g, '""')}"`,
+        `"${(sub.courseName || sub.courseId || '').replace(/"/g, '""')}"`,
+        `"${(sub.quiz?.quizTitle || '').replace(/"/g, '""')}"`,
+        sub.score ?? 0,
+        sub.totalMarks ?? 0,
+        `"${sub.percentage ?? 0}%"`,
+        sub.correctCount ?? 0,
+        sub.wrongCount ?? 0,
+        sub.unansweredCount ?? 0,
+        `"${sub.status || (sub.passed ? 'Passed' : 'Failed')}"`,
+        `"${sub.submittedAt ? new Date(sub.submittedAt).toLocaleString() : ''}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `quiz_submissions_report_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      this.successMsg = 'Submissions CSV report exported successfully!';
+      this.cdr.markForCheck();
+    } catch {
+      this.apiService.exportQuizSubmissions().subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `quiz_results_${Date.now()}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          this.successMsg = 'Submissions report exported successfully!';
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.errorMsg = 'Failed to export results.';
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
   loadAssignmentSubmissions() {
