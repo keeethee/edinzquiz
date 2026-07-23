@@ -1204,8 +1204,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   selectedBankQuestionIds: string[] = [];
 
   loadQuestionBankPool() {
-    if (!this.selectedCourseId) return;
-    this.apiService.getQuestionBank({ courseId: this.selectedCourseId, limit: 100 }).subscribe({
+    const courseId = this.quizForm?.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    if (!courseId) return;
+    this.apiService.getQuestionBank({ courseId: courseId, limit: 100 }).subscribe({
       next: (res) => {
         this.questionBankPool = res.questions || [];
       },
@@ -1282,13 +1283,14 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     event.target.value = '';
 
-    if (!this.selectedCourseId) {
-      alert('Please select a course for this quiz first.');
+    const courseId = this.quizForm?.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    if (!courseId) {
+      alert('Please select a Target Course for this quiz first.');
       return;
     }
 
     this.isSaving = true;
-    this.apiService.importQuestions(this.selectedCourseId, file).subscribe({
+    this.apiService.importQuestions(courseId, file).subscribe({
       next: (res) => {
         this.isSaving = false;
         if (!res.questions || res.questions.length === 0) {
