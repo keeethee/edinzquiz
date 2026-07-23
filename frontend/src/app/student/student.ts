@@ -264,13 +264,8 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (q.status === 'Archived') return 'Archived';
 
     const now = new Date();
-    const startStr = q.startTime || (q as any).publishAt;
     const endStr = q.endTime || (q as any).expireAt;
 
-    if (startStr) {
-      const startMs = new Date(startStr).getTime() - 5 * 60 * 1000;
-      if (!isNaN(startMs) && now.getTime() < startMs) return 'Not Started Yet';
-    }
     if (endStr) {
       const end = new Date(endStr);
       if (!isNaN(end.getTime()) && now > end) return 'Expired / Time Exceeded';
@@ -284,13 +279,8 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (this.hasSubmittedQuiz(q.id)) return false;
 
     const now = new Date();
-    const startStr = q.startTime || (q as any).publishAt;
     const endStr = q.endTime || (q as any).expireAt;
 
-    if (startStr) {
-      const startMs = new Date(startStr).getTime() - 5 * 60 * 1000;
-      if (!isNaN(startMs) && now.getTime() < startMs) return false;
-    }
     if (endStr) {
       const end = new Date(endStr);
       if (!isNaN(end.getTime()) && now > end) return false;

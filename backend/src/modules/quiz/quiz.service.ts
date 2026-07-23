@@ -474,16 +474,7 @@ export class QuizService {
     }
 
     const now = new Date();
-    const startTime = quiz.publishAt || (quiz as any).startTime;
     const endTime = quiz.expireAt || (quiz as any).endTime;
-
-    if (startTime) {
-      const startMs = new Date(startTime).getTime() - 5 * 60 * 1000;
-      if (!isNaN(startMs) && now.getTime() < startMs) {
-        const earliestOpen = new Date(startMs);
-        throw new BadRequestException(`This quiz opens 5 minutes prior to the start time (${earliestOpen.toLocaleTimeString()}). Please check back soon.`);
-      }
-    }
 
     if (endTime) {
       const end = new Date(endTime);
