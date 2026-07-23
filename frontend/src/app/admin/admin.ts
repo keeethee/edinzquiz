@@ -61,6 +61,13 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   isPublishing: boolean = false;
   isCreatingCourse: boolean = false;
 
+  get totalQuizMarks(): number {
+    const questions = this.quizForm?.get('questions')?.value || [];
+    return questions.reduce((sum: number, q: any) => sum + (q.mark || 0), 0);
+  }
+
+  get isAllCoursesSelected(): boolean { return false; }
+
   // Leaderboard & Analytics Modals
   showLeaderboardModal: boolean = false;
   leaderboardSubmissions: QuizSubmission[] = [];
