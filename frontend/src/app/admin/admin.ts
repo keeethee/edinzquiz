@@ -21,7 +21,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   // Shared state
   courses: Course[] = [];
-  selectedCourseId: string | null = null;
+  selectedCourseId: string = '';
   errorMsg: string = '';
   successMsg: string = '';
 
@@ -108,6 +108,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   ngOnInit(): void {
     this.loadCourses();
     this.loadCategories();
+    this.loadQuizzes('');
+    this.loadAssignments('');
   }
 
   ngOnDestroy(): void {
@@ -174,14 +176,13 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.apiService.getCourses().subscribe({
       next: (list) => {
         this.courses = list;
-        if (!this.selectedCourseId && list.length > 0) {
-          this.selectedCourseId = list[0].id;
-          if (this.activeTab === 'quizzes') this.loadQuizzes(list[0].id);
-          if (this.activeTab === 'assignments') this.loadAssignments(list[0].id);
-        }
+        if (this.activeTab === 'quizzes') this.loadQuizzes(this.selectedCourseId || '');
+        if (this.activeTab === 'assignments') this.loadAssignments(this.selectedCourseId || '');
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorMsg = 'Failed to load courses. Please login again.';
+        this.cdr.markForCheck();
       }
     });
   }
@@ -250,7 +251,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       return;
     }
     this.courses = this.courses.filter(c => c.id !== id);
-    if (this.selectedCourseId === id) this.selectedCourseId = null;
+    if (this.selectedCourseId === id) this.selectedCourseId = '';
     this.cdr.markForCheck();
 
     this.apiService.deleteCourse(id).subscribe({
