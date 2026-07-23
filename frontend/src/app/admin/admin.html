@@ -246,7 +246,7 @@
               📝 Editing: {{ (quizForm?.get('quizTitle')?.value) || 'New Quiz Assessment' }}
             </span>
             <span class="badge" style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 0.85rem; padding: 0.3rem 0.75rem;">
-              Course: {{ getSelectedCourseName() }}
+              Course: {{ getQuizFormCourseName() }}
             </span>
             <span *ngIf="lastAutosavedTime" style="font-size: 0.8rem; color: var(--success-color); font-weight: 550;">
               {{ lastAutosavedTime }}
@@ -358,6 +358,14 @@
             <h3 style="font-size:1.25rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
               ⚙️ Quiz Details & Configuration
             </h3>
+
+            <div>
+              <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color);">*</span></label>
+              <select class="neo-select" formControlName="courseId" style="width: 100%;">
+                <option value="">-- Select Target Course --</option>
+                <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+              </select>
+            </div>
 
             <div>
               <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Title</label>

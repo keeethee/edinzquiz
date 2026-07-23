@@ -445,9 +445,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       passingMarksVal = Math.ceil(totalMarks * 0.40);
     }
 
+    const defaultCourse = quiz?.courseId || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
     this.quizForm = this.fb.group({
       id: [quiz?.id || null],
-      courseId: [quiz?.courseId || this.selectedCourseId || ''],
+      courseId: [defaultCourse, Validators.required],
       quizTitle: [quiz?.quizTitle || '', Validators.required],
       description: [quiz?.description || ''],
       difficulty: [quiz?.difficulty || 'Medium', Validators.required],
@@ -1119,6 +1120,13 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const courseIdToFind = this.selectedCourseId || (this.quizForm ? this.quizForm.get('courseId')?.value : null);
     if (!courseIdToFind) return 'General Course';
     const course = this.courses.find(c => c.id === courseIdToFind || c.courseId === courseIdToFind);
+    return course ? `(${course.courseId}) - ${course.courseName}` : 'General Course';
+  }
+
+  getQuizFormCourseName(): string {
+    const courseId = this.quizForm ? this.quizForm.get('courseId')?.value : null;
+    if (!courseId) return 'No Course Selected';
+    const course = this.courses.find(c => c.id === courseId || c.courseId === courseId);
     return course ? `(${course.courseId}) - ${course.courseName}` : 'General Course';
   }
 
