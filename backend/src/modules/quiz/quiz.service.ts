@@ -56,8 +56,8 @@ export class QuizService {
         showResult: data.showResult || false,
         categoryId: data.categoryId || null,
         status: 'Draft',
-        publishAt: data.publishAt ? new Date(data.publishAt) : null,
-        expireAt: data.expireAt ? new Date(data.expireAt) : null,
+        publishAt: (data.publishAt || (data as any).startTime) ? new Date(data.publishAt || (data as any).startTime) : null,
+        expireAt: (data.expireAt || (data as any).endTime) ? new Date(data.expireAt || (data as any).endTime) : null,
       },
       include: {
         course: true,
@@ -215,8 +215,11 @@ export class QuizService {
     if (body.showResult !== undefined) data.showResult = body.showResult;
     if (body.status !== undefined) data.status = body.status;
     if (body.categoryId !== undefined) data.categoryId = body.categoryId || null;
-    if (body.publishAt !== undefined) data.publishAt = body.publishAt ? new Date(body.publishAt) : null;
-    if (body.expireAt !== undefined) data.expireAt = body.expireAt ? new Date(body.expireAt) : null;
+    const pubVal = body.publishAt !== undefined ? body.publishAt : body.startTime;
+    if (pubVal !== undefined) data.publishAt = pubVal ? new Date(pubVal) : null;
+
+    const expVal = body.expireAt !== undefined ? body.expireAt : body.endTime;
+    if (expVal !== undefined) data.expireAt = expVal ? new Date(expVal) : null;
 
     const updated = await this.prisma.quiz.update({
       where: { id },
@@ -464,6 +467,28 @@ export class QuizService {
     });
     if (!quiz) {
       throw new NotFoundException(`Quiz not found`);
+    }
+
+    if (quiz.status !== 'Published') {
+      throw new BadRequestException(`This quiz is currently ${quiz.status.toLowerCase()} and cannot be attempted.`);
+    }
+
+    const now = new Date();
+    const startTime = quiz.publishAt || (quiz as any).startTime;
+    const endTime = quiz.expireAt || (quiz as any).endTime;
+
+    if (startTime) {
+      const start = new Date(startTime);
+      if (!isNaN(start.getTime()) && now < start) {
+        throw new BadRequestException(`This quiz has not started yet. It will open at ${start.toLocaleString()}.`);
+      }
+    }
+
+    if (endTime) {
+      const end = new Date(endTime);
+      if (!isNaN(end.getTime()) && now > end) {
+        throw new BadRequestException(`The deadline for this quiz has expired (${end.toLocaleString()}). Attempts are no longer allowed.`);
+      }
     }
 
     // Check attempts count

@@ -243,32 +243,41 @@ export class StudentComponent implements OnInit, OnDestroy {
   }
 
   getQuizStatusLabel(q: Quiz): string {
-    if (q.status === 'Force stopped') return 'Stopped by Admin';
-    if (q.status === 'Closed' || q.status === 'Archived') return 'Closed / Ended';
+    if (q.status === 'Draft') return 'Draft';
+    if (q.status === 'Force stopped') return 'Force Stopped';
+    if (q.status === 'Closed') return 'Closed';
+    if (q.status === 'Archived') return 'Archived';
 
     const now = new Date();
-    if (q.startTime) {
-      const start = new Date(q.startTime);
+    const startStr = q.startTime || (q as any).publishAt;
+    const endStr = q.endTime || (q as any).expireAt;
+
+    if (startStr) {
+      const start = new Date(startStr);
       if (!isNaN(start.getTime()) && now < start) return 'Not Started Yet';
     }
-    if (q.endTime) {
-      const end = new Date(q.endTime);
-      if (!isNaN(end.getTime()) && now > end) return 'Closed / Ended';
+    if (endStr) {
+      const end = new Date(endStr);
+      if (!isNaN(end.getTime()) && now > end) return 'Expired / Time Exceeded';
     }
     return 'Active';
   }
 
   isQuizAttemptable(q: Quiz): boolean {
-    if (q.status === 'Draft' || q.status === 'Force stopped' || q.status === 'Closed' || q.status === 'Archived') return false;
+    if (!q) return false;
+    if (q.status !== 'Published') return false;
     if (this.hasSubmittedQuiz(q.id)) return false;
 
     const now = new Date();
-    if (q.startTime) {
-      const start = new Date(q.startTime);
+    const startStr = q.startTime || (q as any).publishAt;
+    const endStr = q.endTime || (q as any).expireAt;
+
+    if (startStr) {
+      const start = new Date(startStr);
       if (!isNaN(start.getTime()) && now < start) return false;
     }
-    if (q.endTime) {
-      const end = new Date(q.endTime);
+    if (endStr) {
+      const end = new Date(endStr);
       if (!isNaN(end.getTime()) && now > end) return false;
     }
 
@@ -280,6 +289,10 @@ export class StudentComponent implements OnInit, OnDestroy {
   }
 
   startQuizAttemptFlow(quiz: Quiz) {
+    if (!this.isQuizAttemptable(quiz)) {
+      this.errorMsg = 'This quiz has expired or is not currently open for attempt.';
+      return;
+    }
     this.selectedQuiz = quiz;
     this.quizStep = 'details';
   }
@@ -288,7 +301,12 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   onQuizDetailsConfirm() {
     this.errorMsg = '';
-    if (!this.loggedInStudent) return;
+    if (!this.loggedInStudent || !this.selectedQuiz) return;
+
+    if (!this.isQuizAttemptable(this.selectedQuiz)) {
+      this.errorMsg = 'This quiz has expired or is not currently open for attempt.';
+      return;
+    }
 
     this.apiService.getQuizForStudent(this.selectedQuiz.id).subscribe({
       next: (res) => {
@@ -308,8 +326,18 @@ export class StudentComponent implements OnInit, OnDestroy {
             this.quizStep = 'attempt';
             this.quizStartedAt = new Date(attempt.startedAt || new Date());
 
-            // Timer calculation
-            this.countdownSeconds = res.duration * 60;
+            // Smart timer calculation considering remaining time until expireAt / endTime
+            let secondsRemaining = (res.duration || 60) * 60;
+            const endStr = res.endTime || (res as any).expireAt;
+            if (endStr) {
+              const endMs = new Date(endStr).getTime();
+              const nowMs = new Date().getTime();
+              const timeUntilEndSec = Math.floor((endMs - nowMs) / 1000);
+              if (!isNaN(timeUntilEndSec) && timeUntilEndSec > 0) {
+                secondsRemaining = Math.min(secondsRemaining, timeUntilEndSec);
+              }
+            }
+            this.countdownSeconds = Math.max(0, secondsRemaining);
 
             this.startTimer();
             this.startAutoSave();
