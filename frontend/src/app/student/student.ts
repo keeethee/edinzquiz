@@ -268,8 +268,8 @@ export class StudentComponent implements OnInit, OnDestroy {
     const endStr = q.endTime || (q as any).expireAt;
 
     if (startStr) {
-      const start = new Date(startStr);
-      if (!isNaN(start.getTime()) && now < start) return 'Not Started Yet';
+      const startMs = new Date(startStr).getTime() - 5 * 60 * 1000;
+      if (!isNaN(startMs) && now.getTime() < startMs) return 'Not Started Yet';
     }
     if (endStr) {
       const end = new Date(endStr);
@@ -288,8 +288,8 @@ export class StudentComponent implements OnInit, OnDestroy {
     const endStr = q.endTime || (q as any).expireAt;
 
     if (startStr) {
-      const start = new Date(startStr);
-      if (!isNaN(start.getTime()) && now < start) return false;
+      const startMs = new Date(startStr).getTime() - 5 * 60 * 1000;
+      if (!isNaN(startMs) && now.getTime() < startMs) return false;
     }
     if (endStr) {
       const end = new Date(endStr);

@@ -478,9 +478,10 @@ export class QuizService {
     const endTime = quiz.expireAt || (quiz as any).endTime;
 
     if (startTime) {
-      const start = new Date(startTime);
-      if (!isNaN(start.getTime()) && now < start) {
-        throw new BadRequestException(`This quiz has not started yet. It will open at ${start.toLocaleString()}.`);
+      const startMs = new Date(startTime).getTime() - 5 * 60 * 1000;
+      if (!isNaN(startMs) && now.getTime() < startMs) {
+        const earliestOpen = new Date(startMs);
+        throw new BadRequestException(`This quiz opens 5 minutes prior to the start time (${earliestOpen.toLocaleTimeString()}). Please check back soon.`);
       }
     }
 
