@@ -529,6 +529,45 @@ export class StudentComponent implements OnInit, OnDestroy {
     });
   }
 
+  getResultTotalMarks(sub: any): number {
+    if (!sub) return 0;
+    if (sub.totalMarks !== undefined && sub.totalMarks !== null && sub.totalMarks > 0) return sub.totalMarks;
+    if (sub.quiz?.questions && Array.isArray(sub.quiz.questions) && sub.quiz.questions.length > 0) {
+      return sub.quiz.questions.reduce((sum: number, q: any) => sum + (q.marks || q.mark || 1), 0);
+    }
+    return sub.quiz?.passingMarks || 0;
+  }
+
+  getResultPercentage(sub: any): number {
+    if (!sub) return 0;
+    if (sub.percentage !== undefined && sub.percentage !== null) return sub.percentage;
+    const total = this.getResultTotalMarks(sub);
+    const score = sub.score || 0;
+    return total > 0 ? Math.round((score / total) * 100) : 0;
+  }
+
+  getResultStatus(sub: any): string {
+    if (!sub) return 'Fail';
+    if (sub.status) return sub.status;
+    if (sub.passed) return 'Pass';
+    const score = sub.score || 0;
+    const passingMarks = sub.quiz?.passingMarks || 0;
+    return score >= passingMarks ? 'Pass' : 'Fail';
+  }
+
+  getResultGrade(sub: any): string {
+    if (!sub) return 'Failed';
+    if (sub.grade) return sub.grade;
+    const status = this.getResultStatus(sub);
+    const pct = this.getResultPercentage(sub);
+    if (status === 'Pass') {
+      if (pct >= 85) return 'Excellent';
+      if (pct >= 70) return 'Passed';
+      return 'Average';
+    }
+    return 'Failed';
+  }
+
   // --- Grade helper utilities ---
   getGradeClass(grade?: string): string {
     if (!grade) return 'badge-secondary';
@@ -541,17 +580,19 @@ export class StudentComponent implements OnInit, OnDestroy {
     }
   }
 
-  getPerformanceFeedback(sub: QuizSubmission): string {
-    if (sub.status === 'Pending Evaluation') {
+  getPerformanceFeedback(sub: any): string {
+    if (!sub) return '';
+    const status = this.getResultStatus(sub);
+    if (status === 'Pending Evaluation') {
       return 'Your answers are currently being evaluated by a tutor. Please check back later.';
     }
-    const pct = sub.percentage;
-    if (pct >= 80) {
-      return 'Excellent! You have shown strong programming fundamentals and an outstanding grasp of the material.';
-    } else if (pct >= 60) {
-      return 'Passed! Good job, you have understood the concepts well. Keep practicing to reach excellence.';
-    } else if (pct >= 40) {
-      return 'Average. You passed, but we recommend revising the core topics and taking more practice quizzes.';
+    const pct = this.getResultPercentage(sub);
+    if (status === 'Pass') {
+      if (pct >= 85) {
+        return 'Excellent! You have shown strong programming fundamentals and an outstanding grasp of the material.';
+      } else {
+        return 'Passed! Good job, you have understood the concepts well. Keep practicing to reach excellence.';
+      }
     } else {
       return 'Failed. Do not worry! Revise the lectures, look over the question explanations, and try again.';
     }

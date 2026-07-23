@@ -332,18 +332,18 @@
             <div class="neo-card-inset flex-between" style="padding: 1.5rem 2rem;">
               <div>
                 <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em;">Final Score</span>
-                <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--accent-color); margin: 0.2rem 0;">{{ resultSubmission.score }} / {{ resultSubmission.totalMarks }}</h1>
-                <span style="font-size: 0.85rem; color: var(--text-secondary); display: block;">Obtained Percentage: <strong>{{ resultSubmission.percentage | number:'1.0-1' }}%</strong></span>
+                <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--accent-color); margin: 0.2rem 0;">{{ resultSubmission.score || 0 }} / {{ getResultTotalMarks(resultSubmission) }}</h1>
+                <span style="font-size: 0.85rem; color: var(--text-secondary); display: block;">Obtained Percentage: <strong>{{ getResultPercentage(resultSubmission) }}%</strong></span>
               </div>
               <div style="text-align: right;">
                 <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Grade / Status</span>
-                <span *ngIf="resultSubmission.grade" class="badge" [ngClass]="getGradeClass(resultSubmission.grade)" style="font-size: 0.95rem; padding: 0.4rem 1rem; display: inline-block; margin-bottom: 0.5rem;">
-                  {{ resultSubmission.grade }}
+                <span class="badge" [ngClass]="getGradeClass(getResultGrade(resultSubmission))" style="font-size: 0.95rem; padding: 0.4rem 1rem; display: inline-block; margin-bottom: 0.5rem;">
+                  {{ getResultGrade(resultSubmission) }}
                 </span>
                 <div>
-                  <span *ngIf="resultSubmission.status === 'Pass'" class="badge badge-completed" style="font-size: 0.85rem;">Passed</span>
-                  <span *ngIf="resultSubmission.status === 'Fail'" class="badge badge-overdue" style="font-size: 0.85rem;">Failed</span>
-                  <span *ngIf="resultSubmission.status === 'Pending Evaluation'" class="badge badge-pending" style="font-size: 0.85rem;">Pending Grading</span>
+                  <span *ngIf="getResultStatus(resultSubmission) === 'Pass'" class="badge badge-completed" style="font-size: 0.85rem;">Passed</span>
+                  <span *ngIf="getResultStatus(resultSubmission) === 'Fail'" class="badge badge-overdue" style="font-size: 0.85rem;">Failed</span>
+                  <span *ngIf="getResultStatus(resultSubmission) === 'Pending Evaluation'" class="badge badge-pending" style="font-size: 0.85rem;">Pending Grading</span>
                 </div>
               </div>
             </div>

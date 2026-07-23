@@ -647,6 +647,46 @@ export class QuizService {
     });
   }
 
+  private formatSubmissionResult(sub: any) {
+    if (!sub) return null;
+    let totalMarks = 0;
+    if (sub.quiz?.questions && Array.isArray(sub.quiz.questions)) {
+      totalMarks = sub.quiz.questions.reduce((sum: number, qLink: any) => sum + (qLink.marks || qLink.mark || 0), 0);
+    }
+    if (!totalMarks && sub.quiz?.passingMarks) {
+      totalMarks = sub.quiz.passingMarks;
+    }
+
+    const score = sub.score || 0;
+    const percentage = totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0;
+
+    let status = 'Fail';
+    if (sub.passed || (sub.quiz?.passingMarks && score >= sub.quiz.passingMarks)) {
+      status = 'Pass';
+    }
+
+    if (sub.answers && Array.isArray(sub.answers) && sub.answers.some((a: any) => !a.isEvaluated)) {
+      status = 'Pending Evaluation';
+    }
+
+    let grade = 'Failed';
+    if (status === 'Pass') {
+      if (percentage >= 85) grade = 'Excellent';
+      else if (percentage >= 70) grade = 'Passed';
+      else grade = 'Average';
+    } else {
+      grade = 'Failed';
+    }
+
+    return {
+      ...sub,
+      totalMarks,
+      percentage,
+      status,
+      grade,
+    };
+  }
+
   async getStudentResult(submissionId: string) {
     const sub = await this.prisma.quizSubmission.findUnique({
       where: { id: submissionId },
@@ -669,21 +709,25 @@ export class QuizService {
       throw new NotFoundException('Submission not found.');
     }
 
-    return sub;
+    return this.formatSubmissionResult(sub);
   }
 
   async getSubmissionsList() {
-    return this.prisma.quizSubmission.findMany({
+    const list = await this.prisma.quizSubmission.findMany({
       include: {
         quiz: {
           include: {
             course: true,
+            questions: true,
           },
         },
         student: true,
+        answers: true,
       },
       orderBy: { submittedAt: 'desc' },
     });
+
+    return list.map((sub: any) => this.formatSubmissionResult(sub));
   }
 
   async exportSubmissionsCsv(): Promise<string> {
@@ -726,7 +770,7 @@ export class QuizService {
       throw new NotFoundException('Submission not found.');
     }
 
-    return sub;
+    return this.formatSubmissionResult(sub);
   }
 
   async evaluateEssayAnswers(submissionId: string, evaluations: { questionId: string; marksAwarded: number; feedback?: string }[]) {
