@@ -165,7 +165,9 @@
                   <h4 style="font-size: 1.25rem; color: var(--text-primary); font-weight: 600; display: inline-block; margin-right: 0.75rem;">
                     {{ q.quizTitle }}
                   </h4>
-                  <!-- Badges (Removed Category and Difficulty) -->
+                  <span class="badge" style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 0.85rem; padding: 0.25rem 0.6rem; vertical-align: middle;">
+                    📚 Course: {{ getQuizCourseName(q) }}
+                  </span>
                 </div>
                 
                 <span class="badge" 
