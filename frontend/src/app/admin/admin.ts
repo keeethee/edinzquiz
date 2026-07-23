@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService, Course, Quiz, Question, Option, QuizSubmission, AssignmentSubmission, Assignment } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, interval, forkJoin } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-admin',
@@ -1602,6 +1602,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.loadAssignmentSubmissions();
       }
     });
+  }
+  trackById(index: number, item: any): any {
+    return item?.id || index;
   }
 }
 

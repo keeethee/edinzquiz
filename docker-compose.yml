@@ -31,6 +31,7 @@ services:
     image: postgres:15-alpine
     container_name: edinz-postgres
     restart: unless-stopped
+    command: postgres -c shared_buffers=256MB -c work_mem=16MB -c effective_cache_size=768MB -c random_page_cost=1.1
     ports:
       - "5432:5432"
     environment:

@@ -81,7 +81,6 @@ export class QuizService {
       include: {
         course: true,
         category: true,
-        questions: true,
         _count: {
           select: { questions: true },
         },
@@ -97,7 +96,6 @@ export class QuizService {
       include: {
         course: true,
         category: true,
-        questions: true,
         _count: {
           select: { questions: true },
         },
@@ -663,7 +661,6 @@ export class QuizService {
         quiz: {
           include: {
             course: true,
-            questions: true,
           },
         },
         student: true,

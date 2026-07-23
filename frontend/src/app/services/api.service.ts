@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, shareReplay, tap } from 'rxjs';
 
 export interface Course {
   id: string;
@@ -120,8 +120,18 @@ export interface AssignmentSubmission {
 })
 export class ApiService {
   private baseUrl = 'http://localhost:3000/api';
+  private coursesCache$: Observable<Course[]> | null = null;
+  private categoriesCache$: Observable<any[]> | null = null;
 
   constructor(private http: HttpClient) {}
+
+  private clearCoursesCache() {
+    this.coursesCache$ = null;
+  }
+
+  private clearCategoriesCache() {
+    this.categoriesCache$ = null;
+  }
 
   private getHeaders() {
     let headersConfig: { [header: string]: string } = {};
@@ -152,21 +162,32 @@ export class ApiService {
     return this.http.get<any>(`${this.baseUrl}/auth/profile`, this.getHeaders());
   }
 
-  // Courses API
+  // Courses API (with shareReplay caching)
   getCourses(): Observable<Course[]> {
-    return this.http.get<Course[]>(`${this.baseUrl}/courses`, this.getHeaders());
+    if (!this.coursesCache$) {
+      this.coursesCache$ = this.http.get<Course[]>(`${this.baseUrl}/courses`, this.getHeaders()).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.coursesCache$;
   }
 
   createCourse(courseId: string, courseName: string, duration?: string, status: string = 'Active'): Observable<Course> {
-    return this.http.post<Course>(`${this.baseUrl}/courses`, { courseId, courseName, duration, status }, this.getHeaders());
+    return this.http.post<Course>(`${this.baseUrl}/courses`, { courseId, courseName, duration, status }, this.getHeaders()).pipe(
+      tap(() => this.clearCoursesCache())
+    );
   }
 
   updateCourse(id: string, courseId: string, courseName: string, duration?: string, status?: string): Observable<Course> {
-    return this.http.patch<Course>(`${this.baseUrl}/courses/${id}`, { courseId, courseName, duration, status }, this.getHeaders());
+    return this.http.patch<Course>(`${this.baseUrl}/courses/${id}`, { courseId, courseName, duration, status }, this.getHeaders()).pipe(
+      tap(() => this.clearCoursesCache())
+    );
   }
 
   deleteCourse(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/courses/${id}`, this.getHeaders());
+    return this.http.delete<void>(`${this.baseUrl}/courses/${id}`, this.getHeaders()).pipe(
+      tap(() => this.clearCoursesCache())
+    );
   }
 
   getCourseDetail(id: string): Observable<Course> {
@@ -177,13 +198,20 @@ export class ApiService {
     return this.http.get<Course>(`${this.baseUrl}/courses/lookup/${courseIdCode}`);
   }
 
-  // Quiz Categories API
+  // Quiz Categories API (with shareReplay caching)
   getCategories(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/quizzes/categories`, this.getHeaders());
+    if (!this.categoriesCache$) {
+      this.categoriesCache$ = this.http.get<any[]>(`${this.baseUrl}/quizzes/categories`, this.getHeaders()).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.categoriesCache$;
   }
 
   createCategory(name: string, description?: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/quizzes/categories`, { name, description }, this.getHeaders());
+    return this.http.post<any>(`${this.baseUrl}/quizzes/categories`, { name, description }, this.getHeaders()).pipe(
+      tap(() => this.clearCategoriesCache())
+    );
   }
 
   // Quizzes API

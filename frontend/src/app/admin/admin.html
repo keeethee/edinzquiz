@@ -68,7 +68,7 @@
         <div *ngIf="courses.length === 0" style="color: var(--text-muted); text-align: center; padding: 2rem;">No courses created yet.</div>
         
         <div *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
-          <div *ngFor="let c of courses" class="neo-card-inset flex-between" style="padding: 1rem 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div *ngFor="let c of courses; trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1rem 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
             <div>
               <h4 style="font-size: 1.05rem;">
                 <span style="color: var(--accent-color); font-weight: 700; margin-right: 0.5rem;">{{ c.courseId }}</span>
@@ -159,7 +159,7 @@
           </div>
           
           <div *ngIf="filteredQuizzes.length > 0" style="display: flex; flex-direction: column; gap: 1.25rem;">
-            <div *ngFor="let q of paginatedQuizzes" class="neo-card-inset" style="padding: 1.5rem; transition: border-color 0.2s;">
+            <div *ngFor="let q of paginatedQuizzes; trackBy: trackById" class="neo-card-inset" style="padding: 1.5rem; transition: border-color 0.2s;">
               <div class="flex-between" style="margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
                   <h4 style="font-size: 1.25rem; color: var(--text-primary); font-weight: 600; display: inline-block; margin-right: 0.75rem;">
@@ -705,7 +705,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let s of filteredQuizSubmissions" style="border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.15s;" hover="background: rgba(255,255,255,0.01)">
+            <tr *ngFor="let s of filteredQuizSubmissions; trackBy: trackById" style="border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.15s;" hover="background: rgba(255,255,255,0.01)">
               <td style="padding: 1rem 1.5rem;">
                 <strong style="display: block;">{{ s.studentName }}</strong>
                 <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ s.collegeName }}</span>
@@ -845,7 +845,7 @@
       <div *ngIf="assignSubmissions.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">No homework files uploaded for this course yet.</div>
       
       <div *ngIf="assignSubmissions.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
-        <div *ngFor="let sub of assignSubmissions" class="neo-card-inset flex-between" style="padding: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+        <div *ngFor="let sub of assignSubmissions; trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1.25rem; flex-wrap: wrap; gap: 1rem;">
           <div>
             <h4 style="font-size: 1.05rem; font-weight: 600;">{{ sub.studentName }}</h4>
             <p style="font-size: 0.85rem; color: var(--text-secondary);">Course: {{ sub.assignment?.course?.courseName || sub.courseName || 'N/A' }} | Assignment: {{ sub.assignment?.title || 'General' }} | File: <a href="javascript:void(0)" (click)="downloadHomework(sub)" style="color: var(--accent-color); font-weight: 550;">{{ sub.fileName }}</a></p>
