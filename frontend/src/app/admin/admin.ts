@@ -1132,6 +1132,18 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     return 'General Course';
   }
 
+  getAssignmentCourseName(a: Assignment): string {
+    if (a.course) {
+      return `(${a.course.courseId}) - ${a.course.courseName}`;
+    }
+    const courseId = (a as any).courseId;
+    if (courseId) {
+      const found = this.courses.find(c => c.id === courseId || c.courseId === courseId);
+      if (found) return `(${found.courseId}) - ${found.courseName}`;
+    }
+    return 'General Course';
+  }
+
   getPassingPercentage(q: Quiz): number {
     if (!q || !q.totalMarks) return 40;
     return Math.round((q.passingMarks / q.totalMarks) * 100);
