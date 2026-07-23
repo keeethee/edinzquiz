@@ -685,5 +685,9 @@ export class StudentComponent implements OnInit, OnDestroy {
 
     return this.sanitizer.bypassSecurityTrustHtml(parsed);
   }
+
+  trackById(index: number, item: any): any {
+    return item?.id || index;
+  }
 }
 

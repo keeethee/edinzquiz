@@ -136,7 +136,9 @@ export class ApiService {
   private getHeaders() {
     let headersConfig: { [header: string]: string } = {};
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('edinz_admin_token') || localStorage.getItem('edinz_student_token');
+      const studentToken = localStorage.getItem('edinz_student_token');
+      const adminToken = localStorage.getItem('edinz_admin_token');
+      const token = studentToken || adminToken;
       if (token) {
         headersConfig['Authorization'] = `Bearer ${token}`;
       }
