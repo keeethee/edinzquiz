@@ -643,8 +643,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const totalMarks = questions.reduce((sum: number, q: any) => sum + (q.mark || 0), 0);
     const passingMarks = val.passingMarks || 0;
     const passingPercentage = totalMarks > 0 ? Math.round((passingMarks / totalMarks) * 100) : 40;
+    const courseId = val.courseId || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
 
     return {
+      courseId: courseId,
       quizTitle: val.quizTitle,
       description: val.description,
       difficulty: val.difficulty,
@@ -681,12 +683,19 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   saveQuizDraft() {
-    if (!this.selectedCourseId) return;
     this.errorMsg = '';
     this.successMsg = '';
-    
+
+    const courseId = this.quizForm.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    if (!courseId) {
+      this.errorMsg = 'Please select a Target Course for this quiz.';
+      this.cdr.markForCheck();
+      return;
+    }
+
     if (!this.quizForm.get('quizTitle')?.value?.trim()) {
       this.errorMsg = 'Quiz Title is required to save a draft.';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -699,7 +708,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     if (!quizId) {
       this.apiService.createQuiz({
-          courseId: this.selectedCourseId!,
+          courseId: courseId,
           title: payload.quizTitle,
           startTime: payload.startTime,
           endTime: payload.endTime,
@@ -723,11 +732,13 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
               this.updateFormQuestionIds(updatedQuiz);
               this.successMsg = 'Quiz Draft saved successfully.';
               this.setAutosaveTimestamp();
+              this.loadQuizzes(this.selectedCourseId || '');
             },
             error: (err) => {
               this.isSaving = false;
               this.isSavingDraft = false;
               this.errorMsg = err.error?.message || 'Failed to save draft questions.';
+              this.cdr.markForCheck();
             }
           });
         },
@@ -735,6 +746,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
           this.isSaving = false;
           this.isSavingDraft = false;
           this.errorMsg = err.error?.message || 'Failed to save draft.';
+          this.cdr.markForCheck();
         }
       });
     } else {
@@ -746,11 +758,13 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
           this.updateFormQuestionIds(updatedQuiz);
           this.successMsg = 'Quiz Draft updated successfully.';
           this.setAutosaveTimestamp();
+          this.loadQuizzes(this.selectedCourseId || '');
         },
         error: (err) => {
           this.isSaving = false;
           this.isSavingDraft = false;
           this.errorMsg = err.error?.message || 'Failed to update draft.';
+          this.cdr.markForCheck();
         }
       });
     }
@@ -761,6 +775,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const val = this.quizForm.value;
     const questions = val.questions || [];
     
+    if (!val.courseId) errors.push('Target Course is required.');
     if (!val.quizTitle?.trim()) errors.push('Quiz Title is required.');
     if (!val.startTime) errors.push('Start Date & Time is required.');
     if (!val.endTime) errors.push('End Date & Time is required.');
@@ -818,15 +833,22 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   publishQuiz() {
-    if (!this.selectedCourseId) return;
     this.errorMsg = '';
     this.successMsg = '';
     this.validationErrors = [];
+
+    const courseId = this.quizForm.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    if (!courseId) {
+      this.errorMsg = 'Please select a Target Course for this quiz.';
+      this.cdr.markForCheck();
+      return;
+    }
 
     const errors = this.validateQuizForPublish();
     if (errors.length > 0) {
       this.validationErrors = errors;
       this.errorMsg = 'Please resolve validation errors before publishing.';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -839,7 +861,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     if (!quizId) {
       this.apiService.createQuiz({
-          courseId: this.selectedCourseId!,
+          courseId: courseId,
           title: payload.quizTitle,
           startTime: payload.startTime,
           endTime: payload.endTime,
@@ -861,12 +883,13 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
               this.quizForm.markAsPristine();
               this.successMsg = 'Quiz published successfully!';
               this.isQuizEditorOpen = false;
-              this.loadQuizzes(this.selectedCourseId!);
+              this.loadQuizzes(this.selectedCourseId || '');
             },
             error: (err) => {
               this.isSaving = false;
               this.isPublishing = false;
               this.errorMsg = err.error?.message || 'Failed to save published questions.';
+              this.cdr.markForCheck();
             }
           });
         },
@@ -874,6 +897,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
           this.isSaving = false;
           this.isPublishing = false;
           this.errorMsg = err.error?.message || 'Failed to publish quiz.';
+          this.cdr.markForCheck();
         }
       });
     } else {
@@ -884,12 +908,13 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
           this.quizForm.markAsPristine();
           this.successMsg = 'Quiz published successfully!';
           this.isQuizEditorOpen = false;
-          this.loadQuizzes(this.selectedCourseId!);
+          this.loadQuizzes(this.selectedCourseId || '');
         },
         error: (err) => {
           this.isSaving = false;
           this.isPublishing = false;
           this.errorMsg = err.error?.message || 'Failed to publish quiz.';
+          this.cdr.markForCheck();
         }
       });
     }
