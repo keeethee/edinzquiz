@@ -447,9 +447,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const end = this.formatDateForInput(quiz?.endTime, tomorrow);
 
     const totalMarks = quiz?.questions?.reduce((sum: number, q: any) => sum + (q.mark || 0), 0) || 0;
-    let passingMarksVal = quiz?.passingMarks ?? 0;
-    if (quiz && passingMarksVal > totalMarks) {
-      passingMarksVal = Math.ceil(totalMarks * 0.40);
+    let passingMarksVal = quiz?.passingMarks;
+    if (passingMarksVal === undefined || passingMarksVal === null || passingMarksVal > totalMarks || (!quiz && !passingMarksVal)) {
+      passingMarksVal = totalMarks > 0 ? Math.ceil(totalMarks * 0.80) : 4;
     }
 
     const defaultCourse = quiz?.courseId || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
