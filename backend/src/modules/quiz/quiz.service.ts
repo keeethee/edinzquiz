@@ -483,18 +483,31 @@ export class QuizService {
       }
     }
 
+    // Validate student existence if studentId is provided
+    let validStudentId: string | null = null;
+    if (studentId) {
+      const studentExists = await this.prisma.student.findUnique({
+        where: { id: studentId },
+      });
+      if (studentExists) {
+        validStudentId = studentId;
+      }
+    }
+
     // Check attempts count
-    const attemptCount = await this.prisma.quizSubmission.count({
-      where: { quizId, studentId },
-    });
-    if (attemptCount >= quiz.maxAttempts) {
-      throw new BadRequestException(`Maximum attempts limit (${quiz.maxAttempts}) reached for this quiz.`);
+    if (validStudentId) {
+      const attemptCount = await this.prisma.quizSubmission.count({
+        where: { quizId, studentId: validStudentId },
+      });
+      if (attemptCount >= quiz.maxAttempts) {
+        throw new BadRequestException(`Maximum attempts limit (${quiz.maxAttempts}) reached for this quiz.`);
+      }
     }
 
     const submission = await this.prisma.quizSubmission.create({
       data: {
         quizId,
-        studentId,
+        studentId: validStudentId,
         startedAt: new Date(),
       },
     });
