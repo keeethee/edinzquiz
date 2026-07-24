@@ -1,39 +1,39 @@
 /* Clean & Minimalist D2C Commerce Design System
-   Exact Color Palette: Off-White, Pure White, Sky Blue & Vibrant Orange */
+   Exact Color Palette: Warm Ivory (No Pure White), Custom Blue #0084E8 & Vibrant Orange */
 
 :root {
-  /* Off-White Canvas & Pure White Card Backgrounds */
-  --bg-color: #f8fafc;         /* Soft Off-White Canvas */
-  --bg-card: #ffffff;          /* Pure White Crisp Card */
-  --bg-card-hover: #ffffff;
-  --bg-inset: #f0f9ff;         /* Very Light Sky Tint Inset */
-  --border-color: #e2e8f0;     /* Subtle Off-White / Slate Border */
-  --border-hover: #bae6fd;
+  /* Warm Ivory Canvas & Cards (No Pure White #ffffff) */
+  --bg-color: #f7f4ee;         /* Warm Ivory Background Canvas */
+  --bg-card: #fcfaf5;          /* Warm Ivory Card (No Pure White #ffffff) */
+  --bg-card-hover: #fdfcf9;
+  --bg-inset: #f1ebd8;         /* Soft Cream / Warm Ivory Inset */
+  --border-color: #e5dec9;     /* Subtle Warm Ivory Border */
+  --border-hover: #0084e8;
   --border-focus: #ff6600;     /* Signature Orange Focus Ring */
 
-  /* High-Contrast Typography */
+  /* High-Contrast Readability Typography */
   --text-primary: #0f172a;     /* Deep Slate / Navy for 100% Readability */
   --text-secondary: #334155;   /* Rich Muted Text */
   --text-muted: #64748b;
 
-  /* Sky Blue Brand & Navigation Colors */
-  --sky-blue-primary: #0284c7;  /* Rich Sky Blue */
-  --sky-blue-vibrant: #0ea5e9;  /* Vibrant Sky Blue */
-  --sky-blue-light: #38bdf8;    /* Light Sky Blue */
-  --sky-blue-bg: #e0f2fe;       /* Soft Sky Blue Background Tint */
-  --sky-blue-border: #bae6fd;   /* Sky Blue Border */
-  --sky-blue-text: #0369a1;     /* Deep Sky Blue Text */
+  /* Exact Custom Blue #0084E8 */
+  --blue-primary: #0084e8;     /* Requested Exact Blue #0084E8 */
+  --blue-hover: #0072c9;
+  --blue-dark: #005db3;
+  --blue-light-bg: #e6f3fd;    /* Soft Ivory-Blue Tint */
+  --blue-border: #b3dbf8;      /* Soft Blue Border */
+  --blue-text: #00569e;
 
   /* Vibrant Orange CTAs & Highlight Colors */
   --orange-primary: #ff6600;   /* Vibrant Warm Orange */
   --orange-hover: #ea580c;     /* Deep Orange Hover */
   --orange-accent: #f97316;
-  --orange-light-bg: #fff7ed;   /* Soft Orange Tint */
-  --orange-border: #ffedd5;
+  --orange-light-bg: #fff5eb;   /* Soft Ivory-Orange Tint */
+  --orange-border: #ffdcb8;
   --orange-text: #c2410c;
 
   /* Status Colors */
-  --success-color: #16a34a;
+  --success-color: #15803d;
   --success-bg: #f0fdf4;
   --success-border: #bbf7d0;
 
@@ -41,14 +41,14 @@
   --danger-bg: #fef2f2;
   --danger-border: #fecaca;
 
-  --warning-color: #d97706;
+  --warning-color: #b45309;
   --warning-bg: #fffbeb;
   --warning-border: #fef3c7;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 16px rgba(14, 165, 233, 0.08);
-  --shadow-lg: 0 12px 30px -4px rgba(14, 165, 233, 0.12);
+  /* Elevation Shadows */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 132, 232, 0.09);
+  --shadow-lg: 0 12px 30px -4px rgba(0, 132, 232, 0.14);
   --shadow-orange: 0 6px 20px rgba(255, 102, 0, 0.28);
 }
 
@@ -93,21 +93,21 @@ h1, h2, h3, h4, h5, h6 {
   background: #94a3b8;
 }
 
-/* Full Width Sky Blue Header Bar */
+/* Full Width Custom Blue #0084E8 Header Bar */
 .header-bar {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); /* Rich Sky Blue Header */
-  border-bottom: 4px solid var(--orange-primary); /* Vibrant Orange Bottom Accent */
+  background: linear-gradient(135deg, #0084e8 0%, #0066b8 100%); /* #0084E8 Blue Header */
+  border-bottom: 4px solid var(--orange-primary); /* Vibrant Orange Accent Line */
   padding: 0.9rem 2.5rem;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 132, 232, 0.22);
 }
 
-/* Brand Logo Pill */
+/* Warm Ivory Brand Logo Pill (No Pure White) */
 .logo-pill {
-  background: #ffffff;
+  background: #fdfbf7;
   border-radius: 50px;
   padding: 0.5rem 1.4rem;
   display: flex;
@@ -125,7 +125,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .logo-blue {
-  color: var(--sky-blue-primary);
+  color: var(--blue-primary);
   font-family: 'Outfit', sans-serif;
   letter-spacing: -0.03em;
 }
@@ -142,7 +142,7 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.05em;
 }
 
-/* Off-White & Pure White Cards */
+/* Warm Ivory Crisp Cards (No Pure White #ffffff) */
 .neo-card {
   background: var(--bg-card);
   border-radius: 16px;
@@ -154,28 +154,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .neo-card:hover {
-  border-color: var(--sky-blue-border);
+  border-color: var(--blue-border);
   box-shadow: var(--shadow-lg);
 }
 
-/* Soft Sky Blue Inset Container */
+/* Soft Cream / Ivory Inset Container */
 .neo-card-inset {
   background: var(--bg-inset);
   border-radius: 14px;
-  border: 1px solid var(--sky-blue-border);
+  border: 1px solid var(--border-color);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
   padding: 1.5rem;
   transition: all 0.2s ease;
 }
 
-/* Form Controls (Inputs & Textareas) */
+/* Form Controls (Inputs & Textareas) - Warm Ivory Background */
 .neo-input {
   width: 100%;
   padding: 0.85rem 1.25rem;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #dcd3be;
   outline: none;
-  background: #ffffff;
+  background: #fdfcf9;
   color: var(--text-primary);
   font-size: 0.98rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -184,7 +184,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .neo-input:focus {
   border-color: var(--orange-primary);
-  background: #ffffff;
+  background: #fdfcf9;
   box-shadow: 0 0 0 3.5px rgba(255, 102, 0, 0.18);
 }
 
@@ -193,14 +193,14 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   padding: 0.85rem 1.25rem;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #dcd3be;
   outline: none;
-  background: #ffffff;
+  background: #fdfcf9;
   color: var(--text-primary);
   font-size: 0.98rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%230284c7' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%230084e8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
   background-repeat: no-repeat;
   background-position: right 14px center;
   cursor: pointer;
@@ -216,9 +216,9 @@ h1, h2, h3, h4, h5, h6 {
 .neo-btn {
   padding: 0.65rem 1.4rem;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #dcd3be;
   outline: none;
-  background: #ffffff;
+  background: #fdfcf9;
   color: var(--text-primary);
   font-weight: 600;
   font-size: 0.95rem;
@@ -232,8 +232,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .neo-btn:hover {
-  background: #f1f5f9;
-  border-color: var(--sky-blue-border);
+  background: #f2eee2;
+  border-color: var(--blue-primary);
   transform: translateY(-1px);
 }
 
@@ -275,18 +275,18 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-1.5px);
 }
 
-/* Sky Blue Secondary Button */
+/* Exact Blue #0084E8 Secondary Button */
 .neo-btn-secondary {
-  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #0084e8 0%, #0072c9 100%);
   color: #ffffff;
   border: none;
   font-weight: 600;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 132, 232, 0.25);
 }
 
 .neo-btn-secondary:hover {
-  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+  background: linear-gradient(135deg, #0072c9 0%, #005db3 100%);
   transform: translateY(-1px);
 }
 
@@ -330,7 +330,7 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
-/* Sky Blue & Orange Pill Badges */
+/* Pill Badges */
 .badge {
   padding: 0.35rem 0.85rem;
   border-radius: 50px;
@@ -359,9 +359,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .badge-course {
-  background: var(--sky-blue-bg);
-  border: 1px solid var(--sky-blue-border);
-  color: var(--sky-blue-text);
+  background: var(--blue-light-bg);
+  border: 1px solid var(--blue-border);
+  color: var(--blue-text);
 }
 
 .badge-orange {
@@ -381,18 +381,18 @@ h1, h2, h3, h4, h5, h6 {
 
 /* File Drag & Drop Upload Zone */
 .neo-file-drop {
-  border: 2px dashed #cbd5e1;
+  border: 2px dashed #dcd3be;
   border-radius: 14px;
   padding: 3.5rem 2rem;
   text-align: center;
-  background: #ffffff;
+  background: #fdfcf9;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .neo-file-drop:hover {
-  border-color: var(--sky-blue-vibrant);
-  background: var(--sky-blue-bg);
+  border-color: var(--blue-primary);
+  background: var(--blue-light-bg);
 }
 
 /* Keyframes & Animations */
