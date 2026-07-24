@@ -19,9 +19,9 @@
 
     <!-- Mode Selector tabs -->
     <div *ngIf="activeCourse" style="display: flex; gap: 0.3rem;">
-      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz'" (click)="switchTab('quiz')">Quizzes</button>
-      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignment'" (click)="switchTab('assignment')">Assignments</button>
-      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'results'" (click)="switchTab('results')">My Results</button>
+      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz'" (click)="switchTab('quiz')">Technical Assessments</button>
+      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignment'" (click)="switchTab('assignment')">Practical Tasks</button>
+      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'results'" (click)="switchTab('results')">Performance Telemetry</button>
     </div>
 
     <!-- Logged in identity card -->
@@ -158,24 +158,24 @@
       <div *ngIf="quizStep === 'dashboard'">
         <div class="neo-card">
           <div class="flex-between" style="margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-            <h2 style="font-size: 1.4rem; margin: 0;">Active & Upcoming Quizzes</h2>
-            <input type="text" class="neo-input" placeholder="🔍 Search quiz title..." [(ngModel)]="quizSearchText" style="max-width: 300px; font-size: 0.85rem;" />
+            <h2 style="font-size: 1.4rem; margin: 0; color: var(--text-primary);">Active Technical Assessments</h2>
+            <input type="text" class="neo-input" placeholder="🔍 Search assessment title..." [(ngModel)]="quizSearchText" style="max-width: 300px; font-size: 0.85rem;" />
           </div>
           
           <div *ngIf="filteredQuizzes.length === 0" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-            No quizzes found for this course.
+            No technical assessments available.
           </div>
 
           <div *ngIf="filteredQuizzes.length > 0" style="display: flex; flex-direction: column; gap: 1rem;">
             <div *ngFor="let q of filteredQuizzes; trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1.25rem 2rem; flex-wrap: wrap; gap: 1rem;">
               <div>
-                <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem;">{{ q.quizTitle }}</h4>
+                <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: var(--text-primary);">{{ q.quizTitle }}</h4>
                 <p style="font-size: 0.85rem; color: var(--text-secondary);" *ngIf="q.startTime || q.endTime">
-                  Time Window: {{ q.startTime ? (q.startTime | date:'short') : 'N/A' }} to {{ q.endTime ? (q.endTime | date:'short') : 'N/A' }}
+                  Execution Window: {{ q.startTime ? (q.startTime | date:'short') : 'N/A' }} to {{ q.endTime ? (q.endTime | date:'short') : 'N/A' }}
                 </p>
                 <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
                   <span>Duration: <strong>{{ q.duration }} mins</strong></span>
-                  <span>Passing Score: <strong>{{ q.passingMarks }}/{{ q.totalMarks }}</strong></span>
+                  <span>Cutoff Benchmark: <strong>{{ q.passingMarks }}/{{ q.totalMarks }}</strong></span>
                   <span *ngIf="q.negativeMarkingEnabled" style="color: var(--danger-color); font-weight: 550;">Negative Marking: -{{ q.negativeMarkingValue }}</span>
                 </div>
               </div>
@@ -189,7 +189,7 @@
                   *ngIf="!hasSubmittedQuiz(q.id) && isQuizAttemptable(q)" 
                   class="neo-btn neo-btn-primary" 
                   (click)="startQuizAttemptFlow(q)">
-                  Start Attempt
+                  Launch Assessment
                 </button>
 
                 <!-- Stopped or Expired -->
@@ -208,28 +208,28 @@
       <!-- Quiz Pre-start Rules Details Screen -->
       <div *ngIf="quizStep === 'details'" class="flex-center">
         <div class="neo-card" style="max-width: 600px; width: 100%; padding: 2.5rem;">
-          <h2 style="font-size: 1.6rem; text-align: center; margin-bottom: 1.5rem;">Attempt Details & Rules</h2>
+          <h2 style="font-size: 1.6rem; text-align: center; margin-bottom: 1.5rem; color: var(--text-primary);">Assessment Environment & Guidelines</h2>
           
           <div class="neo-card-inset" style="margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.6;">
-            <p style="margin-bottom: 0.5rem;">🎓 Quiz Title: <strong style="color: var(--accent-color);">{{ selectedQuiz.quizTitle }}</strong></p>
-            <p style="margin-bottom: 0.5rem;">⏳ Time Available: <strong>{{ selectedQuiz.duration }} Minutes</strong></p>
+            <p style="margin-bottom: 0.5rem;">🎓 Assessment Title: <strong style="color: var(--blue-primary);">{{ selectedQuiz.quizTitle }}</strong></p>
+            <p style="margin-bottom: 0.5rem;">⏳ Time Allocated: <strong>{{ selectedQuiz.duration }} Minutes</strong></p>
             <p style="margin-bottom: 0.5rem;">🏆 Total Marks: <strong>{{ getQuizTotalMarks(selectedQuiz) }} Marks</strong></p>
-            <p style="margin-bottom: 0.5rem;">🎯 Passing Criteria: <strong>{{ selectedQuiz.passingMarks }} Marks</strong></p>
+            <p style="margin-bottom: 0.5rem;">🎯 Cutoff Benchmark: <strong>{{ selectedQuiz.passingMarks }} Marks</strong></p>
             
-            <div style="border-top: 1px solid var(--glass-border); margin: 1rem 0; padding-top: 1rem;">
-              <p style="font-weight: 600; margin-bottom: 0.5rem; color: var(--warning-color);">Important Instructions:</p>
+            <div style="border-top: 1px solid var(--border-color); margin: 1rem 0; padding-top: 1rem;">
+              <p style="font-weight: 600; margin-bottom: 0.5rem; color: var(--orange-text);">Important Guidelines:</p>
               <ul>
-                <li>The countdown timer starts as soon as you proceed to the next screen.</li>
-                <li>Your draft selections are **auto-saved** every 5 seconds. If your tab reloads, your progress will be restored.</li>
-                <li>You cannot modify your choices after manual submission or timer expiration.</li>
-                <li *ngIf="selectedQuiz.negativeMarkingEnabled" style="color: var(--danger-color);">Negative marking is enabled. Incorrect objective answers will deduct {{ selectedQuiz.negativeMarkingValue }} marks.</li>
+                <li>The execution countdown starts as soon as environment initialization completes.</li>
+                <li>Your answers are **auto-synced** every 5 seconds. Progress will restore on tab reload.</li>
+                <li>Inputs cannot be modified after final submission or execution timeout.</li>
+                <li *ngIf="selectedQuiz.negativeMarkingEnabled" style="color: var(--danger-color);">Negative marking active. Incorrect objective choices deduct {{ selectedQuiz.negativeMarkingValue }} marks.</li>
               </ul>
             </div>
           </div>
 
           <div style="display: flex; gap: 1rem;">
             <button class="neo-btn" style="flex: 1;" (click)="quizStep = 'dashboard'">Cancel</button>
-            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="onQuizDetailsConfirm()">Agree & Start</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="onQuizDetailsConfirm()">Initialize & Start</button>
           </div>
         </div>
       </div>
