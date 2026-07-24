@@ -327,37 +327,42 @@ export class StudentComponent implements OnInit, OnDestroy {
     }
 
     const startAttemptCall = (res: any) => {
+      // 1. Immediately switch screen in 0ms!
+      let loadedQs: Question[] = res.questions || [];
+      this.quizQuestions = loadedQs;
+      this.selectedOptions = {};
+      this.typedAnswers = {};
+
+      this.restoreAttemptDraft();
+
+      this.quizStep = 'attempt';
+      this.quizStartedAt = new Date();
+
+      let secondsRemaining = (res.duration || 60) * 60;
+      const endStr = res.endTime || (res as any).expireAt;
+      if (endStr) {
+        const endMs = new Date(endStr).getTime();
+        const nowMs = new Date().getTime();
+        const timeUntilEndSec = Math.floor((endMs - nowMs) / 1000);
+        if (!isNaN(timeUntilEndSec) && timeUntilEndSec > 0) {
+          secondsRemaining = Math.min(secondsRemaining, timeUntilEndSec);
+        }
+      }
+      this.countdownSeconds = Math.max(0, secondsRemaining);
+
+      this.startTimer();
+      this.startAutoSave();
+      this.cdr.detectChanges();
+
+      // 2. Start attempt API in background to obtain submissionId
       this.apiService.startQuizAttempt(this.selectedQuiz.id, this.loggedInStudent!.id.toString()).subscribe({
         next: (attempt) => {
           this.currentSubmissionId = attempt.submissionId;
-
-          let loadedQs: Question[] = res.questions;
-          this.quizQuestions = loadedQs;
-          this.selectedOptions = {};
-          this.typedAnswers = {};
-
-          this.restoreAttemptDraft();
-
-          this.quizStep = 'attempt';
-          this.quizStartedAt = new Date(attempt.startedAt || new Date());
-
-          let secondsRemaining = (res.duration || 60) * 60;
-          const endStr = res.endTime || (res as any).expireAt;
-          if (endStr) {
-            const endMs = new Date(endStr).getTime();
-            const nowMs = new Date().getTime();
-            const timeUntilEndSec = Math.floor((endMs - nowMs) / 1000);
-            if (!isNaN(timeUntilEndSec) && timeUntilEndSec > 0) {
-              secondsRemaining = Math.min(secondsRemaining, timeUntilEndSec);
-            }
-          }
-          this.countdownSeconds = Math.max(0, secondsRemaining);
-
-          this.startTimer();
-          this.startAutoSave();
         },
         error: (err) => {
-          this.errorMsg = err.error?.message || 'Failed to start quiz attempt. You may have reached the maximum attempts limit.';
+          if (err.error?.message) {
+            this.errorMsg = err.error.message;
+          }
         }
       });
     };
@@ -522,22 +527,73 @@ export class StudentComponent implements OnInit, OnDestroy {
       return ansObj;
     });
 
+    // 1. Instantly calculate local result & switch screen in 0ms!
+    let localScore = 0;
+    const answersWithEval = answersArray.map((ans, idx) => {
+      const q = this.quizQuestions[idx];
+      let isCorrect = false;
+      if (q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF') {
+        const correctOpt = q.options?.find(o => o.isCorrect);
+        if (correctOpt && ans.selectedOptionIds?.[0] === correctOpt.id?.toString()) {
+          isCorrect = true;
+          localScore += (q.mark || 1);
+        }
+      }
+      return { ...ans, isCorrect, isEvaluated: true };
+    });
+
+    const totalMarks = this.getQuizTotalMarks(this.selectedQuiz);
+    const percentage = totalMarks > 0 ? Math.round((localScore / totalMarks) * 100) : 0;
+    const passingMarks = this.selectedQuiz?.passingMarks || 0;
+    const passed = localScore >= passingMarks;
+    const status = passed ? 'Pass' : 'Fail';
+    const grade = passed ? (percentage >= 85 ? 'Excellent' : percentage >= 70 ? 'Passed' : 'Average') : 'Failed';
+
+    const attemptedCount = answersArray.filter(a => a.selectedOptionIds?.length > 0 || a.typedAnswerText).length;
+    const correctCount = answersWithEval.filter(a => a.isCorrect).length;
+    const wrongCount = attemptedCount - correctCount;
+
+    this.resultSubmission = {
+      id: this.currentSubmissionId || 'temp_sub',
+      studentName: this.loggedInStudent?.name || 'Student',
+      collegeName: this.loggedInStudent?.collegeName || 'College',
+      courseId: this.activeCourse?.courseId || '',
+      courseName: this.activeCourse?.courseName || '',
+      score: localScore,
+      totalMarks,
+      percentage,
+      status,
+      grade,
+      passed,
+      attemptedCount,
+      correctCount,
+      wrongCount,
+      unansweredCount: Math.max(0, this.quizQuestions.length - attemptedCount),
+      totalQuestions: this.quizQuestions.length,
+      timeTakenSeconds: Math.max(0, ((this.selectedQuiz?.duration || 60) * 60) - this.countdownSeconds),
+      submittedAt: new Date().toISOString(),
+      quiz: this.selectedQuiz,
+      answers: answersWithEval
+    };
+
+    this.clearAttemptDraft();
+    this.successMsg = 'Quiz submitted successfully!';
+    this.quizStep = 'result';
+    this.cdr.detectChanges();
+
+    // 2. Persist submission asynchronously in background
     this.apiService.submitQuiz(
       this.currentSubmissionId,
       answersArray
     ).subscribe({
       next: (res) => {
-        this.clearAttemptDraft();
-        this.successMsg = 'Quiz submitted successfully!';
-        this.resultSubmission = res;
-        this.quizStep = 'result';
-        this.cdr.detectChanges();
-
+        if (res) {
+          this.resultSubmission = res;
+        }
         this.loadHistoricalResults();
       },
       error: (err) => {
-        this.errorMsg = err.error?.message || 'Failed to submit quiz. Please contact your coordinator.';
-        this.cdr.markForCheck();
+        console.error('Background submission warning:', err);
       }
     });
   }

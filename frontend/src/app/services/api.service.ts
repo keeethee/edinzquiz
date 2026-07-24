@@ -83,6 +83,8 @@ export interface QuizSubmission {
   correctCount: number;
   wrongCount: number;
   unansweredCount: number;
+  attemptedCount?: number;
+  totalQuestions?: number;
   status: string;
   passed?: boolean;
   submittedAt: string;
@@ -92,6 +94,7 @@ export interface QuizSubmission {
   studentId?: string;
   student?: any;
   studentAnswers?: StudentAnswer[];
+  answers?: any[];
 }
 
 export interface Assignment {
