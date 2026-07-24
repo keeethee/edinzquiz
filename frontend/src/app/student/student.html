@@ -5,16 +5,16 @@
       <span class="logo-blue">edinz</span>
       <span class="logo-orange">TECH</span>
     </div>
-    <h2 style="font-size: 1.1rem; margin: 0; color: #94a3b8; font-weight: 500; letter-spacing: 0.1em;">STUDENT PORTAL</h2>
+    <h2 style="font-size: 1.1rem; margin: 0; color: #ffffff; font-weight: 700; letter-spacing: 0.08em;">STUDENT PORTAL</h2>
   </div>
 
   <div *ngIf="loggedInStudent" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
     <!-- Active Course Indicator -->
-    <div *ngIf="activeCourse" class="flex-center" style="gap: 0.5rem; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.9rem;">
-      <span style="color: var(--accent-color); font-weight: 600;">{{ activeCourse.courseId }}</span>
-      <span style="color: #64748b;">|</span>
-      <span style="color: var(--text-secondary);">{{ activeCourse.courseName }}</span>
-      <button class="neo-btn" style="padding: 0.1rem 0.4rem; font-size: 0.75rem; border-color: rgba(255,255,255,0.1);" (click)="exitCourse()">Change</button>
+    <div *ngIf="activeCourse" class="flex-center" style="gap: 0.5rem; background: #fdfbf7; border: 1px solid var(--border-color); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <span style="color: var(--blue-primary); font-weight: 700;">{{ activeCourse.courseId }}</span>
+      <span style="color: var(--border-color);">|</span>
+      <span style="color: var(--text-primary); font-weight: 600;">{{ activeCourse.courseName }}</span>
+      <button class="neo-btn" style="padding: 0.15rem 0.6rem; font-size: 0.75rem; font-weight: 600;" (click)="exitCourse()">Change</button>
     </div>
 
     <!-- Mode Selector tabs -->
@@ -25,9 +25,9 @@
     </div>
 
     <!-- Logged in identity card -->
-    <div class="flex-center" style="gap: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.9rem;">
-      <span style="color: var(--text-primary); font-weight: 550;">{{ loggedInStudent.name }}</span>
-      <span style="font-size: 0.8rem; color: var(--text-muted);">({{ loggedInStudent.collegeName }})</span>
+    <div class="flex-center" style="gap: 0.5rem; background: #fdfbf7; border: 1px solid var(--border-color); padding: 0.4rem 1.1rem; border-radius: 50px; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <span style="color: var(--text-primary); font-weight: 700;">{{ loggedInStudent.name }}</span>
+      <span style="font-size: 0.8rem; color: var(--text-secondary);">({{ loggedInStudent.collegeName }})</span>
     </div>
 
     <button class="neo-btn neo-btn-danger" style="padding: 0.5rem 1rem;" (click)="onStudentLogout()">
@@ -237,10 +237,10 @@
       <!-- Quiz Attempt Testing Room (With Auto-Save and countdown display) -->
       <div *ngIf="quizStep === 'attempt'">
         <!-- Sticky Header with Timer -->
-        <div class="neo-card flex-between" style="position: sticky; top: 0; z-index: 100; border-color: var(--accent-color); padding: 1rem 2rem; margin-bottom: 2rem;">
+        <div class="neo-card flex-between" style="position: sticky; top: 0; z-index: 100; border-color: var(--blue-primary); padding: 1rem 2rem; margin-bottom: 2rem;">
           <div>
-            <h3 style="font-size: 1.25rem;">Attempting: {{ selectedQuiz.quizTitle }}</h3>
-            <span style="font-size: 0.8rem; color: var(--success-color); font-weight: 550; display: inline-flex; align-items: center; gap: 0.3rem;" class="blink">
+            <h3 style="font-size: 1.25rem; color: var(--text-primary);">Attempting: {{ selectedQuiz.quizTitle }}</h3>
+            <span style="font-size: 0.8rem; color: var(--success-color); font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;" class="blink">
               <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success-color);"></span>
               Progress Auto-Saving Enabled
             </span>
@@ -248,7 +248,7 @@
 
           <div class="flex-center" style="gap: 1rem;">
             <div style="text-align: right;">
-              <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Remaining Time</p>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Remaining Time</p>
               <h2 [style.color]="isTimerWarning ? 'var(--danger-color)' : 'var(--warning-color)'" [class.blink]="isTimerWarning" style="font-size: 1.8rem; font-weight: 700; margin: 0; font-family: monospace;">{{ countdownDisplay }}</h2>
             </div>
           </div>
@@ -257,24 +257,24 @@
         <!-- Question List -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2.5rem;">
           <div *ngFor="let q of quizQuestions; let i = index" class="neo-card">
-            <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
-              <h4 style="font-size: 1.15rem; color: var(--text-secondary);">Question {{ i + 1 }}</h4>
-              <span class="badge" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">{{ q.mark }} mark(s)</span>
+            <div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+              <h4 style="font-size: 1.15rem; color: var(--text-primary); font-weight: 700;">Question {{ i + 1 }}</h4>
+              <span class="badge badge-course">{{ q.mark }} mark(s)</span>
             </div>
 
-            <p style="font-size: 1.1rem; margin-bottom: 1.5rem; line-height: 1.5;" [innerHTML]="getParsedPreview(q.questionText || '')"></p>
+            <p style="font-size: 1.1rem; color: var(--text-primary); font-weight: 600; margin-bottom: 1.5rem; line-height: 1.6;" [innerHTML]="getParsedPreview(q.questionText || '')"></p>
 
             <!-- Render MCQ_SINGLE/TF/MCQ options -->
             <div *ngIf="q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF'" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div 
                 *ngFor="let opt of q.options" 
-                class="neo-card-inset flex-between" 
-                style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 8px; transition: all 0.15s ease;"
+                class="neo-card-inset flex-between option-card-selectable" 
+                style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 10px; transition: all 0.15s ease;"
                 [class.neo-btn-toggle]="selectedOptions[q.id!] === opt.id"
                 (click)="selectedOptions[q.id!] = opt.id">
                 <span style="font-size: 1rem;">{{ opt.optionText }}</span>
-                <span class="flex-center" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--text-secondary);">
-                  <span *ngIf="selectedOptions[q.id!] === opt.id" style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent-color);"></span>
+                <span class="flex-center" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid currentColor;">
+                  <span *ngIf="selectedOptions[q.id!] === opt.id" style="width: 10px; height: 10px; border-radius: 50%; background: #ffffff;"></span>
                 </span>
               </div>
             </div>
@@ -283,13 +283,13 @@
             <div *ngIf="q.questionType === 'MCQ_MULTIPLE'" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div 
                 *ngFor="let opt of q.options" 
-                class="neo-card-inset flex-between" 
-                style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 8px; transition: all 0.15s ease;"
+                class="neo-card-inset flex-between option-card-selectable" 
+                style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 10px; transition: all 0.15s ease;"
                 [class.neo-btn-toggle]="isOptionSelected(q.id!, opt.id)"
                 (click)="toggleOptionSelection(q.id!, opt.id)">
                 <span style="font-size: 1rem;">{{ opt.optionText }}</span>
-                <span class="flex-center" style="width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--text-secondary);">
-                  <span *ngIf="isOptionSelected(q.id!, opt.id)" style="width: 12px; height: 12px; border-radius: 2px; background: var(--accent-color);"></span>
+                <span class="flex-center" style="width: 20px; height: 20px; border-radius: 4px; border: 2px solid currentColor;">
+                  <span *ngIf="isOptionSelected(q.id!, opt.id)" style="width: 12px; height: 12px; border-radius: 2px; background: #ffffff;"></span>
                 </span>
               </div>
             </div>

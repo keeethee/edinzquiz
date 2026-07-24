@@ -115,6 +115,12 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 4px 20px rgba(0, 132, 232, 0.22);
 }
 
+.header-bar h2 {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em;
+}
+
 /* Warm Ivory Brand Logo Pill (No Pure White) */
 .logo-pill {
   background: #fdfbf7;
@@ -150,6 +156,36 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 50px;
   font-weight: 800;
   letter-spacing: 0.05em;
+}
+
+/* Option Card Styles for Quizzes & Admin Previews */
+.option-card-selectable {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.option-card-selectable:hover {
+  background: var(--blue-light-bg) !important;
+  border-color: var(--blue-border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* When Option is Selected by Student */
+.neo-btn-toggle.option-card-selectable,
+.neo-btn-toggle {
+  background: linear-gradient(135deg, #ff6600 0%, #ea580c 100%) !important;
+  border-color: var(--orange-primary) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: var(--shadow-orange) !important;
+}
+
+.neo-btn-toggle.option-card-selectable span,
+.neo-btn-toggle span {
+  color: #ffffff !important;
 }
 
 /* Warm Ivory Crisp Cards (No Pure White #ffffff) */
