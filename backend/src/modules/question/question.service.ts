@@ -314,34 +314,70 @@ export class QuestionService {
 
   async bulkSave(courseId: string, questions: any[]) {
     return this.prisma.$transaction(async (tx) => {
-      const createdQuestions = [];
+      const savedQuestions = [];
       for (const q of questions) {
-        const item = await tx.questionBank.create({
-          data: {
+        const qTextLower = q.question.trim().toLowerCase();
+        
+        const existing = await tx.questionBank.findFirst({
+          where: {
             courseId,
-            question: q.question,
-            questionType: q.questionType,
-            difficulty: q.difficulty,
-            explanation: q.explanation || null,
-            caseSensitive: q.caseSensitive || false,
-            sampleAnswer: q.sampleAnswer || null,
-            correctAnswerText: q.correctAnswerText || null,
-            options: q.options && q.options.length > 0
-              ? {
-                  create: q.options.map((opt: any) => ({
-                    optionText: opt.optionText,
-                    isCorrect: opt.isCorrect,
-                  })),
-                }
-              : undefined,
-          },
-          include: {
-            options: true,
+            question: {
+              equals: q.question.trim(),
+              mode: 'insensitive',
+            },
           },
         });
-        createdQuestions.push(item);
+
+        if (existing) {
+          // Overwrite options & update fields to maintain single clean copy
+          await tx.option.deleteMany({ where: { questionId: existing.id } });
+          const updated = await tx.questionBank.update({
+            where: { id: existing.id },
+            data: {
+              questionType: q.questionType,
+              difficulty: q.difficulty,
+              explanation: q.explanation || null,
+              caseSensitive: q.caseSensitive || false,
+              sampleAnswer: q.sampleAnswer || null,
+              correctAnswerText: q.correctAnswerText || null,
+              options: q.options && q.options.length > 0
+                ? {
+                    create: q.options.map((opt: any) => ({
+                      optionText: opt.optionText,
+                      isCorrect: opt.isCorrect,
+                    })),
+                  }
+                : undefined,
+            },
+            include: { options: true },
+          });
+          savedQuestions.push(updated);
+        } else {
+          const created = await tx.questionBank.create({
+            data: {
+              courseId,
+              question: q.question,
+              questionType: q.questionType,
+              difficulty: q.difficulty,
+              explanation: q.explanation || null,
+              caseSensitive: q.caseSensitive || false,
+              sampleAnswer: q.sampleAnswer || null,
+              correctAnswerText: q.correctAnswerText || null,
+              options: q.options && q.options.length > 0
+                ? {
+                    create: q.options.map((opt: any) => ({
+                      optionText: opt.optionText,
+                      isCorrect: opt.isCorrect,
+                    })),
+                  }
+                : undefined,
+            },
+            include: { options: true },
+          });
+          savedQuestions.push(created);
+        }
       }
-      return createdQuestions;
+      return savedQuestions;
     });
   }
 }

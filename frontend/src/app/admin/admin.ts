@@ -1005,6 +1005,18 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.quizForm.markAsDirty();
   }
 
+  deleteAllQuestionsFromPipeline() {
+    if (!confirm(`Are you sure you want to delete ALL ${this.questionsFormArray.length} questions from the pipeline?`)) {
+      return;
+    }
+    while (this.questionsFormArray.length > 0) {
+      this.questionsFormArray.removeAt(0);
+    }
+    this.activeQuestionIndex = null;
+    this.quizForm.markAsDirty();
+    this.cdr.markForCheck();
+  }
+
   onQuestionDropped(event: any) {
     const questions = this.questionsFormArray;
     const from = event.previousIndex;
