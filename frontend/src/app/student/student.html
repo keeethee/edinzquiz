@@ -189,7 +189,7 @@
                   *ngIf="!hasSubmittedQuiz(q.id) && isQuizAttemptable(q)" 
                   class="neo-btn neo-btn-primary" 
                   (click)="startQuizAttemptFlow(q)">
-                  Launch Assessment
+                  Start Attempt
                 </button>
 
                 <!-- Stopped or Expired -->
@@ -229,7 +229,7 @@
 
           <div style="display: flex; gap: 1rem;">
             <button class="neo-btn" style="flex: 1;" (click)="quizStep = 'dashboard'">Cancel</button>
-            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="onQuizDetailsConfirm()">Initialize & Start</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="onQuizDetailsConfirm()">Agree & Start</button>
           </div>
         </div>
       </div>
