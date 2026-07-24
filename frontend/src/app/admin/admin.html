@@ -234,18 +234,18 @@
     </div>
 
     <!-- 2. COMPREHENSIVE VISUAL QUIZ EDITOR VIEW -->
-    <div *ngIf="isQuizEditorOpen" class="neo-card" style="border-color: var(--accent-color); padding: 1.5rem 2rem; position: relative;">
+    <div *ngIf="isQuizEditorOpen" class="neo-card" style="border-color: var(--blue-primary); padding: 1.5rem 2rem; position: relative;">
       <!-- Sticky Top Editor Bar -->
-      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding: 1rem 1.25rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; background: rgba(15, 23, 42, 0.6); border-radius: 8px;">
+      <div class="flex-between" style="border: 1px solid var(--border-color); padding: 1rem 1.25rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; background: var(--bg-inset); border-radius: 10px;">
         <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
           <button class="neo-btn" style="padding: 0.5rem 1.25rem; font-weight: 600;" (click)="closeQuizEditor()">
             ← Back to Dashboard
           </button>
           <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-            <span style="font-size: 1.3rem; font-weight: 700; color: #ffffff;">
+            <span style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary);">
               📝 Editing: {{ (quizForm?.get('quizTitle')?.value) || 'New Quiz Assessment' }}
             </span>
-            <span class="badge" style="background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-color); color: var(--accent-color); font-size: 0.85rem; padding: 0.3rem 0.75rem;">
+            <span class="badge badge-course" style="font-size: 0.85rem; padding: 0.3rem 0.75rem;">
               Course: {{ getQuizFormCourseName() }}
             </span>
             <span *ngIf="lastAutosavedTime" style="font-size: 0.8rem; color: var(--success-color); font-weight: 550;">
@@ -258,8 +258,8 @@
         </div>
 
         <div style="display: flex; gap: 0.75rem; align-items: center;">
-          <span style="font-size: 0.9rem; color: var(--text-secondary); margin-right: 0.5rem; font-weight: 500;">
-            Total weight: <strong style="color: var(--accent-color); font-size: 1rem;">{{ editorTotalMarks }} marks</strong>
+          <span style="font-size: 0.9rem; color: var(--text-secondary); margin-right: 0.5rem; font-weight: 600;">
+            Total weight: <strong style="color: var(--blue-primary); font-size: 1rem;">{{ editorTotalMarks }} marks</strong>
           </span>
           <button class="neo-btn" (click)="saveQuizDraft()" [disabled]="isSaving || isAutosaving">
             {{ isSavingDraft ? 'Saving...' : 'Save Draft' }}
@@ -283,10 +283,10 @@
         <!-- A. SIDEBAR: drag-and-drop question lists -->
         <div class="editor-sidebar">
           <button class="neo-card-inset flex-center" 
-                  style="width:100%; text-align:left; border: 1px solid var(--glass-border); padding: 0.85rem; cursor:pointer;"
+                  style="width:100%; text-align:left; border: 1px solid var(--border-color); padding: 0.85rem; cursor:pointer;"
                   [class.active-card]="activeQuestionIndex === null"
                   (click)="activeQuestionIndex = null">
-            <span style="font-weight:600; font-size: 0.95rem; color: #fff;">⚙️ Quiz Settings & Meta</span>
+            <span style="font-weight:700; font-size: 0.95rem; color: var(--text-primary);">⚙️ Quiz Settings & Meta</span>
           </button>
 
           <h4 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0.5rem 0 0.25rem 0;">
@@ -408,7 +408,7 @@
               </div>
             </div>
 
-            <div class="grid-2" style="background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1.25rem; border: 1px solid var(--glass-border); gap: 1rem;">
+            <div class="grid-2" style="background: var(--bg-inset); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border-color); gap: 1rem;">
               <div style="display: flex; flex-direction: column; gap: 0.6rem;">
                 <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                   <input type="checkbox" formControlName="shuffleQuestions" />
@@ -812,7 +812,7 @@
 
           <!-- Subjective typed response manual grading panel -->
           <div *ngIf="sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY'" style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 1rem 1.5rem; border-radius: 8px; font-style: italic; white-space: pre-wrap; font-size: 0.95rem;">
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); padding: 1rem 1.5rem; border-radius: 10px; font-style: italic; white-space: pre-wrap; font-size: 0.95rem; color: var(--text-primary);">
               "{{ sa.typedAnswer || sa.typedAnswerText || '[No Answer Submitted]' }}"
             </div>
           </div>

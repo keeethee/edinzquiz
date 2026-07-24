@@ -31,22 +31,23 @@
 }
 
 .cdk-drag-placeholder {
-  opacity: 0.15;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px dashed var(--accent-color) !important;
+  opacity: 0.25;
+  background: var(--blue-light-bg) !important;
+  border: 2px dashed var(--blue-primary) !important;
 }
 
 .question-drag-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: 0.85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.9rem;
   cursor: grab;
   user-select: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  color: var(--text-primary);
   transition: border-color 0.15s, background-color 0.15s;
 }
 
@@ -55,20 +56,20 @@
 }
 
 .question-drag-card.active-card {
-  border-color: var(--accent-color);
-  background: rgba(59, 130, 246, 0.08);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+  border-color: var(--orange-primary) !important;
+  background: var(--orange-light-bg) !important;
+  box-shadow: 0 0 12px rgba(255, 102, 0, 0.2);
 }
 
 .question-drag-card:hover:not(.active-card) {
-  background: var(--glass-bg-hover);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--blue-light-bg);
+  border-color: var(--blue-border);
 }
 
 .drag-handle {
   display: flex;
   align-items: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   cursor: grab;
   padding: 0.2rem;
 }
@@ -79,9 +80,9 @@
 
 /* Rich Preview styling */
 .rich-preview-box {
-  background: var(--glass-bg-inset);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
   padding: 1.25rem;
   margin-top: 1rem;
   font-size: 0.95rem;
@@ -119,19 +120,20 @@
 }
 
 .pagination-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.45rem 0.9rem;
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: var(--glass-bg-hover);
-  border-color: var(--accent-color);
+  background: var(--blue-light-bg);
+  border-color: var(--blue-primary);
 }
 
 .pagination-btn:disabled {
@@ -140,26 +142,26 @@
 }
 
 .pagination-btn.active-page {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
-  color: #fff;
-  font-weight: 600;
+  background: var(--orange-primary);
+  border-color: var(--orange-primary);
+  color: #ffffff;
+  font-weight: 700;
 }
 
 /* File Upload drag area */
 .file-upload-zone {
-  border: 2px dashed var(--glass-border);
-  border-radius: 8px;
+  border: 2px dashed var(--border-color);
+  border-radius: 10px;
   padding: 1.5rem;
   text-align: center;
-  background: rgba(0,0,0,0.1);
+  background: var(--bg-card);
   cursor: pointer;
   transition: all 0.25s;
 }
 
 .file-upload-zone:hover {
-  border-color: var(--accent-color);
-  background: rgba(59, 130, 246, 0.05);
+  border-color: var(--blue-primary);
+  background: var(--blue-light-bg);
 }
 
 /* Status indicator styles */
@@ -168,7 +170,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .status-dot {

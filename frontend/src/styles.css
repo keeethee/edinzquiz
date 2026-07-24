@@ -32,6 +32,16 @@
   --orange-border: #ffdcb8;
   --orange-text: #c2410c;
 
+  /* Legacy Glass Variable Mappings for 100% High-Contrast Backward Compatibility */
+  --glass-bg: var(--bg-card);
+  --glass-bg-hover: #f2eee2;
+  --glass-bg-inset: var(--bg-inset);
+  --glass-border: var(--border-color);
+  --glass-border-focus: var(--blue-primary);
+  --accent-color: var(--blue-primary);
+  --accent-hover: var(--blue-hover);
+  --accent-light: var(--blue-light-bg);
+
   /* Status Colors */
   --success-color: #15803d;
   --success-bg: #f0fdf4;
