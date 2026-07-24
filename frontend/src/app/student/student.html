@@ -56,12 +56,12 @@
         
         <form (ngSubmit)="onStudentLogin()">
           <div style="margin-bottom: 1.25rem;">
-            <label for="studentLoginEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
+            <label for="studentLoginEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input id="studentLoginEmail" type="email" class="neo-input" [(ngModel)]="loginEmail" name="email" placeholder="student@college.edu" required />
           </div>
 
           <div style="margin-bottom: 2rem;">
-            <label for="studentLoginPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
+            <label for="studentLoginPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <div style="position: relative;">
               <input id="studentLoginPassword" [type]="showLoginPassword ? 'text' : 'password'" class="neo-input" [(ngModel)]="loginPassword" name="password" placeholder="••••••••" required style="padding-right: 2.5rem;" />
               <button type="button" (click)="showLoginPassword = !showLoginPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.15rem; padding: 0.2rem;">
@@ -88,22 +88,22 @@
         
         <form (ngSubmit)="onStudentRegister()">
           <div style="margin-bottom: 1.25rem;">
-            <label for="studentRegName" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Full Name</label>
+            <label for="studentRegName" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Full Name <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input id="studentRegName" type="text" class="neo-input" [(ngModel)]="regName" name="name" placeholder="John Doe" required />
           </div>
 
           <div style="margin-bottom: 1.25rem;">
-            <label for="studentRegEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address</label>
+            <label for="studentRegEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input id="studentRegEmail" type="email" class="neo-input" [(ngModel)]="regEmail" name="email" placeholder="student@college.edu" required />
           </div>
 
           <div style="margin-bottom: 1.25rem;">
-            <label for="studentRegCollege" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">College Name</label>
+            <label for="studentRegCollege" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">College Name <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input id="studentRegCollege" type="text" class="neo-input" [(ngModel)]="regCollege" name="collegeName" placeholder="Harvard University" required />
           </div>
 
           <div style="margin-bottom: 2rem;">
-            <label for="studentRegPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password</label>
+            <label for="studentRegPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <div style="position: relative;">
               <input id="studentRegPassword" [type]="showRegisterPassword ? 'text' : 'password'" class="neo-input" [(ngModel)]="regPassword" name="password" placeholder="••••••••" required style="padding-right: 2.5rem;" />
               <button type="button" (click)="showRegisterPassword = !showRegisterPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.15rem; padding: 0.2rem;">

@@ -38,11 +38,11 @@
         <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Create Course</h3>
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Display ID (Unique Code)</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Display ID (Unique Code) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input type="text" class="neo-input" placeholder="e.g. devops26 or cs-101" [(ngModel)]="newCourseIdCode" name="courseIdCode" />
           </div>
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Name</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Course Name <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input type="text" class="neo-input" placeholder="e.g. Data Structures and Algorithms" [(ngModel)]="newCourseName" name="courseName" />
           </div>
           <div>
@@ -360,7 +360,7 @@
             </h3>
 
             <div>
-              <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color);">*</span></label>
+              <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
               <select class="neo-select" formControlName="courseId" style="width: 100%;">
                 <option value="">-- Select Target Course --</option>
                 <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
@@ -368,7 +368,7 @@
             </div>
 
             <div>
-              <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Title</label>
+              <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Title <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
               <input type="text" class="neo-input" formControlName="quizTitle" placeholder="e.g. Mid-term Assessment" />
             </div>
 
@@ -381,29 +381,29 @@
 
             <div class="grid-2">
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Start Window Date & Time</label>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Start Window Date & Time <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
                 <input type="datetime-local" class="neo-input" formControlName="startTime" />
               </div>
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">End Window Date & Time</label>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">End Window Date & Time <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
                 <input type="datetime-local" class="neo-input" formControlName="endTime" />
               </div>
             </div>
 
             <div class="grid-3">
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Duration (Minutes)</label>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Duration (Minutes) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
                 <input type="number" class="neo-input" formControlName="duration" min="1" />
               </div>
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Passing Score (points)</label>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Passing Score (points) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
                 <input type="number" class="neo-input" formControlName="passingMarks" min="0" placeholder="e.g. 2 or 3" />
                 <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
                   Required score to pass (out of {{ totalQuizMarks }} total marks).
                 </span>
               </div>
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Max Attempts Limit</label>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Max Attempts Limit <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
                 <input type="number" class="neo-input" formControlName="maxAttempts" min="1" />
               </div>
             </div>
@@ -625,14 +625,14 @@
         <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Homework</h3>
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div *ngIf="!selectedCourseId">
-            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <select class="neo-select" [(ngModel)]="newAssignCourseId" name="assignCourseId">
               <option value="">-- Select Target Course --</option>
               <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
             </select>
           </div>
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Assignment Title</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Assignment Title <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input type="text" class="neo-input" placeholder="e.g. Lab assignment 1: Arrays" [(ngModel)]="newAssignTitle" name="assignTitle" />
           </div>
           <div>
@@ -640,7 +640,7 @@
             <textarea class="neo-input" rows="3" placeholder="Define assignment goals, format requirements..." [(ngModel)]="newAssignDesc" name="assignDesc"></textarea>
           </div>
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Deadline Limit</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Deadline Limit <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input type="datetime-local" class="neo-input" [(ngModel)]="newAssignDeadline" name="assignDeadline" />
           </div>
           <button class="neo-btn neo-btn-primary" style="margin-top: 1rem;" (click)="createAssignment()">Publish Homework</button>
