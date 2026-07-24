@@ -819,13 +819,28 @@ export class StudentComponent implements OnInit, OnDestroy {
     });
   }
 
+  isLoadingReview = false;
+
   viewDetailedSubmissionBreakdown(sub: QuizSubmission) {
+    this.errorMsg = '';
+    if (sub) {
+      this.detailedSubmission = sub;
+      this.cdr.detectChanges();
+    }
+    this.isLoadingReview = true;
+
     this.apiService.getQuizSubmissionDetail(sub.id).subscribe({
       next: (res) => {
         this.detailedSubmission = res;
+        this.isLoadingReview = false;
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.errorMsg = 'Failed to load detailed answers breakdown.';
+        this.isLoadingReview = false;
+        if (!this.detailedSubmission) {
+          this.errorMsg = 'Failed to load detailed answers breakdown.';
+        }
+        this.cdr.markForCheck();
       }
     });
   }
