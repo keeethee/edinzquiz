@@ -20,7 +20,7 @@
     <!-- Mode Selector tabs -->
     <div *ngIf="activeCourse" style="display: flex; gap: 0.3rem;">
       <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz'" (click)="switchTab('quiz')">Technical Assessments</button>
-      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignment'" (click)="switchTab('assignment')">Practical Tasks</button>
+      <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignment'" (click)="switchTab('assignment')">Assignments</button>
       <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'results'" (click)="switchTab('results')">Performance Telemetry</button>
     </div>
 

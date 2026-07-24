@@ -11,9 +11,9 @@
   <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
     <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'courses'" (click)="switchTab('courses')">Tracks & Modules</button>
     <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">Technical Assessments</button>
-    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignments'" (click)="switchTab('assignments')">Practical Tasks</button>
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignments'" (click)="switchTab('assignments')">Assignments</button>
     <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">Assessment Log</button>
-    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">Code Review</button>
+    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">Assignment Submissions</button>
     
     <button class="neo-btn neo-btn-danger" style="padding: 0.6rem 1.2rem;" (click)="logout()">
       Logout
