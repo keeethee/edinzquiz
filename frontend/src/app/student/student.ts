@@ -292,6 +292,8 @@ export class StudentComponent implements OnInit, OnDestroy {
     return this.allSubmissions.some(s => s.quiz?.id === quizId);
   }
 
+  preloadedQuizData: any = null;
+
   startQuizAttemptFlow(quiz: Quiz) {
     if (!this.isQuizAttemptable(quiz)) {
       this.errorMsg = 'This quiz has expired or is not currently open for attempt.';
@@ -299,6 +301,18 @@ export class StudentComponent implements OnInit, OnDestroy {
     }
     this.selectedQuiz = quiz;
     this.quizStep = 'details';
+    this.preloadedQuizData = null;
+
+    // Preload quiz details in background so "Agree & Start" is instant
+    this.apiService.getQuizForStudent(quiz.id).subscribe({
+      next: (res) => {
+        this.preloadedQuizData = res;
+        if (res.totalMarks) {
+          this.selectedQuiz.totalMarks = res.totalMarks;
+        }
+      },
+      error: () => {}
+    });
   }
 
   currentSubmissionId = '';
@@ -312,49 +326,52 @@ export class StudentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.apiService.getQuizForStudent(this.selectedQuiz.id).subscribe({
-      next: (res) => {
-        this.apiService.startQuizAttempt(this.selectedQuiz.id, this.loggedInStudent!.id.toString()).subscribe({
-          next: (attempt) => {
-            this.currentSubmissionId = attempt.submissionId;
+    const startAttemptCall = (res: any) => {
+      this.apiService.startQuizAttempt(this.selectedQuiz.id, this.loggedInStudent!.id.toString()).subscribe({
+        next: (attempt) => {
+          this.currentSubmissionId = attempt.submissionId;
 
-            // Setup questions & optionally shuffle them
-            let loadedQs: Question[] = res.questions;
-            this.quizQuestions = loadedQs;
-            this.selectedOptions = {};
-            this.typedAnswers = {};
+          let loadedQs: Question[] = res.questions;
+          this.quizQuestions = loadedQs;
+          this.selectedOptions = {};
+          this.typedAnswers = {};
 
-            // Load saved draft if present
-            this.restoreAttemptDraft();
+          this.restoreAttemptDraft();
 
-            this.quizStep = 'attempt';
-            this.quizStartedAt = new Date(attempt.startedAt || new Date());
+          this.quizStep = 'attempt';
+          this.quizStartedAt = new Date(attempt.startedAt || new Date());
 
-            // Smart timer calculation considering remaining time until expireAt / endTime
-            let secondsRemaining = (res.duration || 60) * 60;
-            const endStr = res.endTime || (res as any).expireAt;
-            if (endStr) {
-              const endMs = new Date(endStr).getTime();
-              const nowMs = new Date().getTime();
-              const timeUntilEndSec = Math.floor((endMs - nowMs) / 1000);
-              if (!isNaN(timeUntilEndSec) && timeUntilEndSec > 0) {
-                secondsRemaining = Math.min(secondsRemaining, timeUntilEndSec);
-              }
+          let secondsRemaining = (res.duration || 60) * 60;
+          const endStr = res.endTime || (res as any).expireAt;
+          if (endStr) {
+            const endMs = new Date(endStr).getTime();
+            const nowMs = new Date().getTime();
+            const timeUntilEndSec = Math.floor((endMs - nowMs) / 1000);
+            if (!isNaN(timeUntilEndSec) && timeUntilEndSec > 0) {
+              secondsRemaining = Math.min(secondsRemaining, timeUntilEndSec);
             }
-            this.countdownSeconds = Math.max(0, secondsRemaining);
-
-            this.startTimer();
-            this.startAutoSave();
-          },
-          error: (err) => {
-            this.errorMsg = err.error?.message || 'Failed to start quiz attempt. You may have reached the maximum attempts limit.';
           }
-        });
-      },
-      error: () => {
-        this.errorMsg = 'Failed to load quiz attempt. Please try again.';
-      }
-    });
+          this.countdownSeconds = Math.max(0, secondsRemaining);
+
+          this.startTimer();
+          this.startAutoSave();
+        },
+        error: (err) => {
+          this.errorMsg = err.error?.message || 'Failed to start quiz attempt. You may have reached the maximum attempts limit.';
+        }
+      });
+    };
+
+    if (this.preloadedQuizData) {
+      startAttemptCall(this.preloadedQuizData);
+    } else {
+      this.apiService.getQuizForStudent(this.selectedQuiz.id).subscribe({
+        next: (res) => startAttemptCall(res),
+        error: () => {
+          this.errorMsg = 'Failed to load quiz attempt. Please try again.';
+        }
+      });
+    }
   }
 
   shuffleArray(array: any[]): any[] {
@@ -525,6 +542,18 @@ export class StudentComponent implements OnInit, OnDestroy {
     });
   }
 
+  getQuizTotalMarks(quiz: any): number {
+    if (!quiz) return 0;
+    if (quiz.totalMarks !== undefined && quiz.totalMarks !== null && quiz.totalMarks > 0) {
+      return quiz.totalMarks;
+    }
+    if (quiz.questions && Array.isArray(quiz.questions) && quiz.questions.length > 0) {
+      const sum = quiz.questions.reduce((acc: number, q: any) => acc + (q.mark || q.marks || 0), 0);
+      if (sum > 0) return sum;
+    }
+    return quiz.passingMarks || 0;
+  }
+
   getResultTotalMarks(sub: any): number {
     if (!sub) return 0;
     if (sub.totalMarks !== undefined && sub.totalMarks !== null && sub.totalMarks > 0) return sub.totalMarks;
@@ -532,6 +561,63 @@ export class StudentComponent implements OnInit, OnDestroy {
       return sub.quiz.questions.reduce((sum: number, q: any) => sum + (q.marks || q.mark || 1), 0);
     }
     return sub.quiz?.passingMarks || 0;
+  }
+
+  getTotalQuestionsCount(sub: any): number {
+    if (this.quizQuestions && this.quizQuestions.length > 0) {
+      return this.quizQuestions.length;
+    }
+    if (!sub) return 0;
+    if (typeof sub.totalQuestions === 'number' && sub.totalQuestions > 0) return sub.totalQuestions;
+    if (sub.quiz?.questions && Array.isArray(sub.quiz.questions)) {
+      return sub.quiz.questions.length;
+    }
+    if (sub.answers && Array.isArray(sub.answers)) {
+      return sub.answers.length;
+    }
+    return 0;
+  }
+
+  getAttemptedCount(sub: any): number {
+    if (!sub) return 0;
+    if (typeof sub.attemptedCount === 'number' && !isNaN(sub.attemptedCount)) return sub.attemptedCount;
+    if (sub.answers && Array.isArray(sub.answers)) {
+      return sub.answers.filter((a: any) => a.selectedOptionId || a.typedAnswer || a.typedAnswerText).length;
+    }
+    const correct = typeof sub.correctCount === 'number' && !isNaN(sub.correctCount) ? sub.correctCount : 0;
+    const wrong = typeof sub.wrongCount === 'number' && !isNaN(sub.wrongCount) ? sub.wrongCount : (typeof sub.incorrectCount === 'number' && !isNaN(sub.incorrectCount) ? sub.incorrectCount : 0);
+    return correct + wrong;
+  }
+
+  getCorrectCount(sub: any): number {
+    if (!sub) return 0;
+    if (typeof sub.correctCount === 'number' && !isNaN(sub.correctCount)) return sub.correctCount;
+    if (sub.answers && Array.isArray(sub.answers)) {
+      return sub.answers.filter((a: any) => a.isCorrect).length;
+    }
+    return 0;
+  }
+
+  getIncorrectCount(sub: any): number {
+    if (!sub) return 0;
+    if (typeof sub.wrongCount === 'number' && !isNaN(sub.wrongCount)) return sub.wrongCount;
+    if (typeof sub.incorrectCount === 'number' && !isNaN(sub.incorrectCount)) return sub.incorrectCount;
+    if (sub.answers && Array.isArray(sub.answers)) {
+      return sub.answers.filter((a: any) => a.isEvaluated && !a.isCorrect && (a.selectedOptionId || a.typedAnswer || a.typedAnswerText)).length;
+    }
+    return 0;
+  }
+
+  getSkippedCount(sub: any): number {
+    if (!sub) return 0;
+    if (typeof sub.unansweredCount === 'number' && !isNaN(sub.unansweredCount)) return sub.unansweredCount;
+    if (typeof sub.skippedCount === 'number' && !isNaN(sub.skippedCount)) return sub.skippedCount;
+    if (sub.answers && Array.isArray(sub.answers)) {
+      return sub.answers.filter((a: any) => !a.selectedOptionId && !a.typedAnswer && !a.typedAnswerText).length;
+    }
+    const total = this.getTotalQuestionsCount(sub);
+    const attempted = this.getAttemptedCount(sub);
+    return Math.max(0, total - attempted);
   }
 
   getPassingPercentage(sub: any): number {

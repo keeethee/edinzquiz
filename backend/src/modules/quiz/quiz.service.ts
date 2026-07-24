@@ -76,31 +76,49 @@ export class QuizService {
       ];
     }
 
-    return this.prisma.quiz.findMany({
+    const quizzes = await this.prisma.quiz.findMany({
       where: whereCondition,
       include: {
         course: true,
         category: true,
+        questions: { select: { marks: true } },
         _count: {
           select: { questions: true },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    return quizzes.map((q: any) => {
+      const qSum = (q.questions || []).reduce((sum: number, item: any) => sum + (item.marks || 0), 0);
+      return {
+        ...q,
+        totalMarks: q.totalMarks && q.totalMarks > 0 ? q.totalMarks : qSum,
+      };
+    });
   }
 
   async getQuizzesByCourse(courseId: string) {
     // Map of active/published quizzes for a course
-    return this.prisma.quiz.findMany({
+    const quizzes = await this.prisma.quiz.findMany({
       where: { courseId },
       include: {
         course: true,
         category: true,
+        questions: { select: { marks: true } },
         _count: {
           select: { questions: true },
         },
       },
       orderBy: { createdAt: 'desc' },
+    });
+
+    return quizzes.map((q: any) => {
+      const qSum = (q.questions || []).reduce((sum: number, item: any) => sum + (item.marks || 0), 0);
+      return {
+        ...q,
+        totalMarks: q.totalMarks && q.totalMarks > 0 ? q.totalMarks : qSum,
+      };
     });
   }
 
@@ -180,6 +198,9 @@ export class QuizService {
       });
     }
 
+    const calculatedTotalMarks = mappedQuestions.reduce((sum, q) => sum + (q.mark || 0), 0);
+    const totalMarks = quiz.totalMarks && quiz.totalMarks > 0 ? quiz.totalMarks : calculatedTotalMarks;
+
     return {
       id: quiz.id,
       title: quiz.title,
@@ -188,6 +209,7 @@ export class QuizService {
       duration: quiz.duration,
       timerMode: quiz.timerMode,
       passingMarks: quiz.passingMarks,
+      totalMarks,
       maxAttempts: quiz.maxAttempts,
       showResult: quiz.showResult,
       questions: mappedQuestions,
@@ -707,12 +729,24 @@ export class QuizService {
       grade = 'Failed';
     }
 
+    const answers = sub.answers || [];
+    const correctCount = answers.filter((a: any) => a.isCorrect).length;
+    const wrongCount = answers.filter((a: any) => a.isEvaluated && !a.isCorrect && (a.selectedOptionId || a.typedAnswer || a.typedAnswerText)).length;
+    const attemptedCount = answers.filter((a: any) => a.selectedOptionId || a.typedAnswer || a.typedAnswerText).length;
+    const totalQuestions = sub.quiz?.questions?.length || answers.length || 0;
+    const unansweredCount = Math.max(0, totalQuestions - attemptedCount);
+
     return {
       ...sub,
       totalMarks,
       percentage,
       status,
       grade,
+      correctCount,
+      wrongCount,
+      attemptedCount,
+      unansweredCount,
+      totalQuestions,
     };
   }
 

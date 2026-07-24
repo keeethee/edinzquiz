@@ -213,7 +213,7 @@
           <div class="neo-card-inset" style="margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.6;">
             <p style="margin-bottom: 0.5rem;">🎓 Quiz Title: <strong style="color: var(--accent-color);">{{ selectedQuiz.quizTitle }}</strong></p>
             <p style="margin-bottom: 0.5rem;">⏳ Time Available: <strong>{{ selectedQuiz.duration }} Minutes</strong></p>
-            <p style="margin-bottom: 0.5rem;">🏆 Total Marks: <strong>{{ selectedQuiz.totalMarks }} Marks</strong></p>
+            <p style="margin-bottom: 0.5rem;">🏆 Total Marks: <strong>{{ getQuizTotalMarks(selectedQuiz) }} Marks</strong></p>
             <p style="margin-bottom: 0.5rem;">🎯 Passing Criteria: <strong>{{ selectedQuiz.passingMarks }} Marks</strong></p>
             
             <div style="border-top: 1px solid var(--glass-border); margin: 1rem 0; padding-top: 1rem;">
@@ -328,16 +328,16 @@
           </div>
 
           <!-- Score Summary Card -->
-          <div class="grid-2" style="margin-bottom: 2rem; gap: 1.5rem;">
-            <div class="neo-card-inset flex-between" style="padding: 1.5rem 2rem;">
+          <div style="margin-bottom: 2rem;">
+            <div class="neo-card-inset flex-between" style="padding: 1.75rem 2.5rem;">
               <div>
-                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em;">Final Score</span>
-                <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--accent-color); margin: 0.2rem 0;">{{ resultSubmission.score || 0 }} / {{ getResultTotalMarks(resultSubmission) }}</h1>
-                <span style="font-size: 0.85rem; color: var(--text-secondary); display: block;">Obtained Percentage: <strong>{{ getResultPercentage(resultSubmission) }}%</strong></span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Final Score</span>
+                <h1 style="font-size: 2.8rem; font-weight: 800; color: var(--blue-primary); margin: 0.2rem 0;">{{ resultSubmission.score || 0 }} / {{ getResultTotalMarks(resultSubmission) }}</h1>
+                <span style="font-size: 0.9rem; color: var(--text-secondary); display: block;">Obtained Percentage: <strong style="color: var(--text-primary);">{{ getResultPercentage(resultSubmission) }}%</strong></span>
               </div>
               <div style="text-align: right;">
-                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Grade / Status</span>
-                <span class="badge" [ngClass]="getGradeClass(getResultGrade(resultSubmission))" style="font-size: 0.95rem; padding: 0.4rem 1rem; display: inline-block; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; font-weight: 600;">Grade / Status</span>
+                <span class="badge" [ngClass]="getGradeClass(getResultGrade(resultSubmission))" style="font-size: 1rem; padding: 0.4rem 1.2rem; display: inline-block; margin-bottom: 0.5rem;">
                   {{ getResultGrade(resultSubmission) }}
                 </span>
                 <div>
@@ -347,42 +347,34 @@
                 </div>
               </div>
             </div>
-
-            <!-- Personalized Feedback Card -->
-            <div class="neo-card-inset" style="padding: 1.5rem 2rem; display: flex; flex-direction: column; justify-content: center;">
-              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Performance Feedback</span>
-              <p style="font-size: 1rem; line-height: 1.5; color: var(--text-primary); font-style: italic; margin: 0;">
-                "{{ getPerformanceFeedback(resultSubmission) }}"
-              </p>
-            </div>
           </div>
 
           <!-- Metrics Grid -->
-          <h3 style="font-size: 1.2rem; margin-bottom: 1rem; border-left: 3px solid var(--accent-color); padding-left: 0.75rem;">Attempt Metrics</h3>
+          <h3 style="font-size: 1.2rem; margin-bottom: 1rem; border-left: 4px solid var(--blue-primary); padding-left: 0.75rem; color: var(--text-primary);">Attempt Metrics</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
             <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
-              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">Total Questions</span>
-              <strong style="font-size: 1.4rem;">{{ quizQuestions.length }}</strong>
+              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; font-weight: 600;">Total Questions</span>
+              <strong style="font-size: 1.4rem; color: var(--text-primary);">{{ getTotalQuestionsCount(resultSubmission) }}</strong>
             </div>
             <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
-              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">Attempted</span>
-              <strong style="font-size: 1.4rem;">{{ resultSubmission.correctCount + resultSubmission.wrongCount }}</strong>
+              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; font-weight: 600;">Attempted</span>
+              <strong style="font-size: 1.4rem; color: var(--text-primary);">{{ getAttemptedCount(resultSubmission) }}</strong>
             </div>
             <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
-              <span style="font-size: 0.75rem; color: var(--text-success); display: block; margin-bottom: 0.3rem;">Correct Answers</span>
-              <strong style="font-size: 1.4rem; color: var(--success-color);">{{ resultSubmission.correctCount }}</strong>
+              <span style="font-size: 0.75rem; color: var(--success-color); display: block; margin-bottom: 0.3rem; font-weight: 600;">Correct Answers</span>
+              <strong style="font-size: 1.4rem; color: var(--success-color);">{{ getCorrectCount(resultSubmission) }}</strong>
             </div>
             <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
-              <span style="font-size: 0.75rem; color: var(--text-danger); display: block; margin-bottom: 0.3rem;">Incorrect Answers</span>
-              <strong style="font-size: 1.4rem; color: var(--danger-color);">{{ resultSubmission.wrongCount }}</strong>
+              <span style="font-size: 0.75rem; color: var(--danger-color); display: block; margin-bottom: 0.3rem; font-weight: 600;">Incorrect Answers</span>
+              <strong style="font-size: 1.4rem; color: var(--danger-color);">{{ getIncorrectCount(resultSubmission) }}</strong>
             </div>
             <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
-              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem;">Skipped</span>
-              <strong style="font-size: 1.4rem; color: var(--text-muted);">{{ resultSubmission.unansweredCount }}</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem; font-weight: 600;">Skipped</span>
+              <strong style="font-size: 1.4rem; color: var(--text-muted);">{{ getSkippedCount(resultSubmission) }}</strong>
             </div>
             <div class="neo-card-inset" style="padding: 1rem; text-align: center;">
-              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem;">Time Taken</span>
-              <strong style="font-size: 1.4rem; color: var(--warning-color);">{{ getFormattedTimeTaken(resultSubmission.timeTakenSeconds) }}</strong>
+              <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.3rem; font-weight: 600;">Time Taken</span>
+              <strong style="font-size: 1.4rem; color: var(--orange-text);">{{ getFormattedTimeTaken(resultSubmission.timeTakenSeconds) }}</strong>
             </div>
           </div>
 
