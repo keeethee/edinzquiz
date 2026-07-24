@@ -663,7 +663,7 @@
               <p style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem;">Your Score</p>
               <h1 style="font-size: 2.2rem; font-weight: 700; color: var(--accent-color);">{{ detailedSubmission.score }} / {{ detailedSubmission.totalMarks }}</h1>
               <div style="font-size: 0.85rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; margin-top: 0.3rem;">
-                <span>Passing criteria: {{ detailedSubmission.quiz?.passingMarks }}</span>
+                <span>Passing criteria: {{ detailedSubmission.quiz?.passingMarks || 0 }} Marks ({{ getPassingPercentage(detailedSubmission) }}%)</span>
                 <span *ngIf="detailedSubmission.grade" class="badge" [ngClass]="getGradeClass(detailedSubmission.grade)">{{ detailedSubmission.grade }}</span>
               </div>
             </div>

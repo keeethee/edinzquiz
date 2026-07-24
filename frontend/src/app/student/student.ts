@@ -535,6 +535,13 @@ export class StudentComponent implements OnInit, OnDestroy {
     return sub.quiz?.passingMarks || 0;
   }
 
+  getPassingPercentage(sub: any): number {
+    if (!sub) return 40;
+    const passingMarks = sub.quiz?.passingMarks || 0;
+    const totalMarks = this.getResultTotalMarks(sub);
+    return totalMarks > 0 ? Math.round((passingMarks / totalMarks) * 100) : 40;
+  }
+
   getResultPercentage(sub: any): number {
     if (!sub) return 0;
     if (sub.percentage !== undefined && sub.percentage !== null) return sub.percentage;
