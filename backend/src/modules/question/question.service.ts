@@ -193,7 +193,7 @@ export class QuestionService {
     });
     const dbQuestionTexts = new Set(existingDbQuestions.map(q => q.question.toLowerCase().trim()));
 
-    const questionsMap = new Map<string, any>();
+    const questions: any[] = [];
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -205,8 +205,8 @@ export class QuestionService {
       });
 
       const questionText = normalizedRow['question'] || '';
-      if (!questionText) {
-        // Skip purely empty rows silently or record minor debug log
+      if (!questionText || questionText.trim() === '') {
+        // Skip purely blank rows (like Row 3) silently
         continue;
       }
 
@@ -302,11 +302,8 @@ export class QuestionService {
         isDuplicateInDb,
       };
 
-      // Overwrite map so repeated questions in the set update to single clean instance
-      questionsMap.set(questionTextLower, parsedQuestion);
+      questions.push(parsedQuestion);
     }
-
-    const questions = Array.from(questionsMap.values());
 
     const successCount = questions.length;
     const failedCount = errors.length;
