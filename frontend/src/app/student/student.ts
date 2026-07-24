@@ -513,18 +513,15 @@ export class StudentComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.clearAttemptDraft();
         this.successMsg = 'Quiz submitted successfully!';
-        
-        // Fetch student-result details and attempt stats
-        this.apiService.getStudentSubmissionResult(res.id).subscribe(detail => {
-          this.resultSubmission = detail;
-          this.quizStep = 'result';
-          this.cdr.detectChanges();
-        });
+        this.resultSubmission = res;
+        this.quizStep = 'result';
+        this.cdr.detectChanges();
 
         this.loadHistoricalResults();
       },
       error: (err) => {
         this.errorMsg = err.error?.message || 'Failed to submit quiz. Please contact your coordinator.';
+        this.cdr.markForCheck();
       }
     });
   }

@@ -645,7 +645,7 @@ export class QuizService {
       })),
     });
 
-    return this.prisma.quizSubmission.update({
+    const updatedSubmission = await this.prisma.quizSubmission.update({
       where: { id: submission.id },
       data: {
         submittedAt: submittedTime,
@@ -654,10 +654,21 @@ export class QuizService {
         timeTakenSeconds,
       },
       include: {
-        quiz: true,
+        quiz: {
+          include: {
+            course: true,
+            questions: {
+              include: {
+                question: { include: { options: true } },
+              },
+            },
+          },
+        },
         answers: true,
       },
     });
+
+    return this.formatSubmissionResult(updatedSubmission);
   }
 
   private formatSubmissionResult(sub: any) {
