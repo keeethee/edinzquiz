@@ -108,16 +108,16 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.successMsg = '';
     this.detailedSubmission = null;
     
-    if (this.activeCourse) {
-      if (tab === 'quiz') {
-        this.quizStep = 'dashboard';
-        this.loadQuizzes(this.activeCourse.id);
-      } else if (tab === 'assignment') {
-        this.assignStep = 'dashboard';
-        this.loadAssignments(this.activeCourse.id);
-      } else {
-        this.loadHistoricalResults();
-      }
+    const targetCourseId = this.activeCourse ? this.activeCourse.id : '';
+
+    if (tab === 'quiz') {
+      this.quizStep = 'dashboard';
+      this.loadQuizzes(targetCourseId);
+    } else if (tab === 'assignment') {
+      this.assignStep = 'dashboard';
+      this.loadAssignments(targetCourseId);
+    } else {
+      this.loadHistoricalResults();
     }
   }
 
@@ -207,7 +207,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.clearAutoSave();
     
     // Quiz resets
-    this.quizStep = this.activeCourse ? 'dashboard' : 'search';
+    this.quizStep = 'dashboard';
     this.selectedQuiz = null;
     this.quizQuestions = [];
     this.selectedOptions = {};
@@ -223,10 +223,9 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.selectedFile = null;
     this.fileName = '';
 
-    if (this.activeCourse) {
-      if (this.activeTab === 'quiz') this.loadQuizzes(this.activeCourse.id);
-      if (this.activeTab === 'assignment') this.loadAssignments(this.activeCourse.id);
-    }
+    const targetCourseId = this.activeCourse ? this.activeCourse.id : '';
+    if (this.activeTab === 'quiz') this.loadQuizzes(targetCourseId);
+    if (this.activeTab === 'assignment') this.loadAssignments(targetCourseId);
   }
 
   // ==================== QUIZ MODULE ====================
