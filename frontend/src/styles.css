@@ -1,54 +1,55 @@
-/* Clean & Minimalist B2C Lifestyle Commerce (D2C Aesthetic) Design System 
-   Colors: Porcelain White, High-Contrast Obsidian Charcoal, Deep Tech Blue & Electric Sunset Orange */
+/* Clean & Minimalist D2C Commerce Design System
+   Exact Color Palette: Off-White, Pure White, Sky Blue & Vibrant Orange */
 
 :root {
-  /* Canvas & Backgrounds */
-  --bg-color: #fafafa;         /* Soft Warm Porcelain Canvas */
+  /* Off-White Canvas & Pure White Card Backgrounds */
+  --bg-color: #f8fafc;         /* Soft Off-White Canvas */
   --bg-card: #ffffff;          /* Pure White Crisp Card */
   --bg-card-hover: #ffffff;
-  --bg-inset: #f4f4f5;         /* Neutral Soft Inset */
-  --border-color: #e4e4e7;     /* Minimalist Zinc Border */
-  --border-hover: #a1a1aa;
-  --border-focus: #ff5500;     /* Signature Electric Orange Focus */
+  --bg-inset: #f0f9ff;         /* Very Light Sky Tint Inset */
+  --border-color: #e2e8f0;     /* Subtle Off-White / Slate Border */
+  --border-hover: #bae6fd;
+  --border-focus: #ff6600;     /* Signature Orange Focus Ring */
 
   /* High-Contrast Typography */
-  --text-primary: #09090b;     /* Deep Obsidian Charcoal */
-  --text-secondary: #52525b;   /* Warm Neutral Slate */
-  --text-muted: #a1a1aa;
+  --text-primary: #0f172a;     /* Deep Slate / Navy for 100% Readability */
+  --text-secondary: #334155;   /* Rich Muted Text */
+  --text-muted: #64748b;
 
-  /* Deep Tech Indigo / Blue Accent */
-  --brand-blue-dark: #0b132b;  /* Midnight Indigo */
-  --brand-blue: #1c2541;       /* Deep Tech Blue */
-  --brand-blue-light: #eff6ff; /* Soft Blue Tint */
-  --brand-blue-border: #bfdbfe;
-  --brand-blue-text: #1d4ed8;
+  /* Sky Blue Brand & Navigation Colors */
+  --sky-blue-primary: #0284c7;  /* Rich Sky Blue */
+  --sky-blue-vibrant: #0ea5e9;  /* Vibrant Sky Blue */
+  --sky-blue-light: #38bdf8;    /* Light Sky Blue */
+  --sky-blue-bg: #e0f2fe;       /* Soft Sky Blue Background Tint */
+  --sky-blue-border: #bae6fd;   /* Sky Blue Border */
+  --sky-blue-text: #0369a1;     /* Deep Sky Blue Text */
 
-  /* Signature Electric Sunset Orange Accent */
-  --orange-primary: #ff5500;  /* Electric Sunset Orange */
-  --orange-hover: #e04b00;
-  --orange-accent: #f95700;
-  --orange-light-bg: #fff7ed;  /* Soft Warm Tint */
+  /* Vibrant Orange CTAs & Highlight Colors */
+  --orange-primary: #ff6600;   /* Vibrant Warm Orange */
+  --orange-hover: #ea580c;     /* Deep Orange Hover */
+  --orange-accent: #f97316;
+  --orange-light-bg: #fff7ed;   /* Soft Orange Tint */
   --orange-border: #ffedd5;
   --orange-text: #c2410c;
 
-  /* Minimalist Status Colors */
-  --success-color: #15803d;
+  /* Status Colors */
+  --success-color: #16a34a;
   --success-bg: #f0fdf4;
   --success-border: #bbf7d0;
 
-  --danger-color: #b91c1c;
+  --danger-color: #dc2626;
   --danger-bg: #fef2f2;
   --danger-border: #fecaca;
 
-  --warning-color: #b45309;
+  --warning-color: #d97706;
   --warning-bg: #fffbeb;
   --warning-border: #fef3c7;
 
-  /* D2C Ambient Floating Elevation Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 12px 30px -4px rgba(0, 0, 0, 0.09);
-  --shadow-orange: 0 6px 20px rgba(255, 85, 0, 0.28);
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(14, 165, 233, 0.08);
+  --shadow-lg: 0 12px 30px -4px rgba(14, 165, 233, 0.12);
+  --shadow-orange: 0 6px 20px rgba(255, 102, 0, 0.28);
 }
 
 /* Reset and Core Typography */
@@ -85,26 +86,26 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--bg-color);
 }
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: #94a3b8;
 }
 
-/* Full Width D2C Lifestyle Header Bar */
+/* Full Width Sky Blue Header Bar */
 .header-bar {
-  background: #09090b; /* Midnight Obsidian */
-  border-bottom: 3.5px solid var(--orange-primary);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); /* Rich Sky Blue Header */
+  border-bottom: 4px solid var(--orange-primary); /* Vibrant Orange Bottom Accent */
   padding: 0.9rem 2.5rem;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.2);
 }
 
-/* D2C Brand Logo Pill */
+/* Brand Logo Pill */
 .logo-pill {
   background: #ffffff;
   border-radius: 50px;
@@ -115,7 +116,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   font-size: 1.2rem;
   text-decoration: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -124,7 +125,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .logo-blue {
-  color: #09090b;
+  color: var(--sky-blue-primary);
   font-family: 'Outfit', sans-serif;
   letter-spacing: -0.03em;
 }
@@ -134,14 +135,14 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
   vertical-align: middle;
-  background-color: rgba(255, 85, 0, 0.12);
+  background-color: rgba(255, 102, 0, 0.12);
   padding: 0.15rem 0.5rem;
   border-radius: 50px;
   font-weight: 800;
   letter-spacing: 0.05em;
 }
 
-/* Clean D2C Commerce White Card */
+/* Off-White & Pure White Cards */
 .neo-card {
   background: var(--bg-card);
   border-radius: 16px;
@@ -153,15 +154,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .neo-card:hover {
-  border-color: #d4d4d8;
+  border-color: var(--sky-blue-border);
   box-shadow: var(--shadow-lg);
 }
 
-/* Soft Inset Container */
+/* Soft Sky Blue Inset Container */
 .neo-card-inset {
   background: var(--bg-inset);
   border-radius: 14px;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--sky-blue-border);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
   padding: 1.5rem;
   transition: all 0.2s ease;
@@ -172,7 +173,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   padding: 0.85rem 1.25rem;
   border-radius: 10px;
-  border: 1px solid #d4d4d8;
+  border: 1px solid #cbd5e1;
   outline: none;
   background: #ffffff;
   color: var(--text-primary);
@@ -184,7 +185,7 @@ h1, h2, h3, h4, h5, h6 {
 .neo-input:focus {
   border-color: var(--orange-primary);
   background: #ffffff;
-  box-shadow: 0 0 0 3.5px rgba(255, 85, 0, 0.18);
+  box-shadow: 0 0 0 3.5px rgba(255, 102, 0, 0.18);
 }
 
 /* Custom Dropdown Selects */
@@ -192,14 +193,14 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   padding: 0.85rem 1.25rem;
   border-radius: 10px;
-  border: 1px solid #d4d4d8;
+  border: 1px solid #cbd5e1;
   outline: none;
   background: #ffffff;
   color: var(--text-primary);
   font-size: 0.98rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%2309090b' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%230284c7' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
   background-repeat: no-repeat;
   background-position: right 14px center;
   cursor: pointer;
@@ -208,14 +209,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .neo-select:focus {
   border-color: var(--orange-primary);
-  box-shadow: 0 0 0 3.5px rgba(255, 85, 0, 0.18);
+  box-shadow: 0 0 0 3.5px rgba(255, 102, 0, 0.18);
 }
 
 /* Button System */
 .neo-btn {
   padding: 0.65rem 1.4rem;
   border-radius: 10px;
-  border: 1px solid #d4d4d8;
+  border: 1px solid #cbd5e1;
   outline: none;
   background: #ffffff;
   color: var(--text-primary);
@@ -231,8 +232,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .neo-btn:hover {
-  background: #f4f4f5;
-  border-color: #a1a1aa;
+  background: #f1f5f9;
+  border-color: var(--sky-blue-border);
   transform: translateY(-1px);
 }
 
@@ -247,20 +248,20 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: none;
 }
 
-/* Active Tab Toggle Pill (Minimalist Commerce Pill) */
+/* Active Navigation Tab Pill */
 .neo-btn-toggle {
-  background: #09090b !important;
-  border-color: #09090b !important;
+  background: var(--orange-primary) !important;
+  border-color: var(--orange-primary) !important;
   color: #ffffff !important;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
   border-radius: 50px !important;
   padding: 0.65rem 1.6rem;
 }
 
-/* Electric Orange Primary CTA (D2C Signature Button) */
+/* Vibrant Orange Primary CTA Button */
 .neo-btn-primary {
-  background: linear-gradient(135deg, #ff5500 0%, #ff6b00 100%);
+  background: linear-gradient(135deg, #ff6600 0%, #ea580c 100%);
   color: #ffffff;
   border: none;
   font-weight: 700;
@@ -269,23 +270,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .neo-btn-primary:hover {
-  background: linear-gradient(135deg, #ff661a 0%, #f95700 100%);
-  box-shadow: 0 8px 22px rgba(255, 85, 0, 0.38);
+  background: linear-gradient(135deg, #ff771a 0%, #f97316 100%);
+  box-shadow: 0 8px 22px rgba(255, 102, 0, 0.38);
   transform: translateY(-1.5px);
 }
 
-/* Deep Tech Blue Secondary Button */
+/* Sky Blue Secondary Button */
 .neo-btn-secondary {
-  background: #09090b;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
   color: #ffffff;
   border: none;
   font-weight: 600;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(9, 9, 11, 0.2);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
 }
 
 .neo-btn-secondary:hover {
-  background: #27272a;
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
   transform: translateY(-1px);
 }
 
@@ -329,7 +330,7 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
-/* D2C Pill Badges */
+/* Sky Blue & Orange Pill Badges */
 .badge {
   padding: 0.35rem 0.85rem;
   border-radius: 50px;
@@ -358,9 +359,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .badge-course {
-  background: var(--brand-blue-light);
-  border: 1px solid var(--brand-blue-border);
-  color: var(--brand-blue-text);
+  background: var(--sky-blue-bg);
+  border: 1px solid var(--sky-blue-border);
+  color: var(--sky-blue-text);
 }
 
 .badge-orange {
@@ -380,7 +381,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* File Drag & Drop Upload Zone */
 .neo-file-drop {
-  border: 2px dashed #d4d4d8;
+  border: 2px dashed #cbd5e1;
   border-radius: 14px;
   padding: 3.5rem 2rem;
   text-align: center;
@@ -390,8 +391,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .neo-file-drop:hover {
-  border-color: var(--orange-primary);
-  background: var(--orange-light-bg);
+  border-color: var(--sky-blue-vibrant);
+  background: var(--sky-blue-bg);
 }
 
 /* Keyframes & Animations */
