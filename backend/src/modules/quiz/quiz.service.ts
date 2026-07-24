@@ -633,6 +633,11 @@ export class QuizService {
     const passed = totalScore >= quiz.passingMarks;
     const timeTakenSeconds = Math.round(elapsedMs / 1000);
 
+    // Clear any previous draft answers for this submission to prevent score duplication
+    await this.prisma.studentAnswer.deleteMany({
+      where: { submissionId: submission.id },
+    });
+
     // Save submission answers and score
     await this.prisma.studentAnswer.createMany({
       data: studentAnswersData.map((ans) => ({
