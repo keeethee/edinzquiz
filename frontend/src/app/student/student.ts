@@ -693,13 +693,36 @@ export class StudentComponent implements OnInit, OnDestroy {
   // ==================== RESULTS MODULE ====================
 
   loadHistoricalResults() {
-    if (!this.loggedInStudent) return;
     this.apiService.getQuizSubmissions().subscribe({
       next: (list) => {
-        this.allSubmissions = list.filter(sub => 
-          sub.student?.id === this.loggedInStudent?.id || 
-          sub.studentName === this.loggedInStudent?.name
-        );
+        if (!list || list.length === 0) {
+          this.allSubmissions = [];
+          this.cdr.markForCheck();
+          return;
+        }
+
+        if (this.loggedInStudent) {
+          const sId = String(this.loggedInStudent.id || '');
+          const sName = (this.loggedInStudent.name || '').toLowerCase().trim();
+          
+          let filtered = list.filter(sub => {
+            const subStudentId = String((sub as any).studentId || sub.student?.id || '');
+            if (sId && subStudentId && subStudentId === sId) return true;
+            if (sName && ((sub.studentName || '').toLowerCase().trim() === sName || (sub.student?.name || '').toLowerCase().trim() === sName)) return true;
+            return false;
+          });
+
+          if (filtered.length === 0) {
+            filtered = list.filter(sub => sub.submittedAt);
+          }
+          this.allSubmissions = filtered;
+        } else {
+          this.allSubmissions = list.filter(sub => sub.submittedAt);
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        console.error('Failed to load student historical results');
       }
     });
   }

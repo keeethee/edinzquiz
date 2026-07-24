@@ -89,6 +89,7 @@ export interface QuizSubmission {
   timeTakenSeconds?: number;
   grade?: string;
   quiz?: Quiz;
+  studentId?: string;
   student?: any;
   studentAnswers?: StudentAnswer[];
 }
