@@ -1432,11 +1432,11 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.successMsg = '';
     const courseIdToUse = this.selectedCourseId || this.newAssignCourseId;
     if (!courseIdToUse) {
-      this.errorMsg = 'Please select a course for this assignment.';
+      this.errorMsg = 'Please select a target course for this assignment.';
       return;
     }
-    if (!this.newAssignTitle.trim() || !this.newAssignDeadline) {
-      this.errorMsg = 'Title and deadline are required.';
+    if (!this.newAssignTitle || !this.newAssignTitle.trim()) {
+      this.errorMsg = 'Assignment Title is required.';
       return;
     }
 
@@ -1450,8 +1450,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       this.newAssignRubric,
       this.newAssignMaxMarks,
     ).subscribe({
-      next: () => {
-        this.successMsg = 'Assignment published.';
+      next: (created) => {
+        this.successMsg = `Assignment "${created.title || this.newAssignTitle}" published successfully!`;
         this.newAssignTitle = '';
         this.newAssignDesc = '';
         this.newAssignInstructions = '';
@@ -1462,8 +1462,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.newAssignCourseId = '';
         this.loadAssignments(this.selectedCourseId || '');
       },
-      error: () => {
-        this.errorMsg = 'Failed to publish assignment.';
+      error: (err) => {
+        console.error('Create assignment error:', err);
+        this.errorMsg = err.error?.message || 'Failed to publish assignment. Please ensure required fields are filled.';
       }
     });
   }

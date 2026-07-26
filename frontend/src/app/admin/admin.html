@@ -628,9 +628,9 @@
     </div>
 
     <div class="grid-2">
-      <!-- Create Homework Form -->
+      <!-- Create Assignment Form -->
       <div class="neo-card">
-        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Homework & AI Evaluation Rubric</h3>
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Assignment & AI Evaluation Rubric</h3>
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div *ngIf="!selectedCourseId">
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
@@ -661,7 +661,7 @@
               <input type="number" class="neo-input" [(ngModel)]="newAssignMaxMarks" name="assignMaxMarks" min="1" />
             </div>
             <div>
-              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Deadline Limit <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Deadline Limit (Optional)</label>
               <input type="datetime-local" class="neo-input" [(ngModel)]="newAssignDeadline" name="assignDeadline" />
             </div>
           </div>
@@ -669,7 +669,7 @@
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Evaluation Rubric (JSON or Text Criteria)</label>
             <textarea class="neo-input" rows="2" placeholder='e.g. {"codeQuality": 40, "functionality": 40, "documentation": 20}' [(ngModel)]="newAssignRubric" name="assignRubric"></textarea>
           </div>
-          <button class="neo-btn neo-btn-primary" style="margin-top: 0.5rem;" (click)="createAssignment()">Publish Homework</button>
+          <button class="neo-btn neo-btn-primary" style="margin-top: 0.5rem;" (click)="createAssignment()">Publish Assignment</button>
         </div>
       </div>
 
