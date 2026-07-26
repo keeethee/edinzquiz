@@ -945,11 +945,7 @@
           <button class="neo-btn" style="padding: 0.35rem 0.75rem;" (click)="closeAiEvalModal()">✕ Close</button>
         </div>
 
-        <div *ngIf="isLoadingAiDetail" style="text-align: center; padding: 3rem; color: var(--text-muted);">
-          ⚡ Loading AI Evaluation details & requirement checklist...
-        </div>
-
-        <div *ngIf="!isLoadingAiDetail && selectedAiEvalDetail" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div *ngIf="selectedAiEvalDetail" style="display: flex; flex-direction: column; gap: 1.5rem;">
           
           <!-- Latest Evaluation Summary Banner -->
           <div *ngIf="selectedAiEvalDetail.latestEvaluation" class="neo-card-inset" style="padding: 1.25rem; background: rgba(0,132,232,0.06); border: 1px solid var(--accent-color);">
