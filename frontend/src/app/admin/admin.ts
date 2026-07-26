@@ -1702,13 +1702,33 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
   }
 
+  private assignPollInterval: any = null;
+
   loadAssignmentSubmissions() {
     this.apiService.getAssignmentSubmissions(this.selectedCourseId || '').subscribe({
       next: (list) => {
         this.assignSubmissions = list;
+        this.cdr.markForCheck();
+
+        // Check if any submission is QUEUED, PENDING or PROCESSING
+        const hasPendingJobs = list.some(s => ['QUEUED', 'PENDING', 'PROCESSING'].includes(s.currentStatus || ''));
+        if (hasPendingJobs && !this.assignPollInterval) {
+          this.assignPollInterval = setInterval(() => {
+            if (this.activeTab === 'assign-sub') {
+              this.loadAssignmentSubmissions();
+            } else {
+              clearInterval(this.assignPollInterval);
+              this.assignPollInterval = null;
+            }
+          }, 3000);
+        } else if (!hasPendingJobs && this.assignPollInterval) {
+          clearInterval(this.assignPollInterval);
+          this.assignPollInterval = null;
+        }
       },
       error: () => {
         this.errorMsg = 'Failed to load homework uploads.';
+        this.cdr.markForCheck();
       }
     });
   }

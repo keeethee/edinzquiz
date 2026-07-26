@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { FileProcessingService } from './file-processing.service';
 import { PromptBuilderService } from './prompt-builder.service';
@@ -6,7 +6,7 @@ import { OllamaService } from './ollama.service';
 import { ResultParserService } from './result-parser.service';
 
 @Injectable()
-export class EvaluationQueueService {
+export class EvaluationQueueService implements OnModuleInit {
   private readonly logger = new Logger(EvaluationQueueService.name);
   private queue: string[] = [];
   private isProcessing = false;
@@ -18,6 +18,24 @@ export class EvaluationQueueService {
     private ollamaService: OllamaService,
     private resultParserService: ResultParserService,
   ) {}
+
+  async onModuleInit() {
+    // Automatically recover and process any stuck PENDING, QUEUED, or PROCESSING submissions on server startup
+    try {
+      const stuckSubmissions = await this.prisma.assignmentSubmission.findMany({
+        where: { currentStatus: { in: ['PENDING', 'QUEUED', 'PROCESSING'] } },
+        select: { id: true },
+      });
+      if (stuckSubmissions.length > 0) {
+        this.logger.log(`Recovering ${stuckSubmissions.length} pending/queued submissions for instant AI evaluation...`);
+        for (const sub of stuckSubmissions) {
+          this.enqueueSubmission(sub.id);
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn(`Queue recovery note: ${e.message}`);
+    }
+  }
 
   /**
    * Adds a submission ID to the queue for background asynchronous evaluation.
