@@ -13,8 +13,7 @@ import { AuthService } from '../services/auth.service';
     <div class="header-bar">
       <div class="header-left-brand">
         <div class="logo-pill">
-          <span class="logo-blue">edinz</span>
-          <span class="logo-orange">QUIZ</span>
+          <img src="assets/logo.png" alt="INSPYRE" style="height: 32px; width: auto; object-fit: contain; vertical-align: middle;" />
         </div>
         <span class="console-title">ADMIN CONSOLE</span>
       </div>
