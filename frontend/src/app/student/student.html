@@ -507,13 +507,41 @@
                   Deadline: <span [style.color]="isDeadlinePassed(a.deadline) ? 'var(--danger-color)' : 'var(--text-muted)'">{{ a.deadline | date:'medium' }}</span>
                 </p>
                 
-                <!-- Submission Status Details -->
-                <div *ngIf="getSubmissionForAssignment(a.id) as sub" style="margin-top: 0.8rem; padding: 0.6rem 1rem; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 6px; display: inline-block;">
-                  <span style="font-size: 0.85rem; color: var(--success-color); font-weight: 600; display: block;">✓ Homework Submitted</span>
-                  <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">File: {{ sub.fileName }} ({{ sub.submittedAt | date:'short' }})</span>
-                  <div *ngIf="sub.marks !== null" style="margin-top: 0.4rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.4rem;">
-                    <span style="font-size: 0.8rem; color: var(--success-color); font-weight: 700; display: block;">Marks: {{ sub.marks }} / 100</span>
-                    <span *ngIf="sub.feedback" style="font-size: 0.8rem; color: var(--text-muted); display: block; font-style: italic;">Feedback: "{{ sub.feedback }}"</span>
+                <!-- Submission Status Details & Published AI Feedback -->
+                <div *ngIf="getSubmissionForAssignment(a.id) as sub" style="margin-top: 0.8rem; padding: 0.8rem 1.2rem; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; width: 100%;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                      <span style="font-size: 0.85rem; color: var(--success-color); font-weight: 600; display: block;">✓ Homework Submitted</span>
+                      <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">File: {{ sub.fileName }} ({{ sub.submittedAt | date:'short' }})</span>
+                    </div>
+
+                    <!-- AI Status for student -->
+                    <span *ngIf="sub.currentStatus !== 'PUBLISHED' && sub.marks === null" class="badge" style="background: rgba(59,130,246,0.15); color: var(--accent-color); border: 1px solid var(--accent-color);">
+                      ⏳ AI Evaluation Under Admin Review
+                    </span>
+                  </div>
+
+                  <!-- Published Grades & AI Breakdown -->
+                  <div *ngIf="sub.marks !== null || sub.currentStatus === 'PUBLISHED'" style="margin-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                      <span style="font-size: 0.9rem; color: var(--success-color); font-weight: 700;">Final Marks: {{ sub.marks }} / {{ a.maxMarks || 100 }}</span>
+                      <span *ngIf="sub.publishedAt" style="font-size: 0.75rem; color: var(--text-muted);">Published: {{ sub.publishedAt | date:'short' }}</span>
+                    </div>
+
+                    <div *ngIf="sub.feedback" style="background: rgba(0,0,0,0.15); padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.5rem;">
+                      <strong>Instructor Feedback:</strong> "{{ sub.feedback }}"
+                    </div>
+
+                    <!-- AI Evaluation Checklist breakdown if available -->
+                    <div *ngIf="sub.evaluations && sub.evaluations[0] && sub.evaluations[0].requirementsChecklist" style="margin-top: 0.75rem;">
+                      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 0.35rem;">AI Requirement Evaluation:</span>
+                      <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                        <div *ngFor="let req of sub.evaluations[0].requirementsChecklist" style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;" [style.color]="req.satisfied ? 'var(--success-color)' : 'var(--danger-color)'">
+                          <span>{{ req.satisfied ? '✓' : '✕' }}</span>
+                          <span>{{ req.requirement }} — {{ req.explanation }}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

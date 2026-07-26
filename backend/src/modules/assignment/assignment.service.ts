@@ -1,11 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AiEvaluationService } from '../ai-evaluation/services/ai-evaluation.service';
 
 @Injectable()
 export class AssignmentService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private aiEvaluationService: AiEvaluationService,
+  ) {}
 
-  async create(courseId: string, title: string, description: string, deadline: Date): Promise<any> {
+  async create(
+    courseId: string,
+    title: string,
+    description?: string,
+    deadline?: Date,
+    instructions?: string,
+    expectedOutcome?: string,
+    rubric?: any,
+    maxMarks?: number,
+  ): Promise<any> {
     const course = await this.prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
@@ -15,7 +28,11 @@ export class AssignmentService {
       data: {
         title,
         description,
-        deadline: new Date(deadline),
+        instructions,
+        expectedOutcome,
+        rubric: rubric ? (typeof rubric === 'string' ? JSON.parse(rubric) : rubric) : undefined,
+        maxMarks: maxMarks ? parseFloat(maxMarks as any) : 100,
+        deadline: deadline ? new Date(deadline) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         courseId,
       },
     });
@@ -73,15 +90,26 @@ export class AssignmentService {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    return this.prisma.assignmentSubmission.create({
+    const submission = await this.prisma.assignmentSubmission.create({
       data: {
         studentName,
         collegeName,
         fileName: file.originalname,
         fileUrl: file.path.replace(/\\/g, '/'),
         assignmentId,
+        currentStatus: 'PENDING',
+      },
+      include: {
+        assignment: true,
       },
     });
+
+    // Trigger async AI Evaluation Queue (Student upload returns immediately!)
+    this.aiEvaluationService.triggerAsyncEvaluation(submission.id).catch((err) => {
+      console.error(`Background AI trigger error for submission ${submission.id}:`, err);
+    });
+
+    return submission;
   }
 
   async getSubmissions(courseId?: string): Promise<any[]> {
@@ -102,6 +130,9 @@ export class AssignmentService {
         assignment: {
           include: { course: true },
         },
+        evaluations: {
+          orderBy: { version: 'desc' },
+        },
       },
       orderBy: { submittedAt: 'desc' },
     });
@@ -113,6 +144,9 @@ export class AssignmentService {
       include: {
         assignment: {
           include: { course: true },
+        },
+        evaluations: {
+          orderBy: { version: 'desc' },
         },
       },
     });
@@ -129,6 +163,8 @@ export class AssignmentService {
       data: {
         marks: parseFloat(marks as any),
         feedback,
+        currentStatus: 'PUBLISHED',
+        publishedAt: new Date(),
       },
     });
   }
@@ -139,6 +175,9 @@ export class AssignmentService {
       include: {
         assignment: {
           include: { course: true },
+        },
+        evaluations: {
+          orderBy: { version: 'desc' },
         },
       },
       orderBy: { submittedAt: 'desc' },
@@ -154,6 +193,10 @@ export class AssignmentService {
     const data: any = {};
     if (attrs.title !== undefined) data.title = attrs.title;
     if (attrs.description !== undefined) data.description = attrs.description;
+    if (attrs.instructions !== undefined) data.instructions = attrs.instructions;
+    if (attrs.expectedOutcome !== undefined) data.expectedOutcome = attrs.expectedOutcome;
+    if (attrs.rubric !== undefined) data.rubric = typeof attrs.rubric === 'string' ? JSON.parse(attrs.rubric) : attrs.rubric;
+    if (attrs.maxMarks !== undefined) data.maxMarks = parseFloat(attrs.maxMarks as any);
     if (attrs.deadline !== undefined) data.deadline = new Date(attrs.deadline);
 
     return this.prisma.assignment.update({

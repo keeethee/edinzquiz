@@ -101,22 +101,53 @@ export interface Assignment {
   id: string;
   title: string;
   description?: string;
+  instructions?: string;
+  expectedOutcome?: string;
+  rubric?: any;
+  maxMarks?: number;
   deadline: string;
   course?: Course;
+}
+
+export interface AssignmentAiEvaluation {
+  id: string;
+  submissionId: string;
+  version: number;
+  aiModel: string;
+  promptVersion: string;
+  status: string; // 'COMPLETED' | 'REVIEW_REQUIRED' | 'FAILED'
+  completionStatus?: string; // 'COMPLETED' | 'PARTIALLY_COMPLETED' | 'NOT_COMPLETED'
+  completionPercentage?: number;
+  recommendedMarks?: number;
+  confidenceScore?: number;
+  requirementsChecklist?: Array<{ requirement: string; satisfied: boolean; explanation: string }>;
+  missingRequirements?: string[];
+  strengths?: string[];
+  weaknesses?: string[];
+  suggestions?: string[];
+  rawAiOutput?: string;
+  errorMessage?: string;
+  evaluatedAt: string;
 }
 
 export interface AssignmentSubmission {
   id: string;
   studentName: string;
   collegeName: string;
-  courseName: string;
+  courseName?: string;
   fileName: string;
-  filePath: string;
+  filePath?: string;
+  fileUrl?: string;
+  extractedText?: string;
+  fileType?: string;
+  currentStatus?: string; // 'PENDING' | 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'REVIEW_REQUIRED' | 'FAILED' | 'PUBLISHED'
   submittedAt: string;
   marks: number | null;
   feedback: string | null;
-  course: Course;
+  publishedAt?: string | null;
+  course?: Course;
   assignment?: Assignment | null;
+  evaluations?: AssignmentAiEvaluation[];
 }
 
 @Injectable({
@@ -397,8 +428,21 @@ export class ApiService {
     );
   }
 
-  createAssignment(courseId: string, title: string, description: string, deadline: string): Observable<Assignment> {
-    return this.http.post<Assignment>(`${this.baseUrl}/assignments`, { courseId, title, description, deadline }, this.getHeaders());
+  createAssignment(
+    courseId: string,
+    title: string,
+    description?: string,
+    deadline?: string,
+    instructions?: string,
+    expectedOutcome?: string,
+    rubric?: any,
+    maxMarks?: number,
+  ): Observable<Assignment> {
+    return this.http.post<Assignment>(
+      `${this.baseUrl}/assignments`,
+      { courseId, title, description, deadline, instructions, expectedOutcome, rubric, maxMarks },
+      this.getHeaders(),
+    );
   }
 
   deleteAssignment(id: string): Observable<void> {
@@ -416,6 +460,23 @@ export class ApiService {
 
   gradeAssignmentSubmission(id: string, marks: number, feedback: string): Observable<AssignmentSubmission> {
     return this.http.patch<AssignmentSubmission>(`${this.baseUrl}/assignments/submissions/${id}/grade`, { marks, feedback }, this.getHeaders());
+  }
+
+  // AI Evaluation Endpoints
+  retryAiEvaluation(submissionId: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/ai-evaluation/evaluate/${submissionId}`, {}, this.getHeaders());
+  }
+
+  publishAiGrade(submissionId: string, marks: number, feedback: string, overrideComment?: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/ai-evaluation/publish/${submissionId}`,
+      { marks, feedback, overrideComment },
+      this.getHeaders(),
+    );
+  }
+
+  getAiEvaluationDetail(submissionId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/ai-evaluation/submission/${submissionId}`, this.getHeaders());
   }
 
   downloadSubmissionFile(id: string): Observable<Blob> {

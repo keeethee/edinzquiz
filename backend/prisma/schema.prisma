@@ -178,37 +178,71 @@ model StudentAnswer {
 }
 
 model Assignment {
-  id          String                 @id @default(uuid())
-  courseId    String
-  course      Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  deadline    DateTime
-  submissions AssignmentSubmission[]
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
+  id              String                 @id @default(uuid())
+  courseId        String
+  course          Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  instructions    String?
+  expectedOutcome String?
+  rubric          Json?
+  maxMarks        Float                  @default(100)
+  deadline        DateTime
+  submissions     AssignmentSubmission[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
 
   @@index([courseId])
   @@map("assignments")
 }
 
 model AssignmentSubmission {
-  id           String     @id @default(uuid())
-  assignmentId String
-  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  studentId    String?
-  student      Student?   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  studentName  String?
-  collegeName  String?
-  fileName     String
-  fileUrl      String
-  submittedAt  DateTime   @default(now())
-  marks        Float?
-  feedback     String?
+  id            String                  @id @default(uuid())
+  assignmentId  String
+  assignment    Assignment              @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId     String?
+  student       Student?                @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentName   String?
+  collegeName   String?
+  fileName      String
+  fileUrl       String
+  extractedText String?
+  fileType      String?
+  currentStatus String                  @default("PENDING") // "PENDING" | "QUEUED" | "PROCESSING" | "COMPLETED" | "REVIEW_REQUIRED" | "FAILED" | "PUBLISHED"
+  submittedAt   DateTime                @default(now())
+  marks         Float?
+  feedback      String?
+  publishedAt   DateTime?
+  evaluations   AssignmentAiEvaluation[]
 
   @@index([assignmentId])
   @@index([studentId])
   @@map("assignment_submissions")
+}
+
+model AssignmentAiEvaluation {
+  id                   String               @id @default(uuid())
+  submissionId         String
+  submission           AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  version              Int                  @default(1)
+  aiModel              String               @default("qwen3-vl:latest")
+  promptVersion        String               @default("v1.0")
+  status               String               @default("COMPLETED") // "COMPLETED" | "REVIEW_REQUIRED" | "FAILED"
+  completionStatus     String?              @default("COMPLETED") // "COMPLETED" | "PARTIALLY_COMPLETED" | "NOT_COMPLETED"
+  completionPercentage Float?               @default(100)
+  recommendedMarks     Float?               @default(0)
+  confidenceScore      Float?               @default(0.9)
+  requirementsChecklist Json?
+  missingRequirements  Json?
+  strengths            Json?
+  weaknesses           Json?
+  suggestions          Json?
+  rawAiOutput          String?
+  errorMessage         String?
+  evaluatedAt          DateTime             @default(now())
+
+  @@index([submissionId])
+  @@map("assignment_ai_evaluations")
 }
 
 model MediaAttachment {

@@ -199,7 +199,7 @@ export class QuizService {
     }
 
     const calculatedTotalMarks = mappedQuestions.reduce((sum, q) => sum + (q.mark || 0), 0);
-    const totalMarks = quiz.totalMarks && quiz.totalMarks > 0 ? quiz.totalMarks : calculatedTotalMarks;
+    const totalMarks = (quiz as any).totalMarks && (quiz as any).totalMarks > 0 ? (quiz as any).totalMarks : calculatedTotalMarks;
 
     return {
       id: quiz.id,

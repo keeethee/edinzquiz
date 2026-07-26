@@ -81,11 +81,19 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   newAssignCourseId: string = '';
   newAssignTitle: string = '';
   newAssignDesc: string = '';
+  newAssignInstructions: string = '';
+  newAssignExpectedOutcome: string = '';
+  newAssignRubric: string = '';
+  newAssignMaxMarks: number = 100;
   newAssignDeadline: string = '';
   showAssignmentEditModal: boolean = false;
   editingAssignment: Assignment | null = null;
   editAssignTitle: string = '';
   editAssignDesc: string = '';
+  editAssignInstructions: string = '';
+  editAssignExpectedOutcome: string = '';
+  editAssignRubric: string = '';
+  editAssignMaxMarks: number = 100;
   editAssignDeadline: string = '';
 
   // --- Quiz Submissions Tab State ---
@@ -102,6 +110,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   selectedSubToGrade: AssignmentSubmission | null = null;
   gradeMarks: number = 0;
   gradeFeedback: string = '';
+  overrideComment: string = '';
+
+  // --- AI Evaluation Modal State ---
+  showAiEvalModal: boolean = false;
+  selectedAiEvalDetail: any = null;
+  isLoadingAiDetail: boolean = false;
 
   constructor(
     private apiService: ApiService,
@@ -1430,12 +1444,20 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       courseIdToUse,
       this.newAssignTitle,
       this.newAssignDesc,
-      this.newAssignDeadline
+      this.newAssignDeadline,
+      this.newAssignInstructions,
+      this.newAssignExpectedOutcome,
+      this.newAssignRubric,
+      this.newAssignMaxMarks,
     ).subscribe({
       next: () => {
         this.successMsg = 'Assignment published.';
         this.newAssignTitle = '';
         this.newAssignDesc = '';
+        this.newAssignInstructions = '';
+        this.newAssignExpectedOutcome = '';
+        this.newAssignRubric = '';
+        this.newAssignMaxMarks = 100;
         this.newAssignDeadline = '';
         this.newAssignCourseId = '';
         this.loadAssignments(this.selectedCourseId || '');
@@ -1463,6 +1485,11 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.editingAssignment = a;
     this.editAssignTitle = a.title;
     this.editAssignDesc = a.description || '';
+    this.editAssignInstructions = a.instructions || '';
+    this.editAssignExpectedOutcome = a.expectedOutcome || '';
+    this.editAssignRubric = a.rubric ? (typeof a.rubric === 'string' ? a.rubric : JSON.stringify(a.rubric, null, 2)) : '';
+    this.editAssignMaxMarks = a.maxMarks || 100;
+
     if (a.deadline) {
       const date = new Date(a.deadline);
       const pad = (num: number) => num.toString().padStart(2, '0');
@@ -1486,6 +1513,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.apiService.updateAssignment(this.editingAssignment.id, {
       title: this.editAssignTitle,
       description: this.editAssignDesc,
+      instructions: this.editAssignInstructions,
+      expectedOutcome: this.editAssignExpectedOutcome,
+      rubric: this.editAssignRubric,
+      maxMarks: this.editAssignMaxMarks,
       deadline: this.editAssignDeadline
     }).subscribe({
       next: () => {
@@ -1741,6 +1772,86 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       error: (err) => {
         this.errorMsg = err.error?.message || 'Failed to save grade details.';
         this.loadAssignmentSubmissions();
+      }
+    });
+  }
+
+  // ==================== AI EVALUATION HANDLERS ====================
+
+  openAiEvalModal(sub: AssignmentSubmission) {
+    if (!sub || !sub.id) return;
+    this.isLoadingAiDetail = true;
+    this.showAiEvalModal = true;
+    this.selectedAiEvalDetail = null;
+    this.gradeMarks = sub.marks !== null ? sub.marks : (sub.evaluations && sub.evaluations[0] ? (sub.evaluations[0].recommendedMarks || 0) : 0);
+    this.gradeFeedback = sub.feedback || (sub.evaluations && sub.evaluations[0] ? (sub.evaluations[0].suggestions || []).join('\n') : '');
+    this.overrideComment = '';
+
+    this.apiService.getAiEvaluationDetail(sub.id).subscribe({
+      next: (detail) => {
+        this.selectedAiEvalDetail = detail;
+        this.isLoadingAiDetail = false;
+        if (detail.latestEvaluation) {
+          if (sub.marks === null || sub.marks === undefined) {
+            this.gradeMarks = detail.latestEvaluation.recommendedMarks || 0;
+          }
+        }
+      },
+      error: (err) => {
+        this.isLoadingAiDetail = false;
+        this.errorMsg = err.error?.message || 'Failed to load AI evaluation breakdown.';
+      }
+    });
+  }
+
+  closeAiEvalModal() {
+    this.showAiEvalModal = false;
+    this.selectedAiEvalDetail = null;
+  }
+
+  acceptAiRecommendation(sub: AssignmentSubmission) {
+    if (!this.selectedAiEvalDetail || !this.selectedAiEvalDetail.latestEvaluation) return;
+    const recMarks = this.selectedAiEvalDetail.latestEvaluation.recommendedMarks || 0;
+    const recSuggestions = (this.selectedAiEvalDetail.latestEvaluation.suggestions || []).join('\n');
+    this.gradeMarks = recMarks;
+    this.gradeFeedback = recSuggestions;
+  }
+
+  publishAiEvaluationGrade(sub: AssignmentSubmission) {
+    if (!sub || !sub.id) return;
+    this.errorMsg = '';
+    this.successMsg = '';
+
+    this.apiService.publishAiGrade(
+      sub.id,
+      this.gradeMarks,
+      this.gradeFeedback,
+      this.overrideComment,
+    ).subscribe({
+      next: () => {
+        this.successMsg = `AI Evaluation grade published to student for ${sub.studentName}.`;
+        this.closeAiEvalModal();
+        this.loadAssignmentSubmissions();
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Failed to publish grade.';
+      }
+    });
+  }
+
+  retryAiEvaluation(sub: AssignmentSubmission) {
+    if (!sub || !sub.id) return;
+    this.errorMsg = '';
+    this.successMsg = '';
+
+    this.apiService.retryAiEvaluation(sub.id).subscribe({
+      next: () => {
+        this.successMsg = `AI Evaluation re-queued for ${sub.studentName}. Refreshing status...`;
+        this.closeAiEvalModal();
+        this.loadAssignmentSubmissions();
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Failed to trigger AI evaluation retry.';
       }
     });
   }

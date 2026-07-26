@@ -34,10 +34,23 @@ export class AssignmentController {
   create(
     @Body('courseId') courseId: string,
     @Body('title') title: string,
-    @Body('description') description: string,
-    @Body('deadline') deadline: string,
+    @Body('description') description?: string,
+    @Body('deadline') deadline?: string,
+    @Body('instructions') instructions?: string,
+    @Body('expectedOutcome') expectedOutcome?: string,
+    @Body('rubric') rubric?: any,
+    @Body('maxMarks') maxMarks?: number,
   ): Promise<AssignmentEntity> {
-    return this.assignmentService.create(courseId, title, description, new Date(deadline));
+    return this.assignmentService.create(
+      courseId,
+      title,
+      description,
+      deadline ? new Date(deadline) : undefined,
+      instructions,
+      expectedOutcome,
+      rubric,
+      maxMarks,
+    );
   }
 
   // Public endpoint for students to view pending assignments
@@ -59,10 +72,18 @@ export class AssignmentController {
     @Body('title') title?: string,
     @Body('description') description?: string,
     @Body('deadline') deadline?: string,
+    @Body('instructions') instructions?: string,
+    @Body('expectedOutcome') expectedOutcome?: string,
+    @Body('rubric') rubric?: any,
+    @Body('maxMarks') maxMarks?: number,
   ): Promise<AssignmentEntity> {
     return this.assignmentService.updateAssignment(id, {
       title,
       description,
+      instructions,
+      expectedOutcome,
+      rubric,
+      maxMarks,
       deadline: deadline ? new Date(deadline) : undefined,
     } as any);
   }

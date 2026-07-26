@@ -193,8 +193,6 @@ export class QuestionService {
     });
     const dbQuestionTexts = new Set(existingDbQuestions.map(q => q.question.toLowerCase().trim()));
 
-    const questions: any[] = [];
-
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const rowNum = i + 2; // Excel row numbering starts at 1 (header is row 1)
@@ -335,7 +333,7 @@ export class QuestionService {
 
         if (existing) {
           // Overwrite options & update fields to maintain single clean copy
-          await tx.option.deleteMany({ where: { questionId: existing.id } });
+          await tx.questionOption.deleteMany({ where: { questionId: existing.id } });
           const updated = await tx.questionBank.update({
             where: { id: existing.id },
             data: {

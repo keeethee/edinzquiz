@@ -7,6 +7,7 @@ import { QuestionModule } from './modules/question/question.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { AssignmentModule } from './modules/assignment/assignment.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AiEvaluationModule } from './modules/ai-evaluation/ai-evaluation.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from './modules/auth/auth.module';
     QuizModule,
     AssignmentModule,
     AuthModule,
+    AiEvaluationModule,
   ],
 })
 export class AppModule {}
