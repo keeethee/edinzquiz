@@ -1801,26 +1801,48 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   openAiEvalModal(sub: AssignmentSubmission) {
     if (!sub || !sub.id) return;
-    this.isLoadingAiDetail = true;
     this.showAiEvalModal = true;
-    this.selectedAiEvalDetail = null;
-    this.gradeMarks = sub.marks !== null ? sub.marks : (sub.evaluations && sub.evaluations[0] ? (sub.evaluations[0].recommendedMarks || 0) : 0);
-    this.gradeFeedback = sub.feedback || (sub.evaluations && sub.evaluations[0] ? (sub.evaluations[0].suggestions || []).join('\n') : '');
     this.overrideComment = '';
+    
+    // Construct local detail object instantly from pre-loaded sub for 0ms Instant Screen Transition
+    const latestEval = sub.evaluations && sub.evaluations.length > 0 ? sub.evaluations[0] : null;
+    this.selectedAiEvalDetail = {
+      submissionId: sub.id,
+      fileName: sub.fileName,
+      fileUrl: sub.fileUrl || sub.filePath,
+      fileType: sub.fileType,
+      currentStatus: sub.currentStatus || 'COMPLETED',
+      submittedAt: sub.submittedAt,
+      publishedAt: sub.publishedAt,
+      marks: sub.marks,
+      feedback: sub.feedback,
+      assignment: sub.assignment,
+      latestEvaluation: latestEval,
+      evaluationHistory: sub.evaluations || [],
+    };
+    
+    this.gradeMarks = sub.marks !== null && sub.marks !== undefined ? sub.marks : (latestEval?.recommendedMarks || 0);
+    this.gradeFeedback = sub.feedback || (latestEval?.suggestions ? (Array.isArray(latestEval.suggestions) ? latestEval.suggestions.join('\n') : String(latestEval.suggestions)) : '');
+    
+    this.isLoadingAiDetail = false;
+    this.cdr.markForCheck();
 
+    // Fetch background detail update silently without blocking UI modal
     this.apiService.getAiEvaluationDetail(sub.id).subscribe({
       next: (detail) => {
-        this.selectedAiEvalDetail = detail;
-        this.isLoadingAiDetail = false;
-        if (detail.latestEvaluation) {
+        if (detail && detail.latestEvaluation) {
+          this.selectedAiEvalDetail = detail;
           if (sub.marks === null || sub.marks === undefined) {
             this.gradeMarks = detail.latestEvaluation.recommendedMarks || 0;
+            this.gradeFeedback = sub.feedback || (detail.latestEvaluation.suggestions ? (Array.isArray(detail.latestEvaluation.suggestions) ? detail.latestEvaluation.suggestions.join('\n') : String(detail.latestEvaluation.suggestions)) : '');
           }
         }
-      },
-      error: (err) => {
         this.isLoadingAiDetail = false;
-        this.errorMsg = err.error?.message || 'Failed to load AI evaluation breakdown.';
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoadingAiDetail = false;
+        this.cdr.markForCheck();
       }
     });
   }
