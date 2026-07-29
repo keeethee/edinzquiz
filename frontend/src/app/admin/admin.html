@@ -1,22 +1,52 @@
-<!-- Full Width Header Navigation Bar -->
-<div class="header-bar">
-  <div style="display: flex; align-items: center; gap: 1.5rem;">
-    <div class="logo-pill">
-      <img src="logo.png" alt="INSPYRE" style="height: 52px; width: auto; max-width: 220px; object-fit: contain; vertical-align: middle; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-    </div>
-    <h2 style="font-size: 1.1rem; margin: 0; color: #ffffff; font-weight: 700; letter-spacing: 0.08em;">ADMIN CONSOLE</h2>
-  </div>
-
-  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'courses'" (click)="switchTab('courses')">Tracks & Modules</button>
-    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">Technical Assessments</button>
-    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignments'" (click)="switchTab('assignments')">Assignments</button>
-    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">Assessment Log</button>
-    <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">Assignment Submissions</button>
+<!-- Corporate Hero Header with Overlay -->
+<div class="corporate-hero-header">
+  <div class="corporate-hero-overlay"></div>
+  <div class="corporate-hero-content">
     
-    <button class="neo-btn neo-btn-danger" style="padding: 0.6rem 1.2rem;" (click)="logout()">
-      Logout
-    </button>
+    <div class="corporate-hero-top">
+      <div class="corporate-hero-brand">
+        <div class="logo-pill">
+          <img src="logo.png" alt="INSPYRE" style="height: 52px; width: auto; max-width: 220px; object-fit: contain; vertical-align: middle; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+        </div>
+        <div class="corporate-hero-title-group">
+          <h1>Admin Operations & Evaluation Center</h1>
+          <p>Enterprise Assessment Telemetry, AI Submissions & Track Management</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+        <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'courses'" (click)="switchTab('courses')">Tracks & Modules</button>
+        <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">Technical Assessments</button>
+        <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignments'" (click)="switchTab('assignments')">Assignments</button>
+        <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">Assessment Log</button>
+        <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">Assignment Submissions</button>
+        
+        <button class="neo-btn neo-btn-danger" style="padding: 0.6rem 1.2rem;" (click)="logout()">
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Corporate Statistics Metric Bar -->
+    <div class="corporate-stats-row">
+      <div class="corporate-stat-card">
+        <div class="corporate-stat-number">{{ courses.length || 0 }}</div>
+        <div class="corporate-stat-label">Active Track Modules</div>
+      </div>
+      <div class="corporate-stat-card">
+        <div class="corporate-stat-number">{{ quizzes.length || 0 }}</div>
+        <div class="corporate-stat-label">Technical Quizzes</div>
+      </div>
+      <div class="corporate-stat-card">
+        <div class="corporate-stat-number">{{ publishedAssignments.length || 0 }}</div>
+        <div class="corporate-stat-label">Active Assignments</div>
+      </div>
+      <div class="corporate-stat-card">
+        <div class="corporate-stat-number">{{ assignSubmissions.length || 0 }}</div>
+        <div class="corporate-stat-label">Submissions Evaluated</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
