@@ -1,40 +1,40 @@
-/* Clean & Minimalist D2C Commerce Design System
-   Exact Color Palette: Warm Ivory (No Pure White), Custom Blue #0084E8 & Vibrant Orange */
+/* Clean, Human-Made Minimalist Design System
+   Exact Color Palette Preserved: Warm Ivory Canvas, Custom Blue #0084E8 & Vibrant Orange #FF6600 */
 
 :root {
-  /* Warm Ivory Canvas & Cards (No Pure White #ffffff) */
-  --bg-color: #f7f4ee;         /* Warm Ivory Background Canvas */
-  --bg-card: #fcfaf5;          /* Warm Ivory Card (No Pure White #ffffff) */
-  --bg-card-hover: #fdfcf9;
-  --bg-inset: #f1ebd8;         /* Soft Cream / Warm Ivory Inset */
-  --border-color: #e5dec9;     /* Subtle Warm Ivory Border */
+  /* Canvas & Card Surfaces */
+  --bg-color: #fdfbf7;         /* Warm Ivory Background Canvas */
+  --bg-card: #ffffff;          /* Crisp Pristine White Card */
+  --bg-card-hover: #ffffff;
+  --bg-inset: #f8f6f0;         /* Soft Warm Ivory Inset */
+  --border-color: #e2e8f0;     /* Minimalist Slate Border */
   --border-hover: #0084e8;
-  --border-focus: #ff6600;     /* Signature Orange Focus Ring */
+  --border-focus: #0084e8;     /* Signature Focus Ring */
 
-  /* High-Contrast Readability Typography */
-  --text-primary: #0f172a;     /* Deep Slate / Navy for 100% Readability */
-  --text-secondary: #334155;   /* Rich Muted Text */
+  /* High-Contrast Human Typography */
+  --text-primary: #0f172a;     /* Deep Slate Navy */
+  --text-secondary: #475569;   /* Readable Slate Muted */
   --text-muted: #64748b;
 
   /* Exact Custom Blue #0084E8 */
-  --blue-primary: #0084e8;     /* Requested Exact Blue #0084E8 */
-  --blue-hover: #0072c9;
-  --blue-dark: #005db3;
-  --blue-light-bg: #e6f3fd;    /* Soft Ivory-Blue Tint */
-  --blue-border: #b3dbf8;      /* Soft Blue Border */
-  --blue-text: #00569e;
+  --blue-primary: #0084e8;     /* Exact Requested Blue */
+  --blue-hover: #0077d6;
+  --blue-dark: #005bb5;
+  --blue-light-bg: #eff6ff;    /* Soft Tint */
+  --blue-border: #bfdbfe;      /* Soft Blue Border */
+  --blue-text: #0284c7;
 
-  /* Vibrant Orange CTAs & Highlight Colors */
+  /* Exact Vibrant Orange #FF6600 */
   --orange-primary: #ff6600;   /* Vibrant Warm Orange */
   --orange-hover: #ea580c;     /* Deep Orange Hover */
   --orange-accent: #f97316;
-  --orange-light-bg: #fff5eb;   /* Soft Ivory-Orange Tint */
-  --orange-border: #ffdcb8;
+  --orange-light-bg: #fff7ed;   /* Soft Tint */
+  --orange-border: #ffedd5;
   --orange-text: #c2410c;
 
-  /* Legacy Glass Variable Mappings for 100% High-Contrast Backward Compatibility */
+  /* Legacy Mapping Support */
   --glass-bg: var(--bg-card);
-  --glass-bg-hover: #f2eee2;
+  --glass-bg-hover: #f8fafc;
   --glass-bg-inset: var(--bg-inset);
   --glass-border: var(--border-color);
   --glass-border-focus: var(--blue-primary);
@@ -43,7 +43,7 @@
   --accent-light: var(--blue-light-bg);
 
   /* Status Colors */
-  --success-color: #15803d;
+  --success-color: #16a34a;
   --success-bg: #f0fdf4;
   --success-border: #bbf7d0;
 
@@ -51,15 +51,16 @@
   --danger-bg: #fef2f2;
   --danger-border: #fecaca;
 
-  --warning-color: #b45309;
+  --warning-color: #d97706;
   --warning-bg: #fffbeb;
   --warning-border: #fef3c7;
 
-  /* Elevation Shadows */
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 16px rgba(0, 132, 232, 0.09);
-  --shadow-lg: 0 12px 30px -4px rgba(0, 132, 232, 0.14);
-  --shadow-orange: 0 6px 20px rgba(255, 102, 0, 0.28);
+  /* Subtle Minimalist Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 2px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 4px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  --shadow-orange: 0 4px 14px rgba(255, 102, 0, 0.25);
+  --shadow-blue: 0 4px 14px rgba(0, 132, 232, 0.22);
 }
 
 /* Reset and Core Typography */
@@ -79,73 +80,78 @@ body {
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', 'Inter', sans-serif;
   color: var(--text-primary);
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
 }
 
-/* Scrollbar Styling */
+/* Custom Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 7px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-color);
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Full Width Custom Blue #0084E8 Header Bar */
+/* Minimalist Header Navigation Bar */
 .header-bar {
-  background: linear-gradient(135deg, #0084e8 0%, #0066b8 100%); /* #0084E8 Blue Header */
-  border-bottom: 4px solid var(--orange-primary); /* Vibrant Orange Accent Line */
-  padding: 0.9rem 2.5rem;
+  background: var(--blue-primary);
+  border-bottom: 3.5px solid var(--orange-primary);
+  padding: 0.85rem 2.25rem;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(0, 132, 232, 0.22);
+  box-shadow: 0 2px 10px rgba(0, 132, 232, 0.15);
 }
 
 .header-bar h2 {
   color: #ffffff !important;
   font-weight: 700 !important;
-  letter-spacing: 0.05em;
+  font-size: 1.05rem !important;
+  letter-spacing: 0.06em;
 }
 
-/* Warm Ivory Brand Logo Pill (No Pure White) */
+/* Warm Ivory Brand Logo Pill */
 .logo-pill {
-  background: #fdfbf7;
+  background: #ffffff;
   border-radius: 50px;
-  padding: 0.6rem 1.8rem;
+  padding: 0.5rem 1.4rem;
   display: flex;
   align-items: center;
   gap: 0.4rem;
   font-weight: 800;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
 .logo-pill img {
-  height: 52px;
+  height: 48px;
   width: auto;
-  max-width: 220px;
+  max-width: 200px;
   object-fit: contain;
   display: block;
 }
 
 .logo-pill:hover {
-  transform: scale(1.03);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .logo-blue {
@@ -159,20 +165,21 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
   font-size: 0.75rem;
   vertical-align: middle;
-  background-color: rgba(255, 102, 0, 0.12);
+  background-color: rgba(255, 102, 0, 0.1);
   padding: 0.15rem 0.5rem;
   border-radius: 50px;
   font-weight: 800;
   letter-spacing: 0.05em;
 }
 
-/* Option Card Styles for Quizzes & Admin Previews */
+/* Selectable Quiz Option Cards */
 .option-card-selectable {
   background: var(--bg-card) !important;
   border: 1px solid var(--border-color) !important;
   color: var(--text-primary) !important;
   font-weight: 600;
-  transition: all 0.2s ease;
+  border-radius: 12px !important;
+  transition: all 0.15s ease-out;
 }
 
 .option-card-selectable:hover {
@@ -181,10 +188,10 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary) !important;
 }
 
-/* When Option is Selected by Student */
+/* Selected Option State */
 .neo-btn-toggle.option-card-selectable,
 .neo-btn-toggle {
-  background: linear-gradient(135deg, #ff6600 0%, #ea580c 100%) !important;
+  background: var(--orange-primary) !important;
   border-color: var(--orange-primary) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
@@ -196,107 +203,107 @@ h1, h2, h3, h4, h5, h6 {
   color: #ffffff !important;
 }
 
-/* Warm Ivory Crisp Cards (No Pure White #ffffff) */
+/* Minimalist Pristine Cards */
 .neo-card {
   background: var(--bg-card);
-  border-radius: 16px;
+  border-radius: 14px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-md);
-  padding: 2.2rem;
-  margin-bottom: 2rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  padding: 2rem;
+  margin-bottom: 1.75rem;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
 .neo-card:hover {
-  border-color: var(--blue-border);
+  border-color: #cbd5e1;
   box-shadow: var(--shadow-lg);
 }
 
-/* Soft Cream / Ivory Inset Container */
+/* Soft Inset Container */
 .neo-card-inset {
   background: var(--bg-inset);
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
-  padding: 1.5rem;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  padding: 1.35rem;
+  transition: all 0.15s ease-out;
 }
 
-/* Form Controls (Inputs & Textareas) - Warm Ivory Background */
+/* Modern Form Controls */
 .neo-input {
   width: 100%;
-  padding: 0.85rem 1.25rem;
-  border-radius: 10px;
-  border: 1px solid #dcd3be;
+  padding: 0.75rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
   outline: none;
-  background: #fdfcf9;
+  background: #ffffff;
   color: var(--text-primary);
-  font-size: 0.98rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
 .neo-input:focus {
-  border-color: var(--orange-primary);
-  background: #fdfcf9;
-  box-shadow: 0 0 0 3.5px rgba(255, 102, 0, 0.18);
+  border-color: var(--blue-primary);
+  box-shadow: 0 0 0 3px rgba(0, 132, 232, 0.15);
 }
 
-/* Custom Dropdown Selects */
+/* Dropdown Select Controls */
 .neo-select {
   width: 100%;
-  padding: 0.85rem 1.25rem;
-  border-radius: 10px;
-  border: 1px solid #dcd3be;
+  padding: 0.75rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
   outline: none;
-  background: #fdfcf9;
+  background: #ffffff;
   color: var(--text-primary);
-  font-size: 0.98rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  font-size: 0.95rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%230084e8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%230084e8' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 14px center;
+  background-position: right 12px center;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
 .neo-select:focus {
-  border-color: var(--orange-primary);
-  box-shadow: 0 0 0 3.5px rgba(255, 102, 0, 0.18);
+  border-color: var(--blue-primary);
+  box-shadow: 0 0 0 3px rgba(0, 132, 232, 0.15);
 }
 
 /* Button System */
 .neo-btn {
-  padding: 0.65rem 1.4rem;
-  border-radius: 10px;
-  border: 1px solid #dcd3be;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
   outline: none;
-  background: #fdfcf9;
+  background: #ffffff;
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 0.45rem;
+  transition: all 0.15s ease-out;
 }
 
 .neo-btn:hover {
-  background: #f2eee2;
+  background: #f8fafc;
   border-color: var(--blue-primary);
+  color: var(--blue-primary);
   transform: translateY(-1px);
 }
 
 .neo-btn:active {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
 .neo-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -308,39 +315,43 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--orange-primary) !important;
   color: #ffffff !important;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+  box-shadow: var(--shadow-orange);
   border-radius: 50px !important;
-  padding: 0.65rem 1.6rem;
+  padding: 0.6rem 1.4rem;
 }
 
-/* Vibrant Orange Primary CTA Button */
+/* Primary CTA Button (Vibrant Orange) */
 .neo-btn-primary {
-  background: linear-gradient(135deg, #ff6600 0%, #ea580c 100%);
+  background: var(--orange-primary);
   color: #ffffff;
-  border: none;
-  font-weight: 700;
-  border-radius: 10px;
+  border: 1px solid var(--orange-primary);
+  font-weight: 600;
+  border-radius: 8px;
   box-shadow: var(--shadow-orange);
 }
 
 .neo-btn-primary:hover {
-  background: linear-gradient(135deg, #ff771a 0%, #f97316 100%);
-  box-shadow: 0 8px 22px rgba(255, 102, 0, 0.38);
-  transform: translateY(-1.5px);
+  background: var(--orange-hover);
+  border-color: var(--orange-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 102, 0, 0.32);
 }
 
-/* Exact Blue #0084E8 Secondary Button */
+/* Secondary CTA Button (Exact Blue #0084E8) */
 .neo-btn-secondary {
-  background: linear-gradient(135deg, #0084e8 0%, #0072c9 100%);
+  background: var(--blue-primary);
   color: #ffffff;
-  border: none;
+  border: 1px solid var(--blue-primary);
   font-weight: 600;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 132, 232, 0.25);
+  border-radius: 8px;
+  box-shadow: var(--shadow-blue);
 }
 
 .neo-btn-secondary:hover {
-  background: linear-gradient(135deg, #0072c9 0%, #005db3 100%);
+  background: var(--blue-hover);
+  border-color: var(--blue-hover);
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -348,14 +359,16 @@ h1, h2, h3, h4, h5, h6 {
 .neo-btn-danger {
   background: #ef4444;
   color: #ffffff;
-  border: none;
+  border: 1px solid #ef4444;
   font-weight: 600;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
 }
 
 .neo-btn-danger:hover {
   background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -384,12 +397,12 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
-/* Pill Badges */
+/* Status Pill Badges */
 .badge {
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.8rem;
   border-radius: 50px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.8rem;
+  font-weight: 600;
   display: inline-block;
   letter-spacing: 0.01em;
 }
@@ -424,24 +437,24 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--orange-text);
 }
 
-/* Main App Layout Container */
+/* App Layout Container */
 .app-container {
   max-width: 1240px;
   width: 100%;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem;
+  padding: 2.25rem 1.5rem;
   flex: 1;
 }
 
 /* File Drag & Drop Upload Zone */
 .neo-file-drop {
-  border: 2px dashed #dcd3be;
-  border-radius: 14px;
-  padding: 3.5rem 2rem;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 3rem 2rem;
   text-align: center;
-  background: #fdfcf9;
+  background: #ffffff;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease-out;
 }
 
 .neo-file-drop:hover {
@@ -449,7 +462,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--blue-light-bg);
 }
 
-/* Keyframes & Animations */
+/* Animations */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
