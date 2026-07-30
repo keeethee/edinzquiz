@@ -21,6 +21,7 @@ export class StudentComponent implements OnInit, OnDestroy {
   loginEmail = '';
   loginPassword = '';
   showLoginPassword = false;
+  isSubmittingLogin = false;
   
   regEmail = '';
   regPassword = '';
@@ -147,6 +148,7 @@ export class StudentComponent implements OnInit, OnDestroy {
   }
 
   onStudentLogin() {
+    if (this.isSubmittingLogin) return;
     this.errorMsg = '';
     this.successMsg = '';
     if (!this.loginEmail || !this.loginPassword) {
@@ -154,12 +156,15 @@ export class StudentComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isSubmittingLogin = true;
     this.authService.loginStudent(this.loginEmail, this.loginPassword).subscribe({
       next: () => {
+        this.isSubmittingLogin = false;
         this.loginEmail = '';
         this.loginPassword = '';
       },
       error: err => {
+        this.isSubmittingLogin = false;
         this.errorMsg = err.error?.message || 'Invalid email or password.';
       }
     });

@@ -14,7 +14,12 @@ export interface StudentDetails {
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'http://localhost:3000/api/auth';
+  private get baseUrl(): string {
+    if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+      return `http://${window.location.hostname}:3000/api/auth`;
+    }
+    return 'http://localhost:3000/api/auth';
+  }
   
   // Storage keys
   private adminTokenKey = 'edinz_admin_token';

@@ -66,7 +66,7 @@
         <h2 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Student Login</h2>
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Access quizzes and assignments portal</p>
         
-        <form (ngSubmit)="onStudentLogin()">
+        <form (ngSubmit)="onStudentLogin()" (submit)="$event.preventDefault()">
           <div style="margin-bottom: 1.25rem;">
             <label for="studentLoginEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input id="studentLoginEmail" type="email" class="neo-input" [(ngModel)]="loginEmail" name="email" placeholder="student@college.edu" required />
@@ -82,8 +82,9 @@
             </div>
           </div>
 
-          <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
-            Sign In
+          <button type="submit" (click)="onStudentLogin()" [disabled]="isSubmittingLogin" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1rem; margin-bottom: 1.5rem;">
+            <span *ngIf="isSubmittingLogin" class="blink">Signing In...</span>
+            <span *ngIf="!isSubmittingLogin">Sign In</span>
           </button>
 
           <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
