@@ -16,7 +16,7 @@
 
       <div *ngIf="loggedInStudent" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
         <!-- Active Course Indicator -->
-        <div *ngIf="activeCourse" class="flex-center" style="gap: 0.5rem; background: rgba(255,255,255,0.18); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.9rem; color: #ffffff;">
+        <div *ngIf="activeCourse" class="flex-center" style="gap: 0.5rem; background: rgba(255,255,255,0.18); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); padding: 0.4rem 1rem; border-radius: 4px; font-size: 0.9rem; color: #ffffff;">
           <span style="color: #ffffff; font-weight: 700;">{{ activeCourse.courseId }}</span>
           <span style="color: rgba(255,255,255,0.4);">|</span>
           <span style="color: #ffffff; font-weight: 600;">{{ activeCourse.courseName }}</span>
@@ -31,7 +31,7 @@
         </div>
 
         <!-- Logged in identity card -->
-        <div class="flex-center" style="gap: 0.5rem; background: #ffffff; border: 1px solid var(--border-color); padding: 0.4rem 1.1rem; border-radius: 50px; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div class="flex-center" style="gap: 0.5rem; background: #ffffff; border: 1px solid var(--border-color); padding: 0.4rem 1.1rem; border-radius: 4px; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
           <span style="color: var(--text-primary); font-weight: 700;">{{ loggedInStudent.name }}</span>
           <span style="font-size: 0.8rem; color: var(--text-secondary);">({{ loggedInStudent.collegeName }})</span>
         </div>
