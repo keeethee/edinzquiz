@@ -22,6 +22,7 @@ export class StudentComponent implements OnInit, OnDestroy {
   loginPassword = '';
   showLoginPassword = false;
   isSubmittingLogin = false;
+  isSearchingCourse = false;
   
   regEmail = '';
   regPassword = '';
@@ -179,22 +180,32 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   // Course Lookup
   onCourseSearch() {
+    if (this.isSearchingCourse) return;
     this.errorMsg = '';
-    if (!this.searchCourseIdCode.trim()) {
+
+    const code = this.searchCourseIdCode ? this.searchCourseIdCode.trim() : '';
+    if (!code) {
       this.errorMsg = 'Please enter a valid Course ID.';
       return;
     }
 
-    this.apiService.lookupCourse(this.searchCourseIdCode.trim()).subscribe({
+    this.isSearchingCourse = true;
+    this.cdr.detectChanges();
+
+    this.apiService.lookupCourse(code).subscribe({
       next: (course) => {
+        this.isSearchingCourse = false;
         this.activeCourse = course;
         localStorage.setItem('edinz_active_course', JSON.stringify(course));
         this.resetState();
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.errorMsg = 'Course not found or is currently inactive.';
+      error: (err) => {
+        this.isSearchingCourse = false;
+        this.errorMsg = err.error?.message || 'Course not found or is currently inactive.';
         this.activeCourse = null;
         localStorage.removeItem('edinz_active_course');
+        this.cdr.detectChanges();
       }
     });
   }
