@@ -41,19 +41,28 @@
 
   <!-- ==================== EXECUTIVE DASHBOARD TAB ==================== -->
   <div *ngIf="activeTab === 'dashboard'">
-    <!-- Top Welcome Banner -->
-    <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(0, 132, 232, 0.08) 0%, rgba(255, 102, 0, 0.04) 100%); border: 1px solid rgba(0, 132, 232, 0.2);">
-      <div>
-        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">
-          👋 Welcome to Admin Operations Center
-        </h2>
-        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">
-          Monitor real-time technical assessments, automated evaluation pipelines, and active course tracks.
-        </p>
+    <!-- Small Quick Check Control Bar -->
+    <div class="neo-card flex-between" style="padding: 0.85rem 1.5rem; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; align-items: center; border-radius: 4px;">
+      <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">⚡ Quick Check Track:</span>
+        <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="onCourseChangeForQuiz()" style="max-width: 320px; padding: 0.4rem 0.8rem; font-size: 0.88rem;">
+          <option value="">-- All Active Courses Overview --</option>
+          <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+        </select>
       </div>
-      <div style="display: flex; gap: 0.75rem; align-items: center;">
-        <span class="badge badge-completed" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
-          🟢 System Status: Operational
+
+      <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">📊 Telemetry Check:</span>
+          <select class="neo-select" style="max-width: 280px; padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 600; color: var(--blue-primary); cursor: pointer;">
+            <option>📚 {{ courses.length || 0 }} Active Track Modules</option>
+            <option>📝 {{ quizzes.length || 0 }} Technical Quizzes</option>
+            <option>📖 {{ publishedAssignments.length || 0 }} Active Assignments</option>
+            <option>🤖 {{ assignSubmissions.length || 0 }} Submissions Evaluated</option>
+          </select>
+        </div>
+        <span class="badge badge-completed" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;">
+          🟢 System Active
         </span>
       </div>
     </div>
