@@ -726,7 +726,7 @@
     <div class="grid-2">
       <!-- Create Assignment Form -->
       <div class="neo-card">
-        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Assignment & AI Evaluation Rubric</h3>
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Assignment & AI Evaluation Criteria</h3>
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div *ngIf="!selectedCourseId">
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
@@ -762,8 +762,8 @@
             </div>
           </div>
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Evaluation Rubric (JSON or Text Criteria)</label>
-            <textarea class="neo-input" rows="2" placeholder='e.g. {"codeQuality": 40, "functionality": 40, "documentation": 20}' [(ngModel)]="newAssignRubric" name="assignRubric"></textarea>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria</label>
+            <textarea class="neo-input" rows="7" placeholder="Minimum words: 500&#10;Maximum words: 1000&#10;Assignment should mainly cover:&#10;- Angular Components&#10;- Services&#10;- Dependency Injection&#10;- Routing&#10;&#10;Pass if topic coverage is at least 70%." [(ngModel)]="newAssignRubric" name="assignRubric"></textarea>
           </div>
           <button class="neo-btn neo-btn-primary" style="margin-top: 0.5rem;" (click)="createAssignment()">Publish Assignment</button>
         </div>
@@ -1150,6 +1150,10 @@
         <div>
           <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Due Date & Time</label>
           <input type="datetime-local" class="neo-input" [(ngModel)]="editAssignDeadline" />
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria</label>
+          <textarea class="neo-textarea" [(ngModel)]="editAssignRubric" rows="5" placeholder="Minimum words: 500&#10;Maximum words: 1000&#10;Assignment should mainly cover:&#10;- Angular Components&#10;- Services&#10;- Dependency Injection&#10;- Routing&#10;&#10;Pass if topic coverage is at least 70%."></textarea>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">

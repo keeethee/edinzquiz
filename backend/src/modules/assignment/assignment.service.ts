@@ -30,7 +30,7 @@ export class AssignmentService {
         description,
         instructions,
         expectedOutcome,
-        rubric: rubric ? (typeof rubric === 'string' ? JSON.parse(rubric) : rubric) : undefined,
+        rubric: rubric ? (typeof rubric === 'string' ? ( () => { try { return JSON.parse(rubric); } catch { return rubric; } })() : rubric) : undefined,
         maxMarks: maxMarks ? parseFloat(maxMarks as any) : 100,
         deadline: deadline ? new Date(deadline) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         courseId,
@@ -195,7 +195,7 @@ export class AssignmentService {
     if (attrs.description !== undefined) data.description = attrs.description;
     if (attrs.instructions !== undefined) data.instructions = attrs.instructions;
     if (attrs.expectedOutcome !== undefined) data.expectedOutcome = attrs.expectedOutcome;
-    if (attrs.rubric !== undefined) data.rubric = typeof attrs.rubric === 'string' ? JSON.parse(attrs.rubric) : attrs.rubric;
+    if (attrs.rubric !== undefined) data.rubric = typeof attrs.rubric === 'string' ? ( () => { try { return JSON.parse(attrs.rubric); } catch { return attrs.rubric; } })() : attrs.rubric;
     if (attrs.maxMarks !== undefined) data.maxMarks = parseFloat(attrs.maxMarks as any);
     if (attrs.deadline !== undefined) data.deadline = new Date(attrs.deadline);
 

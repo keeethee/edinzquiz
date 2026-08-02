@@ -59,7 +59,7 @@ Title: ${assignment.title}
 Description: ${assignment.description || 'N/A'}
 Instructions: ${assignment.instructions || 'N/A'}
 Expected Outcome: ${assignment.expectedOutcome || 'N/A'}
-Evaluation Rubric: ${rubricText}
+AI Evaluation Criteria: ${rubricText}
 
 ---
 
