@@ -466,7 +466,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       passingMarksVal = totalMarks > 0 ? Math.ceil(totalMarks * 0.80) : 4;
     }
 
-    const defaultCourse = quiz?.courseId || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    const defaultCourse = quiz?.courseId || this.selectedCourseId || '';
     this.quizForm = this.fb.group({
       id: [quiz?.id || null],
       courseId: [defaultCourse, Validators.required],
@@ -531,6 +531,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.activeQuestionIndex = null;
     this.lastAutosavedTime = '';
     
+    if (!quiz && !this.selectedCourseId) {
+      this.errorMsg = 'Strict Course Enforcement: Please select a Target Course from the dropdown above before creating a new quiz.';
+      this.cdr.markForCheck();
+      return;
+    }
+
     // Always initialize form synchronously first so quizForm is never null!
     this.initQuizForm(quiz);
     this.isQuizEditorOpen = true;
@@ -664,7 +670,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const totalMarks = questions.reduce((sum: number, q: any) => sum + (q.mark || 0), 0);
     const passingMarks = val.passingMarks || 0;
     const passingPercentage = totalMarks > 0 ? Math.round((passingMarks / totalMarks) * 100) : 40;
-    const courseId = val.courseId || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    const courseId = val.courseId || this.selectedCourseId || '';
 
     return {
       courseId: courseId,
@@ -707,9 +713,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.errorMsg = '';
     this.successMsg = '';
 
-    const courseId = this.quizForm.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    const courseId = this.quizForm.get('courseId')?.value || this.selectedCourseId || '';
     if (!courseId) {
-      this.errorMsg = 'Please select a Target Course for this quiz.';
+      this.errorMsg = 'Strict Course Enforcement: Please select a Target Course for this quiz.';
       this.cdr.markForCheck();
       return;
     }
@@ -858,9 +864,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.successMsg = '';
     this.validationErrors = [];
 
-    const courseId = this.quizForm.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    const courseId = this.quizForm.get('courseId')?.value || this.selectedCourseId || '';
     if (!courseId) {
-      this.errorMsg = 'Please select a Target Course for this quiz.';
+      this.errorMsg = 'Strict Course Enforcement: Please select a Target Course for this quiz.';
       this.cdr.markForCheck();
       return;
     }
@@ -1237,7 +1243,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   selectedBankQuestionIds: string[] = [];
 
   loadQuestionBankPool() {
-    const courseId = this.quizForm?.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    const courseId = this.quizForm?.get('courseId')?.value || this.selectedCourseId || '';
     if (!courseId) return;
     this.apiService.getQuestionBank({ courseId: courseId, limit: 100 }).subscribe({
       next: (res) => {
@@ -1316,7 +1322,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     event.target.value = '';
 
-    const courseId = this.quizForm?.get('courseId')?.value || this.selectedCourseId || (this.courses.length > 0 ? this.courses[0].id : '');
+    const courseId = this.quizForm?.get('courseId')?.value || this.selectedCourseId || '';
     if (!courseId) {
       alert('Please select a Target Course for this quiz first.');
       return;
