@@ -185,6 +185,10 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     } else if (tab === 'assign-sub') {
       this.loadAssignmentSubmissions();
     }
+
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {}
   }
 
   closeModals() {
@@ -1810,8 +1814,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   openAiEvalModal(sub: AssignmentSubmission) {
     if (!sub || !sub.id) return;
+    this.activeTab = 'assign-sub';
     this.showAiEvalModal = true;
     this.overrideComment = '';
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {}
     
     // Construct local detail object instantly from pre-loaded sub for 0ms Instant Screen Transition
     const latestEval = sub.evaluations && sub.evaluations.length > 0 ? sub.evaluations[0] : null;
