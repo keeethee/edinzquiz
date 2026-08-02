@@ -53,11 +53,12 @@ export class StudentComponent implements OnInit, OnDestroy {
   resultSubmission: QuizSubmission | null = null;
   attemptStats: any = null;
 
-  // Timing & Auto-save
+  // Timing & Auto-save & Live Sync
   countdownSeconds = 0;
   countdownDisplay = '';
   timerInterval: any = null;
   autoSaveInterval: any = null;
+  livePollInterval: any = null;
 
   // Assignments
   assignments: Assignment[] = [];
@@ -97,11 +98,34 @@ export class StudentComponent implements OnInit, OnDestroy {
         localStorage.removeItem('edinz_active_course');
       }
     });
+    this.startLivePolling();
   }
 
   ngOnDestroy(): void {
     this.clearTimer();
     this.clearAutoSave();
+    this.stopLivePolling();
+  }
+
+  startLivePolling() {
+    this.stopLivePolling();
+    this.livePollInterval = setInterval(() => {
+      if (this.loggedInStudent && this.activeCourse && this.quizStep === 'dashboard') {
+        const targetCourseId = this.activeCourse.id;
+        if (this.activeTab === 'quiz') {
+          this.loadQuizzes(targetCourseId);
+        } else if (this.activeTab === 'assignment' && this.assignStep === 'dashboard') {
+          this.loadAssignments(targetCourseId);
+        }
+      }
+    }, 3000);
+  }
+
+  stopLivePolling() {
+    if (this.livePollInterval) {
+      clearInterval(this.livePollInterval);
+      this.livePollInterval = null;
+    }
   }
 
   switchTab(tab: 'quiz' | 'assignment' | 'results') {
@@ -262,13 +286,14 @@ export class StudentComponent implements OnInit, OnDestroy {
   }
 
   loadQuizzes(courseId: string) {
+    if (!courseId) return;
     this.apiService.getQuizzes(courseId).subscribe({
       next: (list) => {
         this.quizzes = list.filter(q => q.status !== 'Draft');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.errorMsg = 'Failed to load quizzes.';
-      }
+      error: () => {}
     });
   }
 
@@ -769,14 +794,15 @@ export class StudentComponent implements OnInit, OnDestroy {
   // ==================== ASSIGNMENTS MODULE ====================
 
   loadAssignments(courseId: string) {
+    if (!courseId) return;
     this.apiService.getAssignments(courseId).subscribe({
       next: (list) => {
         this.assignments = list;
         this.loadStudentSubmissions();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.errorMsg = 'Failed to load assignments.';
-      }
+      error: () => {}
     });
   }
 
