@@ -724,9 +724,11 @@
     </div>
 
     <div class="grid-2">
-      <!-- Create Assignment Form -->
+      <!-- Create / Edit Assignment Form -->
       <div class="neo-card">
-        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Publish Assignment & AI Evaluation Criteria</h3>
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">
+          {{ editingAssignment ? '✏️ Edit Assignment: ' + editingAssignment.title : 'Publish Assignment & AI Evaluation Criteria' }}
+        </h3>
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div *ngIf="!selectedCourseId">
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
@@ -765,7 +767,14 @@
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria <span style="font-size: 0.78rem; color: var(--accent-color); font-weight: 500;">(Example format in box below)</span></label>
             <textarea class="neo-input" rows="7" placeholder="Minimum words: 500&#10;Maximum words: 1000&#10;Assignment should mainly cover:&#10;- Angular Components&#10;- Services&#10;- Dependency Injection&#10;- Routing&#10;&#10;Pass if topic coverage is at least 70%." [(ngModel)]="newAssignRubric" name="assignRubric"></textarea>
           </div>
-          <button class="neo-btn neo-btn-primary" style="margin-top: 0.5rem;" (click)="createAssignment()">Publish Assignment</button>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+            <button *ngIf="!editingAssignment" class="neo-btn neo-btn-primary" style="flex: 1;" (click)="createAssignment()">Publish Assignment</button>
+            <ng-container *ngIf="editingAssignment">
+              <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="saveEditedAssignment()">✓ Save Changes</button>
+              <button class="neo-btn" (click)="cancelAssignmentEdit()">Cancel Edit</button>
+            </ng-container>
+          </div>
         </div>
       </div>
 
@@ -1131,8 +1140,8 @@
     </div>
   </div>
   <!-- EDIT ASSIGNMENT MODAL OVERLAY -->
-  <div *ngIf="showAssignmentEditModal && editingAssignment" class="modal-overlay">
-    <div class="neo-card modal-content" style="max-width: 500px; width: 90%; padding: 2rem;">
+  <div *ngIf="showAssignmentEditModal && editingAssignment" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; backdrop-filter: blur(6px); padding: 1.5rem;">
+    <div class="neo-card" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
       <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
         <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Edit Assignment</h3>
         <button class="modal-close" (click)="showAssignmentEditModal = false; editingAssignment = null;">×</button>

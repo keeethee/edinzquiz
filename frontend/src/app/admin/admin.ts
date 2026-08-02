@@ -1496,6 +1496,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   openEditAssignmentModal(a: Assignment) {
+    this.activeTab = 'assignments';
     this.editingAssignment = a;
     this.editAssignTitle = a.title;
     this.editAssignDesc = a.description || '';
@@ -1511,7 +1512,34 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     } else {
       this.editAssignDeadline = '';
     }
+
+    // Populate newAssign fields for seamless form interaction on Assignments page
+    this.newAssignTitle = this.editAssignTitle;
+    this.newAssignDesc = this.editAssignDesc;
+    this.newAssignInstructions = this.editAssignInstructions;
+    this.newAssignExpectedOutcome = this.editAssignExpectedOutcome;
+    this.newAssignRubric = this.editAssignRubric;
+    this.newAssignMaxMarks = this.editAssignMaxMarks;
+    this.newAssignDeadline = this.editAssignDeadline;
+    const cid = (a as any).courseId || a.course?.id;
+    if (cid) this.newAssignCourseId = cid;
+
     this.showAssignmentEditModal = true;
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {}
+  }
+
+  cancelAssignmentEdit() {
+    this.editingAssignment = null;
+    this.showAssignmentEditModal = false;
+    this.newAssignTitle = '';
+    this.newAssignDesc = '';
+    this.newAssignInstructions = '';
+    this.newAssignExpectedOutcome = '';
+    this.newAssignRubric = '';
+    this.newAssignMaxMarks = 100;
+    this.newAssignDeadline = '';
   }
 
   saveEditedAssignment() {
@@ -1519,24 +1547,31 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.errorMsg = '';
     this.successMsg = '';
 
-    if (!this.editAssignTitle.trim() || !this.editAssignDeadline) {
+    const titleToSave = this.editAssignTitle || this.newAssignTitle;
+    const descToSave = this.editAssignDesc || this.newAssignDesc;
+    const instructionsToSave = this.editAssignInstructions || this.newAssignInstructions;
+    const outcomeToSave = this.editAssignExpectedOutcome || this.newAssignExpectedOutcome;
+    const rubricToSave = this.editAssignRubric || this.newAssignRubric;
+    const maxMarksToSave = this.editAssignMaxMarks || this.newAssignMaxMarks;
+    const deadlineToSave = this.editAssignDeadline || this.newAssignDeadline;
+
+    if (!titleToSave.trim() || !deadlineToSave) {
       this.errorMsg = 'Title and deadline are required.';
       return;
     }
 
     this.apiService.updateAssignment(this.editingAssignment.id, {
-      title: this.editAssignTitle,
-      description: this.editAssignDesc,
-      instructions: this.editAssignInstructions,
-      expectedOutcome: this.editAssignExpectedOutcome,
-      rubric: this.editAssignRubric,
-      maxMarks: this.editAssignMaxMarks,
-      deadline: this.editAssignDeadline
+      title: titleToSave,
+      description: descToSave,
+      instructions: instructionsToSave,
+      expectedOutcome: outcomeToSave,
+      rubric: rubricToSave,
+      maxMarks: maxMarksToSave,
+      deadline: deadlineToSave
     }).subscribe({
       next: () => {
         this.successMsg = 'Assignment updated successfully.';
-        this.showAssignmentEditModal = false;
-        this.editingAssignment = null;
+        this.cancelAssignmentEdit();
         if (this.selectedCourseId) {
           this.loadAssignments(this.selectedCourseId);
         }
