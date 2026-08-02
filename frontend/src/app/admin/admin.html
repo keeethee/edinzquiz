@@ -762,7 +762,7 @@
             </div>
           </div>
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria <span style="font-size: 0.78rem; color: var(--accent-color); font-weight: 500;">(Example format in box below)</span></label>
             <textarea class="neo-input" rows="7" placeholder="Minimum words: 500&#10;Maximum words: 1000&#10;Assignment should mainly cover:&#10;- Angular Components&#10;- Services&#10;- Dependency Injection&#10;- Routing&#10;&#10;Pass if topic coverage is at least 70%." [(ngModel)]="newAssignRubric" name="assignRubric"></textarea>
           </div>
           <button class="neo-btn neo-btn-primary" style="margin-top: 0.5rem;" (click)="createAssignment()">Publish Assignment</button>
@@ -1152,7 +1152,7 @@
           <input type="datetime-local" class="neo-input" [(ngModel)]="editAssignDeadline" />
         </div>
         <div>
-          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria</label>
+          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria <span style="font-size: 0.78rem; color: var(--accent-color); font-weight: 500;">(Example format in box below)</span></label>
           <textarea class="neo-textarea" [(ngModel)]="editAssignRubric" rows="5" placeholder="Minimum words: 500&#10;Maximum words: 1000&#10;Assignment should mainly cover:&#10;- Angular Components&#10;- Services&#10;- Dependency Injection&#10;- Routing&#10;&#10;Pass if topic coverage is at least 70%."></textarea>
         </div>
 
