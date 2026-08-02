@@ -27,27 +27,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Corporate Statistics Metric Bar -->
-    <div class="corporate-stats-row">
-      <div class="corporate-stat-card" (click)="switchTab('courses')" style="cursor: pointer;" title="Click to view Courses">
-        <div class="corporate-stat-number">{{ courses.length || 0 }}</div>
-        <div class="corporate-stat-label">Active Track Modules</div>
-      </div>
-      <div class="corporate-stat-card" (click)="switchTab('quizzes')" style="cursor: pointer;" title="Click to view Quizzes">
-        <div class="corporate-stat-number">{{ quizzes.length || 0 }}</div>
-        <div class="corporate-stat-label">Technical Quizzes</div>
-      </div>
-      <div class="corporate-stat-card" (click)="switchTab('assignments')" style="cursor: pointer;" title="Click to view Assignments">
-        <div class="corporate-stat-number">{{ publishedAssignments.length || 0 }}</div>
-        <div class="corporate-stat-label">Active Assignments</div>
-      </div>
-      <div class="corporate-stat-card" (click)="switchTab('assign-sub')" style="cursor: pointer;" title="Click to view Evaluation Center">
-        <div class="corporate-stat-number">{{ assignSubmissions.length || 0 }}</div>
-        <div class="corporate-stat-label">Submissions Evaluated</div>
-      </div>
-    </div>
-
   </div>
 </div>
 
