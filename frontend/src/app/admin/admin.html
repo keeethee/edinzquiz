@@ -15,6 +15,7 @@
       </div>
 
       <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+        <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">Executive Dashboard</button>
         <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'courses'" (click)="switchTab('courses')">Tracks & Modules</button>
         <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">Technical Assessments</button>
         <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignments'" (click)="switchTab('assignments')">Assignments</button>
@@ -29,19 +30,19 @@
 
     <!-- Corporate Statistics Metric Bar -->
     <div class="corporate-stats-row">
-      <div class="corporate-stat-card">
+      <div class="corporate-stat-card" (click)="switchTab('courses')" style="cursor: pointer;" title="Click to view Courses">
         <div class="corporate-stat-number">{{ courses.length || 0 }}</div>
         <div class="corporate-stat-label">Active Track Modules</div>
       </div>
-      <div class="corporate-stat-card">
+      <div class="corporate-stat-card" (click)="switchTab('quizzes')" style="cursor: pointer;" title="Click to view Quizzes">
         <div class="corporate-stat-number">{{ quizzes.length || 0 }}</div>
         <div class="corporate-stat-label">Technical Quizzes</div>
       </div>
-      <div class="corporate-stat-card">
+      <div class="corporate-stat-card" (click)="switchTab('assignments')" style="cursor: pointer;" title="Click to view Assignments">
         <div class="corporate-stat-number">{{ publishedAssignments.length || 0 }}</div>
         <div class="corporate-stat-label">Active Assignments</div>
       </div>
-      <div class="corporate-stat-card">
+      <div class="corporate-stat-card" (click)="switchTab('assign-sub')" style="cursor: pointer;" title="Click to view Evaluation Center">
         <div class="corporate-stat-number">{{ assignSubmissions.length || 0 }}</div>
         <div class="corporate-stat-label">Submissions Evaluated</div>
       </div>
@@ -57,6 +58,110 @@
   </div>
   <div *ngIf="successMsg" class="neo-card" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
     {{ successMsg }}
+  </div>
+
+  <!-- ==================== EXECUTIVE DASHBOARD TAB ==================== -->
+  <div *ngIf="activeTab === 'dashboard'">
+    <!-- Top Welcome Banner -->
+    <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(0, 132, 232, 0.08) 0%, rgba(255, 102, 0, 0.04) 100%); border: 1px solid rgba(0, 132, 232, 0.2);">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">
+          👋 Welcome to Admin Operations Center
+        </h2>
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">
+          Monitor real-time technical assessments, automated evaluation pipelines, and active course tracks.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <span class="badge badge-completed" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+          🟢 System Status: Operational
+        </span>
+      </div>
+    </div>
+
+    <!-- Quick Action Launchpad Cards -->
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary); border-left: 4px solid var(--blue-primary); padding-left: 0.75rem;">
+      🚀 Operations Launchpad & Quick Actions
+    </h3>
+    <div class="grid-4" style="margin-bottom: 2.5rem; gap: 1.25rem;">
+      <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('quizzes'); openQuizEditor();">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📝</div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Create Technical Quiz</h4>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Configure questions, timing parameters, and passing marks.</p>
+      </div>
+
+      <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignments');">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📚</div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Publish Assignment</h4>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Upload problem statements, rubrics, and deadlines for students.</p>
+      </div>
+
+      <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assign-sub');">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🤖</div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">AI Evaluation Center</h4>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Review automated AI code evaluations and grade student submissions.</p>
+      </div>
+
+      <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('courses');">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🎯</div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Add Track Module</h4>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Register new academic curriculum courses and track codes.</p>
+      </div>
+    </div>
+
+    <!-- Two-column dashboard split: Course Overview & Live Activity Feed -->
+    <div class="grid-2" style="gap: 1.75rem;">
+      <!-- Active Tracks Summary -->
+      <div class="neo-card">
+        <div class="flex-between" style="margin-bottom: 1.25rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0;">📚 Active Track Modules</h3>
+          <button class="neo-btn" style="padding: 0.35rem 0.85rem; font-size: 0.8rem;" (click)="switchTab('courses')">View All ({{ courses.length }})</button>
+        </div>
+        
+        <div *ngIf="courses.length === 0" style="color: var(--text-muted); text-align: center; padding: 2rem;">No active courses configured.</div>
+
+        <div *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 0.85rem;">
+          <div *ngFor="let c of courses.slice(0, 5); trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1rem 1.25rem;">
+            <div>
+              <strong style="color: var(--accent-color); font-weight: 700; margin-right: 0.5rem;">{{ c.courseId }}</strong>
+              <span style="font-weight: 600; font-size: 0.95rem;">{{ c.courseName }}</span>
+              <span style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;" *ngIf="c.duration">Duration: {{ c.duration }}</span>
+            </div>
+            <span class="badge badge-completed" style="font-size: 0.78rem;">{{ c.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Quiz & Assignment Activity Feed -->
+      <div class="neo-card">
+        <div class="flex-between" style="margin-bottom: 1.25rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0;">⚡ Recent Student Submissions</h3>
+          <button class="neo-btn" style="padding: 0.35rem 0.85rem; font-size: 0.8rem;" (click)="switchTab('assign-sub')">All Submissions</button>
+        </div>
+
+        <div *ngIf="assignSubmissions.length === 0" style="color: var(--text-muted); text-align: center; padding: 2rem;">
+          No assignment submissions recorded yet.
+        </div>
+
+        <div *ngIf="assignSubmissions.length > 0" style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 380px; overflow-y: auto;">
+          <div *ngFor="let sub of assignSubmissions.slice(0, 5); trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1rem 1.25rem;">
+            <div>
+              <strong style="font-size: 0.92rem; display: block;">{{ sub.studentName || sub.fileName }}</strong>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Assignment: {{ sub.assignment?.title || 'Assignment' }}</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Submitted: {{ sub.submittedAt | date:'short' }}</span>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge" [class.badge-completed]="sub.marks !== null" [class.badge-pending]="sub.marks === null" style="font-size: 0.78rem;">
+                {{ sub.marks !== null ? (sub.marks + ' pts') : (sub.currentStatus || 'Pending') }}
+              </span>
+              <button class="neo-btn" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; margin-top: 0.35rem; display: block;" (click)="openAiEvalModal(sub)">
+                Evaluate
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ==================== COURSES TAB ==================== -->

@@ -16,7 +16,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   styleUrls: ['./admin.css']
 })
 export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate {
-  activeTab: 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' = 'courses';
+  activeTab: 'dashboard' | 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' = 'dashboard';
   String = String;
 
   // Shared state
@@ -127,10 +127,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   ) {}
 
   ngOnInit(): void {
-    this.loadCourses();
+    this.switchTab('dashboard');
     this.loadCategories();
-    this.loadQuizzes('');
-    this.loadAssignments('');
   }
 
   ngOnDestroy(): void {
@@ -149,7 +147,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.router.navigate(['/admin/login']);
   }
 
-  switchTab(tab: 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub') {
+  switchTab(tab: 'dashboard' | 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub') {
     if (this.isQuizEditorOpen) {
       if (!this.canDeactivate()) return;
       this.stopAutosaveLoop();
@@ -165,7 +163,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.detailedSubmission = null;
     this.closeModals();
 
-    if (tab === 'courses') {
+    if (tab === 'dashboard') {
+      this.loadCourses();
+      this.loadQuizSubmissions();
+      this.loadAssignments('');
+      this.loadAssignmentSubmissions();
+    } else if (tab === 'courses') {
       this.loadCourses();
     } else if (tab === 'quizzes') {
       this.loadCourses();
