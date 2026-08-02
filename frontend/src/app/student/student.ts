@@ -14,7 +14,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   styleUrls: ['./student.css']
 })
 export class StudentComponent implements OnInit, OnDestroy {
-  activeTab: 'quiz' | 'assignment' | 'results' = 'quiz';
+  activeTab: 'dashboard' | 'quiz' | 'assignment' | 'results' = 'dashboard';
 
   // Auth Screen state
   authMode: 'login' | 'register' = 'login';
@@ -112,9 +112,10 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.livePollInterval = setInterval(() => {
       if (this.loggedInStudent && this.activeCourse && this.quizStep === 'dashboard') {
         const targetCourseId = this.activeCourse.id;
-        if (this.activeTab === 'quiz') {
+        if (this.activeTab === 'dashboard' || this.activeTab === 'quiz') {
           this.loadQuizzes(targetCourseId);
-        } else if (this.activeTab === 'assignment' && this.assignStep === 'dashboard') {
+        }
+        if (this.activeTab === 'dashboard' || (this.activeTab === 'assignment' && this.assignStep === 'dashboard')) {
           this.loadAssignments(targetCourseId);
         }
       }
@@ -128,7 +129,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     }
   }
 
-  switchTab(tab: 'quiz' | 'assignment' | 'results') {
+  switchTab(tab: 'dashboard' | 'quiz' | 'assignment' | 'results') {
     this.activeTab = tab;
     this.errorMsg = '';
     this.successMsg = '';
@@ -136,7 +137,12 @@ export class StudentComponent implements OnInit, OnDestroy {
     
     const targetCourseId = this.activeCourse ? this.activeCourse.id : '';
 
-    if (tab === 'quiz') {
+    if (tab === 'dashboard') {
+      this.loadQuizzes(targetCourseId);
+      this.loadAssignments(targetCourseId);
+      this.loadStudentSubmissions();
+      this.loadHistoricalResults();
+    } else if (tab === 'quiz') {
       this.quizStep = 'dashboard';
       this.loadQuizzes(targetCourseId);
     } else if (tab === 'assignment') {
@@ -264,6 +270,12 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.fileName = '';
 
     const targetCourseId = this.activeCourse ? this.activeCourse.id : '';
+    if (this.activeTab === 'dashboard') {
+      this.loadQuizzes(targetCourseId);
+      this.loadAssignments(targetCourseId);
+      this.loadStudentSubmissions();
+      this.loadHistoricalResults();
+    }
     if (this.activeTab === 'quiz') this.loadQuizzes(targetCourseId);
     if (this.activeTab === 'assignment') this.loadAssignments(targetCourseId);
   }

@@ -25,6 +25,7 @@
 
         <!-- Mode Selector tabs -->
         <div *ngIf="activeCourse" style="display: flex; gap: 0.3rem;">
+          <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">Student Dashboard</button>
           <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'quiz'" (click)="switchTab('quiz')">Technical Assessments</button>
           <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'assignment'" (click)="switchTab('assignment')">Assignments</button>
           <button class="neo-btn" [class.neo-btn-toggle]="activeTab === 'results'" (click)="switchTab('results')">Performance Telemetry</button>
@@ -166,6 +167,109 @@
 
   <!-- ==================== PORTAL BODY AFTER COURSE MATED ==================== -->
   <div *ngIf="loggedInStudent && activeCourse">
+
+    <!-- 0. STUDENT DASHBOARD TAB -->
+    <div *ngIf="activeTab === 'dashboard'">
+      <!-- Top Welcome Card Banner -->
+      <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(0, 132, 232, 0.08) 0%, rgba(255, 102, 0, 0.04) 100%); border: 1px solid rgba(0, 132, 232, 0.2);">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">
+            👋 Welcome back, {{ loggedInStudent?.name }}!
+          </h2>
+          <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">
+            College: <strong>{{ loggedInStudent?.collegeName }}</strong> | Enrolled Course: <strong style="color: var(--blue-primary);">({{ activeCourse?.courseId }}) {{ activeCourse?.courseName }}</strong>
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <span class="badge badge-completed" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+            🟢 Active Student Portal
+          </span>
+        </div>
+      </div>
+
+      <!-- Student Telemetry Summary Metrics Grid -->
+      <div class="grid-4" style="margin-bottom: 2.5rem; gap: 1.25rem;">
+        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('quiz')">
+          <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📝</div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Active Assessments</span>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--blue-primary); margin: 0.2rem 0 0 0;">{{ quizzes.length || 0 }} Available</h3>
+        </div>
+
+        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
+          <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📖</div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Active Assignments</span>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--orange-text); margin: 0.2rem 0 0 0;">{{ assignments.length || 0 }} Published</h3>
+        </div>
+
+        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('results')">
+          <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🎯</div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Quizzes Attempted</span>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--success-color); margin: 0.2rem 0 0 0;">{{ allSubmissions.length || 0 }} Completed</h3>
+        </div>
+
+        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
+          <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🤖</div>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Assignment Uploads</span>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: #8b5cf6; margin: 0.2rem 0 0 0;">{{ studentSubmissions.length || 0 }} Submissions</h3>
+        </div>
+      </div>
+
+      <!-- Two-column Student Overview Grid -->
+      <div class="grid-2" style="gap: 1.75rem;">
+        <!-- Active Technical Assessments Panel -->
+        <div class="neo-card">
+          <div class="flex-between" style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-primary);">📝 Active Technical Assessments</h3>
+            <button class="neo-btn" style="padding: 0.35rem 0.85rem; font-size: 0.8rem;" (click)="switchTab('quiz')">View All ({{ quizzes.length }})</button>
+          </div>
+
+          <div *ngIf="quizzes.length === 0" style="color: var(--text-muted); text-align: center; padding: 2.5rem;">
+            No active assessments available for this course right now.
+          </div>
+
+          <div *ngIf="quizzes.length > 0" style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 420px; overflow-y: auto;">
+            <div *ngFor="let q of quizzes.slice(0, 5); trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1rem 1.25rem;">
+              <div>
+                <strong style="font-size: 1rem; color: var(--text-primary); display: block;">{{ q.quizTitle }}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Duration: {{ q.duration }} mins | Passing Score: {{ q.passingMarks }} pts</span>
+              </div>
+              <div>
+                <button *ngIf="isQuizAttemptable(q)" class="neo-btn neo-btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('quiz'); startQuizAttemptFlow(q)">
+                  🚀 Start Assessment
+                </button>
+                <span *ngIf="hasSubmittedQuiz(q.id)" class="badge badge-completed" style="font-size: 0.8rem;">Submitted</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignments & Homework Upload Panel -->
+        <div class="neo-card">
+          <div class="flex-between" style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-primary);">📖 Active Assignments & Homework</h3>
+            <button class="neo-btn" style="padding: 0.35rem 0.85rem; font-size: 0.8rem;" (click)="switchTab('assignment')">View All ({{ assignments.length }})</button>
+          </div>
+
+          <div *ngIf="assignments.length === 0" style="color: var(--text-muted); text-align: center; padding: 2.5rem;">
+            No active assignments published for this course right now.
+          </div>
+
+          <div *ngIf="assignments.length > 0" style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 420px; overflow-y: auto;">
+            <div *ngFor="let a of assignments.slice(0, 5); trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1rem 1.25rem;">
+              <div>
+                <strong style="font-size: 1rem; color: var(--text-primary); display: block;">{{ a.title }}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);" *ngIf="a.deadline">Deadline: {{ a.deadline | date:'short' }}</span>
+              </div>
+              <div>
+                <button class="neo-btn neo-btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('assignment'); selectAssignmentForUpload(a)">
+                  Upload Homework
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- 1. QUIZ TAB -->
     <div *ngIf="activeTab === 'quiz'">
