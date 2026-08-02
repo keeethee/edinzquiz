@@ -679,18 +679,24 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (!sub) return 0;
     if (typeof sub.attemptedCount === 'number' && !isNaN(sub.attemptedCount)) return sub.attemptedCount;
     if (sub.answers && Array.isArray(sub.answers)) {
-      return sub.answers.filter((a: any) => a.selectedOptionId || a.typedAnswer || a.typedAnswerText).length;
+      return sub.answers.filter((a: any) => 
+        (a.selectedOptionIds && a.selectedOptionIds.length > 0) || 
+        Boolean(a.selectedOptionId) || 
+        (a.typedAnswerText && a.typedAnswerText.trim().length > 0) || 
+        (a.typedAnswer && a.typedAnswer.trim().length > 0) || 
+        a.marksAwarded > 0
+      ).length;
     }
-    const correct = typeof sub.correctCount === 'number' && !isNaN(sub.correctCount) ? sub.correctCount : 0;
-    const wrong = typeof sub.wrongCount === 'number' && !isNaN(sub.wrongCount) ? sub.wrongCount : (typeof sub.incorrectCount === 'number' && !isNaN(sub.incorrectCount) ? sub.incorrectCount : 0);
-    return correct + wrong;
+    const correct = this.getCorrectCount(sub);
+    const wrong = this.getIncorrectCount(sub);
+    return Math.max(correct + wrong, 0);
   }
 
   getCorrectCount(sub: any): number {
     if (!sub) return 0;
     if (typeof sub.correctCount === 'number' && !isNaN(sub.correctCount)) return sub.correctCount;
     if (sub.answers && Array.isArray(sub.answers)) {
-      return sub.answers.filter((a: any) => a.isCorrect).length;
+      return sub.answers.filter((a: any) => a.marksAwarded > 0 || a.isCorrect === true).length;
     }
     return 0;
   }
@@ -700,7 +706,10 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (typeof sub.wrongCount === 'number' && !isNaN(sub.wrongCount)) return sub.wrongCount;
     if (typeof sub.incorrectCount === 'number' && !isNaN(sub.incorrectCount)) return sub.incorrectCount;
     if (sub.answers && Array.isArray(sub.answers)) {
-      return sub.answers.filter((a: any) => a.isEvaluated && !a.isCorrect && (a.selectedOptionId || a.typedAnswer || a.typedAnswerText)).length;
+      return sub.answers.filter((a: any) => {
+        const attempted = (a.selectedOptionIds && a.selectedOptionIds.length > 0) || Boolean(a.selectedOptionId) || (a.typedAnswerText && a.typedAnswerText.trim().length > 0) || (a.typedAnswer && a.typedAnswer.trim().length > 0);
+        return a.isEvaluated && (a.marksAwarded === 0 || a.isCorrect === false) && attempted;
+      }).length;
     }
     return 0;
   }
@@ -709,9 +718,6 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (!sub) return 0;
     if (typeof sub.unansweredCount === 'number' && !isNaN(sub.unansweredCount)) return sub.unansweredCount;
     if (typeof sub.skippedCount === 'number' && !isNaN(sub.skippedCount)) return sub.skippedCount;
-    if (sub.answers && Array.isArray(sub.answers)) {
-      return sub.answers.filter((a: any) => !a.selectedOptionId && !a.typedAnswer && !a.typedAnswerText).length;
-    }
     const total = this.getTotalQuestionsCount(sub);
     const attempted = this.getAttemptedCount(sub);
     return Math.max(0, total - attempted);

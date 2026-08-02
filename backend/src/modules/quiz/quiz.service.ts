@@ -730,14 +730,29 @@ export class QuizService {
     }
 
     const answers = sub.answers || [];
-    const correctCount = answers.filter((a: any) => a.isCorrect).length;
-    const wrongCount = answers.filter((a: any) => a.isEvaluated && !a.isCorrect && (a.selectedOptionId || a.typedAnswer || a.typedAnswerText)).length;
-    const attemptedCount = answers.filter((a: any) => a.selectedOptionId || a.typedAnswer || a.typedAnswerText).length;
+    const formattedAnswers = answers.map((a: any) => {
+      const isCorrect = a.marksAwarded > 0 || a.isCorrect === true;
+      const isAttempted = (a.selectedOptionIds && a.selectedOptionIds.length > 0) ||
+                          Boolean(a.selectedOptionId) ||
+                          (a.typedAnswerText && a.typedAnswerText.trim().length > 0) ||
+                          (a.typedAnswer && a.typedAnswer.trim().length > 0) ||
+                          a.marksAwarded > 0;
+      return {
+        ...a,
+        isCorrect,
+        isAttempted
+      };
+    });
+
+    const correctCount = formattedAnswers.filter((a: any) => a.isCorrect).length;
+    const attemptedCount = formattedAnswers.filter((a: any) => a.isAttempted).length;
+    const wrongCount = formattedAnswers.filter((a: any) => a.isEvaluated && !a.isCorrect && a.isAttempted).length;
     const totalQuestions = sub.quiz?.questions?.length || answers.length || 0;
     const unansweredCount = Math.max(0, totalQuestions - attemptedCount);
 
     return {
       ...sub,
+      answers: formattedAnswers,
       totalMarks,
       percentage,
       status,
