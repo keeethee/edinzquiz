@@ -828,11 +828,40 @@
         <!-- Pass/Fail Status Filter Dropdown -->
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <label style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">Result Status:</label>
-          <select class="neo-select" [(ngModel)]="subFilterStatus" style="min-width: 180px;">
+          <select class="neo-select" [(ngModel)]="subFilterStatus" style="min-width: 160px;">
             <option value="">-- All Statuses --</option>
             <option value="Pass">Passed Only</option>
             <option value="Fail">Failed Only</option>
             <option value="Pending">Pending Grading</option>
+          </select>
+        </div>
+
+        <!-- Month Filter Dropdown -->
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <label style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">Month:</label>
+          <select class="neo-select" [(ngModel)]="subFilterMonth" style="min-width: 140px;">
+            <option value="">-- All Months --</option>
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+          </select>
+        </div>
+
+        <!-- Date / Day Filter Dropdown -->
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <label style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">Date / Day:</label>
+          <select class="neo-select" [(ngModel)]="subFilterDate" style="min-width: 120px;">
+            <option value="">-- All Days --</option>
+            <option *ngFor="let day of daysList" [value]="day">{{ day }}</option>
           </select>
         </div>
       </div>

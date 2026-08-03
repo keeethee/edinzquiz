@@ -103,6 +103,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   quizSubmissions: QuizSubmission[] = [];
   subFilterCourseId: string = '';
   subFilterStatus: string = '';
+  subFilterMonth: string = '';
+  subFilterDate: string = '';
+  daysList: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
   detailedSubmission: QuizSubmission | null = null;
   
   // Subjective grading helper
@@ -388,7 +391,11 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       list = list.filter(q => q.status === this.quizFilterStatus);
     }
     
-    return list;
+    return list.slice().sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.publishAt || 0).getTime();
+      const dateB = new Date(b.createdAt || b.publishAt || 0).getTime();
+      return dateB - dateA;
+    });
   }
 
   get paginatedQuizzes(): Quiz[] {
@@ -1635,7 +1642,30 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       }
     }
 
-    return list;
+    // Filter by Month (0 to 11)
+    if (this.subFilterMonth !== '') {
+      const monthNum = parseInt(this.subFilterMonth, 10);
+      list = list.filter(s => {
+        const d = new Date(s.submittedAt || s.createdAt || s.startedAt || 0);
+        return d.getMonth() === monthNum;
+      });
+    }
+
+    // Filter by Date / Day (1 to 31)
+    if (this.subFilterDate !== '') {
+      const dayNum = parseInt(this.subFilterDate, 10);
+      list = list.filter(s => {
+        const d = new Date(s.submittedAt || s.createdAt || s.startedAt || 0);
+        return d.getDate() === dayNum;
+      });
+    }
+
+    // Sort strictly DESCENDING by Submission Date / Timestamp (Recent quiz comes first!)
+    return list.slice().sort((a, b) => {
+      const dateA = new Date(a.submittedAt || a.createdAt || a.startedAt || 0).getTime();
+      const dateB = new Date(b.submittedAt || b.createdAt || b.startedAt || 0).getTime();
+      return dateB - dateA;
+    });
   }
 
   viewQuizSubmissionDetail(id: string) {
