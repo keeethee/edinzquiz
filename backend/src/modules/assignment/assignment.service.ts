@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AiEvaluationService } from '../ai-evaluation/services/ai-evaluation.service';
 
@@ -22,6 +22,9 @@ export class AssignmentService {
     const course = await this.prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`);
+    }
+    if ((course.status || '').toLowerCase() !== 'active') {
+      throw new BadRequestException('Cannot publish an assignment for an inactive course.');
     }
 
     return this.prisma.assignment.create({

@@ -21,6 +21,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   // Shared state
   courses: Course[] = [];
+  get activeCourses(): Course[] {
+    return this.courses ? this.courses.filter(c => (c.status || '').toLowerCase() === 'active') : [];
+  }
   selectedCourseId: string = '';
   errorMsg: string = '';
   successMsg: string = '';
@@ -540,6 +543,14 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     
     if (!quiz && !this.selectedCourseId) {
       this.errorMsg = 'Strict Course Enforcement: Please select a Target Course from the dropdown above before creating a new quiz.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const courseIdToCheck = quiz ? quiz.courseId : this.selectedCourseId;
+    const targetCourse = this.courses.find(c => c.id === courseIdToCheck);
+    if (targetCourse && (targetCourse.status || '').toLowerCase() !== 'active') {
+      this.errorMsg = 'Cannot create or edit a quiz for an inactive course. Please select an active course.';
       this.cdr.markForCheck();
       return;
     }
@@ -1446,6 +1457,12 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const courseIdToUse = this.selectedCourseId || this.newAssignCourseId;
     if (!courseIdToUse) {
       this.errorMsg = 'Please select a target course for this assignment.';
+      return;
+    }
+
+    const targetCourse = this.courses.find(c => c.id === courseIdToUse);
+    if (targetCourse && (targetCourse.status || '').toLowerCase() !== 'active') {
+      this.errorMsg = 'Cannot publish an assignment for an inactive course. Please select an active course.';
       return;
     }
     if (!this.newAssignTitle || !this.newAssignTitle.trim()) {

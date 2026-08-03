@@ -227,7 +227,7 @@
           <h3 style="font-size: 1.2rem; margin: 0;">Select Target Course:</h3>
           <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="onCourseChangeForQuiz()" style="max-width: 350px;">
             <option value="">-- All Courses --</option>
-            <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+            <option *ngFor="let c of activeCourses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
           </select>
         </div>
         <button class="neo-btn neo-btn-primary" (click)="openQuizEditor()">
@@ -467,7 +467,7 @@
               <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
               <select class="neo-select" formControlName="courseId" style="width: 100%;">
                 <option value="">-- Select Target Course --</option>
-                <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+                <option *ngFor="let c of activeCourses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
               </select>
             </div>
 
@@ -719,7 +719,7 @@
       <h3 style="font-size: 1.2rem;">Select Target Course:</h3>
       <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="onCourseChangeForAssignment()" style="max-width: 350px;">
         <option value="">-- All Courses --</option>
-        <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+        <option *ngFor="let c of activeCourses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
       </select>
     </div>
 
@@ -734,7 +734,7 @@
             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Target Course <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <select class="neo-select" [(ngModel)]="newAssignCourseId" name="assignCourseId">
               <option value="">-- Select Target Course --</option>
-              <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+              <option *ngFor="let c of activeCourses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
             </select>
           </div>
           <div>
@@ -821,7 +821,7 @@
           <label style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">Course:</label>
           <select class="neo-select" [(ngModel)]="subFilterCourseId" style="min-width: 220px;">
             <option value="">-- All Courses --</option>
-            <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+            <option *ngFor="let c of activeCourses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
           </select>
         </div>
 
@@ -984,7 +984,7 @@
         <h3 style="font-size: 1.2rem; margin: 0;">Select Target Course:</h3>
         <select class="neo-select" [(ngModel)]="selectedCourseId" (change)="loadAssignmentSubmissions()" style="max-width: 350px;">
           <option value="">-- All Courses --</option>
-          <option *ngFor="let c of courses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
+          <option *ngFor="let c of activeCourses" [value]="c.id">({{ c.courseId }}) - {{ c.courseName }}</option>
         </select>
       </div>
     </div>

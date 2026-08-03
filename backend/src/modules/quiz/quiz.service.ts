@@ -40,6 +40,12 @@ export class QuizService {
     publishAt?: string;
     expireAt?: string;
   }) {
+    if (data.courseId) {
+      const course = await this.prisma.course.findUnique({ where: { id: data.courseId } });
+      if (!course || (course.status || '').toLowerCase() !== 'active') {
+        throw new BadRequestException('Cannot create or publish a quiz for an inactive course.');
+      }
+    }
     return this.prisma.quiz.create({
       data: {
         courseId: data.courseId,
