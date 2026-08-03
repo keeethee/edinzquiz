@@ -758,6 +758,10 @@ export class QuizService {
 
     return {
       ...sub,
+      submittedAt: sub.submittedAt || sub.createdAt || sub.startedAt || new Date(),
+      studentName: sub.studentName || sub.student?.name || 'Student',
+      collegeName: sub.collegeName || sub.student?.collegeName || 'N/A',
+      courseName: sub.quiz?.course?.courseName || sub.courseName || 'N/A',
       answers: formattedAnswers,
       totalMarks,
       percentage,

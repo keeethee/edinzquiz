@@ -88,6 +88,8 @@ export interface QuizSubmission {
   status: string;
   passed?: boolean;
   submittedAt: string;
+  createdAt?: string;
+  startedAt?: string;
   timeTakenSeconds?: number;
   grade?: string;
   quiz?: Quiz;
@@ -142,6 +144,7 @@ export interface AssignmentSubmission {
   fileType?: string;
   currentStatus?: string; // 'PENDING' | 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'REVIEW_REQUIRED' | 'FAILED' | 'PUBLISHED'
   submittedAt: string;
+  createdAt?: string;
   marks: number | null;
   feedback: string | null;
   publishedAt?: string | null;

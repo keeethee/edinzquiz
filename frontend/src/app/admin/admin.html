@@ -110,7 +110,7 @@
             <div>
               <strong style="font-size: 0.92rem; display: block;">{{ sub.studentName || sub.fileName }}</strong>
               <span style="font-size: 0.8rem; color: var(--text-secondary);">Assignment: {{ sub.assignment?.title || 'Assignment' }}</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Submitted: {{ sub.submittedAt | date:'short' }}</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Submitted: {{ (sub.submittedAt || sub.createdAt) ? ((sub.submittedAt || sub.createdAt) | date:'short') : 'N/A' }}</span>
             </div>
             <div style="text-align: right;">
               <span class="badge" [class.badge-completed]="sub.marks !== null" [class.badge-pending]="sub.marks === null" style="font-size: 0.78rem;">
@@ -874,7 +874,7 @@
                 <span *ngIf="s.status === 'Pending Evaluation'" class="badge badge-pending">Pending Grading</span>
               </td>
               <td style="padding: 1rem 1.5rem; font-size: 0.85rem; color: var(--text-secondary);">
-                {{ s.submittedAt | date:'medium' }}
+                {{ (s.submittedAt || s.createdAt || s.startedAt) ? ((s.submittedAt || s.createdAt || s.startedAt) | date:'medium') : 'N/A' }}
               </td>
               <td style="padding: 1rem 1.5rem; text-align: right;">
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
@@ -1010,7 +1010,7 @@
             </div>
             
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Course: {{ sub.assignment?.course?.courseName || sub.courseName || 'N/A' }} | Assignment: {{ sub.assignment?.title || 'General' }} | File: <a href="javascript:void(0)" (click)="downloadHomework(sub)" style="color: var(--accent-color); font-weight: 550;">{{ sub.fileName }}</a></p>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Uploaded: {{ sub.submittedAt | date:'medium' }}</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Uploaded: {{ (sub.submittedAt || sub.createdAt) ? ((sub.submittedAt || sub.createdAt) | date:'medium') : 'N/A' }}</p>
           </div>
 
           <div class="flex-center" style="gap: 1rem; flex-wrap: wrap;">
