@@ -13,9 +13,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://postgres.hrjusuvhekpnctcewmzs:Keeethee%402006@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?connection_limit=10&pool_timeout=10
       - key: DIRECT_URL
-        sync: false
+        value: postgresql://postgres.hrjusuvhekpnctcewmzs:Keeethee%402006@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
 
   # 2. Angular Frontend Static Site
   - type: web
