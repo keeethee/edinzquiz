@@ -158,15 +158,19 @@ export interface AssignmentSubmission {
   providedIn: 'root'
 })
 export class ApiService {
-  private get baseUrl(): string {
+  get backendRootUrl(): string {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('edinz_api_base_url');
-      if (stored) return stored;
+      if (stored) return stored.replace(/\/api\/?$/, '');
       if (window.location.hostname.includes('onrender.com') || window.location.hostname.includes('vercel.app') || window.location.hostname.includes('netlify.app')) {
-        return 'https://edinz-quiz-backend.onrender.com/api';
+        return 'https://edinz-quiz-backend.onrender.com';
       }
     }
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3000';
+  }
+
+  private get baseUrl(): string {
+    return `${this.backendRootUrl}/api`;
   }
   private coursesCache$: Observable<Course[]> | null = null;
   private categoriesCache$: Observable<any[]> | null = null;

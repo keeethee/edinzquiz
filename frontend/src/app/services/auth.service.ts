@@ -15,8 +15,12 @@ export interface StudentDetails {
 })
 export class AuthService {
   private get baseUrl(): string {
-    if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-      return `http://${window.location.hostname}:3000/api/auth`;
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('edinz_api_base_url');
+      if (stored) return `${stored.replace(/\/api\/?$/, '')}/api/auth`;
+      if (window.location.hostname.includes('onrender.com') || window.location.hostname.includes('vercel.app') || window.location.hostname.includes('netlify.app')) {
+        return 'https://edinz-quiz-backend.onrender.com/api/auth';
+      }
     }
     return 'http://localhost:3000/api/auth';
   }

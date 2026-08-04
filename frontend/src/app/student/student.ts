@@ -966,7 +966,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     let parsed = text;
 
     // Convert relative backend uploads paths to absolute URLs
-    parsed = parsed.replace(/\/uploads\//g, 'http://localhost:3000/uploads/');
+    parsed = parsed.replace(/\/uploads\//g, `${this.apiService.backendRootUrl}/uploads/`);
 
     const katex = (window as any).katex;
     const hljs = (window as any).hljs;
