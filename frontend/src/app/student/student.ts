@@ -153,8 +153,11 @@ export class StudentComponent implements OnInit, OnDestroy {
     }
   }
 
+  isSubmittingRegister = false;
+
   // --- Student Auth operations ---
   onStudentRegister() {
+    if (this.isSubmittingRegister) return;
     this.errorMsg = '';
     this.successMsg = '';
     if (!this.regEmail || !this.regPassword || !this.regName || !this.regCollege) {
@@ -162,9 +165,11 @@ export class StudentComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isSubmittingRegister = true;
     this.authService.registerStudent(this.regEmail, this.regPassword, this.regName, this.regCollege).subscribe({
       next: () => {
-        this.successMsg = 'Account created successfully! Please sign in.';
+        this.isSubmittingRegister = false;
+        this.successMsg = 'Account created successfully! Please sign in with your credentials.';
         this.authMode = 'login';
         this.loginEmail = this.regEmail;
         this.regEmail = '';
@@ -173,7 +178,8 @@ export class StudentComponent implements OnInit, OnDestroy {
         this.regCollege = '';
       },
       error: err => {
-        this.errorMsg = err.error?.message || 'Failed to create student account.';
+        this.isSubmittingRegister = false;
+        this.errorMsg = err.error?.message || (typeof err.error === 'string' ? err.error : 'Failed to create student account. Email may already be registered.');
       }
     });
   }

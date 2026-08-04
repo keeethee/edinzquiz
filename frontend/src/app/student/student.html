@@ -100,7 +100,7 @@
         <h2 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Student Signup</h2>
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Create student profile credentials</p>
         
-        <form (ngSubmit)="onStudentRegister()">
+        <form (ngSubmit)="onStudentRegister()" (submit)="$event.preventDefault()">
           <div style="margin-bottom: 1.25rem;">
             <label for="studentRegName" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Full Name <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
             <input id="studentRegName" type="text" class="neo-input" [(ngModel)]="regName" name="name" placeholder="John Doe" required />
@@ -126,8 +126,9 @@
             </div>
           </div>
 
-          <button type="submit" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
-            Create Profile
+          <button type="submit" (click)="onStudentRegister()" [disabled]="isSubmittingRegister" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
+            <span *ngIf="isSubmittingRegister" class="blink">Creating Profile...</span>
+            <span *ngIf="!isSubmittingRegister">Create Profile</span>
           </button>
 
           <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
