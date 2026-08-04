@@ -162,7 +162,7 @@ export class ApiService {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('edinz_api_base_url');
       if (stored) return stored;
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      if (window.location.hostname.includes('onrender.com') || window.location.hostname.includes('vercel.app') || window.location.hostname.includes('netlify.app')) {
         return 'https://edinz-quiz-backend.onrender.com/api';
       }
     }
