@@ -158,7 +158,16 @@ export interface AssignmentSubmission {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:3000/api';
+  private get baseUrl(): string {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('edinz_api_base_url');
+      if (stored) return stored;
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return 'https://edinz-quiz-backend.onrender.com/api';
+      }
+    }
+    return 'http://localhost:3000/api';
+  }
   private coursesCache$: Observable<Course[]> | null = null;
   private categoriesCache$: Observable<any[]> | null = null;
 
