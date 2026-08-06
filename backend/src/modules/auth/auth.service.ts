@@ -55,8 +55,8 @@ export class AuthService implements OnApplicationBootstrap {
       throw new ConflictException(`Student with email "${email}" already registered.`);
     }
 
-    const passwordHash = await bcrypt.hash(pass, 10);
-    return this.prisma.student.create({
+    const passwordHash = await bcrypt.hash(pass, 6);
+    const student = await this.prisma.student.create({
       data: {
         email,
         passwordHash,
@@ -64,6 +64,20 @@ export class AuthService implements OnApplicationBootstrap {
         collegeName,
       },
     });
+
+    const payload = { sub: student.id, email: student.email, role: 'student' };
+    const token = await this.jwtService.signAsync(payload);
+
+    return {
+      message: 'Account created successfully',
+      token,
+      student: {
+        id: student.id,
+        name: student.name,
+        email: student.email,
+        collegeName: student.collegeName,
+      },
+    };
   }
 
   async loginStudent(email: string, pass: string): Promise<{ token: string; student: { id: string; name: string; email: string; collegeName: string } }> {

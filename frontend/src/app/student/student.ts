@@ -169,9 +169,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.authService.registerStudent(this.regEmail, this.regPassword, this.regName, this.regCollege).subscribe({
       next: () => {
         this.isSubmittingRegister = false;
-        this.successMsg = 'Account created successfully! Please sign in with your credentials.';
-        this.authMode = 'login';
-        this.loginEmail = this.regEmail;
+        this.successMsg = 'Account created successfully! Welcome to your student portal.';
         this.regEmail = '';
         this.regPassword = '';
         this.regName = '';

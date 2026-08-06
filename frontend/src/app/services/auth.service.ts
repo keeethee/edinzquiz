@@ -105,7 +105,16 @@ export class AuthService {
   }
 
   registerStudent(email: string, pass: string, name: string, collegeName: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/student/register`, { email, password: pass, name, collegeName });
+    return this.http.post<any>(`${this.baseUrl}/student/register`, { email, password: pass, name, collegeName }).pipe(
+      tap(res => {
+        if (res && res.token && res.student) {
+          localStorage.setItem(this.studentTokenKey, res.token);
+          localStorage.setItem(this.studentDataKey, JSON.stringify(res.student));
+          this.studentLoggedIn$.next(true);
+          this.currentStudent$.next(res.student);
+        }
+      })
+    );
   }
 
   loginStudent(email: string, pass: string): Observable<any> {
