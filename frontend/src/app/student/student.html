@@ -235,7 +235,7 @@
                 <span style="font-size: 0.8rem; color: var(--text-secondary);">Duration: {{ q.duration }} mins | Passing Score: {{ q.passingMarks }} pts</span>
               </div>
               <div>
-                <button *ngIf="isQuizAttemptable(q)" class="neo-btn neo-btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('quiz'); startQuizAttemptFlow(q)">
+                <button *ngIf="isQuizAttemptable(q)" class="neo-btn neo-btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('quiz'); openQuizDetails(q)">
                   🚀 Start Assessment
                 </button>
                 <span *ngIf="hasSubmittedQuiz(q.id)" class="badge badge-completed" style="font-size: 0.8rem;">Submitted</span>
@@ -309,7 +309,7 @@
                 <button 
                   *ngIf="!hasSubmittedQuiz(q.id) && isQuizAttemptable(q)" 
                   class="neo-btn neo-btn-primary" 
-                  (click)="startQuizAttemptFlow(q)">
+                  (click)="openQuizDetails(q)">
                   Start Attempt
                 </button>
 

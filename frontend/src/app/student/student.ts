@@ -353,25 +353,14 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   preloadedQuizData: any = null;
 
-  startQuizAttemptFlow(quiz: Quiz) {
+  openQuizDetails(quiz: any) {
+    this.errorMsg = '';
     if (!this.isQuizAttemptable(quiz)) {
       this.errorMsg = 'This quiz has expired or is not currently open for attempt.';
       return;
     }
     this.selectedQuiz = quiz;
-    this.quizStep = 'details';
-    this.preloadedQuizData = null;
-
-    // Preload quiz details in background so "Agree & Start" is instant
-    this.apiService.getQuizForStudent(quiz.id).subscribe({
-      next: (res) => {
-        this.preloadedQuizData = res;
-        if (res.totalMarks) {
-          this.selectedQuiz.totalMarks = res.totalMarks;
-        }
-      },
-      error: () => {}
-    });
+    this.onQuizDetailsConfirm();
   }
 
   currentSubmissionId = '';
