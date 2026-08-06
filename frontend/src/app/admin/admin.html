@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center;">
+      <div class="nav-tabs-scroll" style="display: flex; gap: 0.45rem; align-items: center;">
         <button class="neo-btn" style="padding: 0.48rem 0.95rem; font-size: 0.86rem;" [class.neo-btn-toggle]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">Executive Dashboard</button>
         <button class="neo-btn" style="padding: 0.48rem 0.95rem; font-size: 0.86rem;" [class.neo-btn-toggle]="activeTab === 'courses'" (click)="switchTab('courses')">Tracks & Modules</button>
         <button class="neo-btn" style="padding: 0.48rem 0.95rem; font-size: 0.86rem;" [class.neo-btn-toggle]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">Technical Assessments</button>
