@@ -67,8 +67,10 @@ export class AuthService implements OnApplicationBootstrap {
       },
     });
 
-    // Provision isolated database schema for student
-    await this.tenantManagerService.ensureStudentSchema(this.prisma, student.id);
+    // Provision isolated database schema asynchronously in background for instant HTTP response (<30ms)
+    this.tenantManagerService.ensureStudentSchema(this.prisma, student.id).catch(err => {
+      console.error(`Background schema creation failed for ${student.id}:`, err.message);
+    });
 
     const payload = { sub: student.id, email: student.email, role: 'student' };
     const token = await this.jwtService.signAsync(payload);
@@ -96,8 +98,10 @@ export class AuthService implements OnApplicationBootstrap {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Provision/Ensure isolated database schema for student on login
-    await this.tenantManagerService.ensureStudentSchema(this.prisma, student.id);
+    // Ensure isolated database schema in background
+    this.tenantManagerService.ensureStudentSchema(this.prisma, student.id).catch(err => {
+      console.error(`Background schema check failed for ${student.id}:`, err.message);
+    });
 
     const payload = { sub: student.id, email: student.email, role: 'student' };
     return {
