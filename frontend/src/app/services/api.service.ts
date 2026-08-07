@@ -175,7 +175,15 @@ export class ApiService {
   private coursesCache$: Observable<Course[]> | null = null;
   private categoriesCache$: Observable<any[]> | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.pingWarmupBackend();
+  }
+
+  private pingWarmupBackend(): void {
+    if (typeof window !== 'undefined') {
+      this.http.get(`${this.baseUrl}/courses`).subscribe({ error: () => {} });
+    }
+  }
 
   private clearCoursesCache() {
     this.coursesCache$ = null;
