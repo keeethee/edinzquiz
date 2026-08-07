@@ -894,7 +894,8 @@ export class StudentComponent implements OnInit, OnDestroy {
   // ==================== RESULTS MODULE ====================
 
   loadHistoricalResults() {
-    this.apiService.getQuizSubmissions().subscribe({
+    const studentIdParam = this.loggedInStudent ? String(this.loggedInStudent.id || '') : undefined;
+    this.apiService.getQuizSubmissions(studentIdParam).subscribe({
       next: (list) => {
         if (!list || list.length === 0) {
           this.allSubmissions = [];
@@ -906,19 +907,16 @@ export class StudentComponent implements OnInit, OnDestroy {
           const sId = String(this.loggedInStudent.id || '');
           const sName = (this.loggedInStudent.name || '').toLowerCase().trim();
           
-          let filtered = list.filter(sub => {
+          const filtered = list.filter(sub => {
             const subStudentId = String((sub as any).studentId || sub.student?.id || '');
             if (sId && subStudentId && subStudentId === sId) return true;
             if (sName && ((sub.studentName || '').toLowerCase().trim() === sName || (sub.student?.name || '').toLowerCase().trim() === sName)) return true;
             return false;
           });
 
-          if (filtered.length === 0) {
-            filtered = list.filter(sub => sub.submittedAt);
-          }
           this.allSubmissions = filtered;
         } else {
-          this.allSubmissions = list.filter(sub => sub.submittedAt);
+          this.allSubmissions = [];
         }
         this.cdr.markForCheck();
       },

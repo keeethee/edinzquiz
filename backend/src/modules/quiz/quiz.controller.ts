@@ -45,8 +45,8 @@ export class QuizController {
 
   @UseGuards(AuthGuard)
   @Get('submissions/list')
-  getSubmissionsList() {
-    return this.quizService.getSubmissionsList();
+  getSubmissionsList(@Query('studentId') studentId?: string) {
+    return this.quizService.getSubmissionsList(studentId);
   }
 
   @UseGuards(AuthGuard)

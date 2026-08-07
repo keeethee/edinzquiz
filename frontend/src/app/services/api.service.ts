@@ -401,8 +401,9 @@ export class ApiService {
     return this.http.get<any>(`${this.baseUrl}/quizzes/submissions/student-result/${id}`, this.getHeaders());
   }
 
-  getQuizSubmissions(): Observable<QuizSubmission[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/quizzes/submissions/list`, this.getHeaders()).pipe(
+  getQuizSubmissions(studentId?: string): Observable<QuizSubmission[]> {
+    const url = studentId ? `${this.baseUrl}/quizzes/submissions/list?studentId=${encodeURIComponent(studentId)}` : `${this.baseUrl}/quizzes/submissions/list`;
+    return this.http.get<any[]>(url, this.getHeaders()).pipe(
       map(list => (list || []).map(sub => this.mapQuizSubmission(sub)))
     );
   }

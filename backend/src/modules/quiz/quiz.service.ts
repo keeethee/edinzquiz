@@ -800,8 +800,14 @@ export class QuizService {
     return this.formatSubmissionResult(sub);
   }
 
-  async getSubmissionsList() {
+  async getSubmissionsList(studentId?: string) {
+    const where: any = {};
+    if (studentId) {
+      where.studentId = studentId;
+    }
+
     const list = await this.prisma.quizSubmission.findMany({
+      where,
       include: {
         quiz: {
           include: {
