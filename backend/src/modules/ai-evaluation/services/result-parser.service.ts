@@ -45,26 +45,36 @@ export class ResultParserService {
       }
     }
 
+    // Check topic relevance flag
+    const isRelevantToTopic = parsed.isRelevantToTopic !== false;
+
     // Normalize completionStatus
     let completionStatus: 'COMPLETED' | 'PARTIALLY_COMPLETED' | 'NOT_COMPLETED' = 'PARTIALLY_COMPLETED';
-    if (parsed.completionStatus === 'COMPLETED' || parsed.completionStatus === 'NOT_COMPLETED') {
-      completionStatus = parsed.completionStatus;
+    if (!isRelevantToTopic || parsed.completionStatus === 'NOT_COMPLETED') {
+      completionStatus = 'NOT_COMPLETED';
+    } else if (parsed.completionStatus === 'COMPLETED') {
+      completionStatus = 'COMPLETED';
     }
 
     // Normalize completionPercentage
     let completionPercentage = Number(parsed.completionPercentage);
-    if (isNaN(completionPercentage)) completionPercentage = 50;
+    if (isNaN(completionPercentage) || completionStatus === 'NOT_COMPLETED' || !isRelevantToTopic) {
+      completionPercentage = 0;
+    }
     completionPercentage = Math.max(0, Math.min(100, Math.round(completionPercentage)));
 
     // Normalize recommendedMarks
     let recommendedMarks = Number(parsed.recommendedMarks);
-    if (isNaN(recommendedMarks)) recommendedMarks = Math.round((completionPercentage / 100) * maxMarks);
-    recommendedMarks = Math.max(0, Math.min(maxMarks, Math.round(recommendedMarks * 10) / 10));
+    if (isNaN(recommendedMarks) || completionStatus === 'NOT_COMPLETED' || !isRelevantToTopic) {
+      recommendedMarks = 0;
+    } else {
+      recommendedMarks = Math.max(0, Math.min(maxMarks, Math.round(recommendedMarks * 10) / 10));
+    }
 
     // Normalize confidenceScore
     let confidenceScore = Number(parsed.confidenceScore);
-    if (isNaN(confidenceScore)) confidenceScore = 0.85;
-    if (confidenceScore > 1.0) confidenceScore = confidenceScore / 100; // Convert 85 -> 0.85
+    if (isNaN(confidenceScore)) confidenceScore = 0.95;
+    if (confidenceScore > 1.0) confidenceScore = confidenceScore / 100;
     confidenceScore = Math.max(0, Math.min(1.0, Math.round(confidenceScore * 100) / 100));
 
     // Normalize checklist & lists
