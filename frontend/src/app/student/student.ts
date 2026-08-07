@@ -177,7 +177,14 @@ export class StudentComponent implements OnInit, OnDestroy {
       },
       error: err => {
         this.isSubmittingRegister = false;
-        this.errorMsg = err.error?.message || (typeof err.error === 'string' ? err.error : 'Failed to create student account. Email may already be registered.');
+        const msg = err.error?.message || (typeof err.error === 'string' ? err.error : '');
+        if (err.status === 409 || msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists')) {
+          this.loginEmail = this.regEmail;
+          this.errorMsg = `⚠️ User already exists! Email "${this.regEmail}" is already registered. Please sign in below.`;
+          this.authMode = 'login';
+        } else {
+          this.errorMsg = msg || 'Failed to create student account. Email may already be registered.';
+        }
       }
     });
   }
