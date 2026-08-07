@@ -2,12 +2,14 @@ import { Injectable, OnApplicationBootstrap, UnauthorizedException, ConflictExce
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TenantManagerService } from '../../prisma/tenant-manager.service';
 
 @Injectable()
 export class AuthService implements OnApplicationBootstrap {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private tenantManagerService: TenantManagerService,
   ) {}
 
   // Seed default admin on startup if not present
@@ -65,6 +67,9 @@ export class AuthService implements OnApplicationBootstrap {
       },
     });
 
+    // Provision isolated database schema for student
+    await this.tenantManagerService.ensureStudentSchema(this.prisma, student.id);
+
     const payload = { sub: student.id, email: student.email, role: 'student' };
     const token = await this.jwtService.signAsync(payload);
 
@@ -90,6 +95,9 @@ export class AuthService implements OnApplicationBootstrap {
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
+
+    // Provision/Ensure isolated database schema for student on login
+    await this.tenantManagerService.ensureStudentSchema(this.prisma, student.id);
 
     const payload = { sub: student.id, email: student.email, role: 'student' };
     return {
