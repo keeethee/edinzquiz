@@ -1237,6 +1237,7 @@
               <span class="badge" [style.background]="(selectedAiEvalDetail.latestEvaluation.confidenceScore || 0) >= 0.8 ? 'rgba(16,185,129,0.15)' : 'rgba(249,115,22,0.15)'" [style.color]="(selectedAiEvalDetail.latestEvaluation.confidenceScore || 0) >= 0.8 ? 'var(--success-color)' : '#f97316'">
                 {{ ((selectedAiEvalDetail.latestEvaluation.confidenceScore || 0) * 100).toFixed(0) }}% Confidence
               </span>
+              <span style="display: block; font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.2rem;">(AI Certainty in Decision)</span>
             </div>
 
             <div>
