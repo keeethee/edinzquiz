@@ -1,50 +1,58 @@
-<!-- ==================== ADMIN PORTAL (LEFT HERO SIDEBAR LAYOUT) ==================== -->
+<!-- ==================== ADMIN PORTAL (CLEAN LIGHT-THEMED SIDEBAR LAYOUT) ==================== -->
 <div class="app-sidebar-layout">
   
-  <!-- LEFT-SIDE HERO SIDEBAR -->
-  <aside class="left-hero-sidebar">
+  <!-- CLEAN LIGHT-THEMED SIDEBAR -->
+  <aside class="left-sidebar-clean">
     <div>
-      <!-- Brand Logo Pill -->
-      <div class="sidebar-brand-section">
-        <div class="logo-pill" style="justify-content: center;">
-          <img src="logo.png" alt="INSPYRE" style="height: 42px; width: auto; max-width: 180px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-        </div>
+      <!-- Brand Logo Header -->
+      <div class="sidebar-brand-clean">
+        <img src="logo.png" alt="INSPYRE" style="height: 36px; width: auto; max-width: 130px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
         <div>
-          <h3 style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Admin Operations</h3>
-          <span style="font-size: 0.75rem; color: rgba(255,255,255,0.75);">Evaluation & Track Management</span>
+          <strong style="font-size: 0.92rem; display: block; color: var(--text-primary); font-weight: 700; line-height: 1.2;">Admin Console</strong>
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success-color);"></span> Operations
+          </span>
         </div>
       </div>
 
-      <!-- Vertical Navigation Menu Links -->
-      <nav class="sidebar-nav-menu" style="margin-top: 1.25rem;">
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
-          <span style="font-size: 1.15rem;">📊</span> Executive Dashboard
+      <!-- Categorized Navigation Menu Links -->
+      <nav>
+        <span class="sidebar-section-title">Overview</span>
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+          <span style="font-size: 1.1rem;">📊</span> Executive Dashboard
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'courses'" (click)="switchTab('courses')">
-          <span style="font-size: 1.15rem;">📁</span> Tracks & Modules
+
+        <span class="sidebar-section-title" style="margin-top: 0.5rem;">Academic Management</span>
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'courses'" (click)="switchTab('courses')">
+          <span style="font-size: 1.1rem;">📁</span> Tracks & Modules
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">
-          <span style="font-size: 1.15rem;">📝</span> Technical Assessments
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">
+          <span style="font-size: 1.1rem;">📝</span> Technical Assessments
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'assignments'" (click)="switchTab('assignments')">
-          <span style="font-size: 1.15rem;">📚</span> Assignments
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'assignments'" (click)="switchTab('assignments')">
+          <span style="font-size: 1.1rem;">📚</span> Assignments
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">
-          <span style="font-size: 1.15rem;">📋</span> Assessment Log
+
+        <span class="sidebar-section-title" style="margin-top: 0.5rem;">Evaluation & Telemetry</span>
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">
+          <span style="font-size: 1.1rem;">📋</span> Assessment Log
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">
-          <span style="font-size: 1.15rem;">🤖</span> AI Evaluations
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">
+          <span style="font-size: 1.1rem;">🤖</span> AI Evaluations
         </button>
       </nav>
     </div>
 
-    <!-- Admin Profile Card in Sidebar Footer -->
-    <div class="sidebar-footer-profile">
-      <div>
-        <strong style="font-size: 0.88rem; color: var(--text-primary); display: block;">Administrator</strong>
-        <span style="font-size: 0.75rem; color: var(--text-secondary);">Operations Center</span>
+    <!-- Admin Profile Box in Sidebar Footer -->
+    <div class="sidebar-profile-box">
+      <div style="display: flex; align-items: center; gap: 0.65rem;">
+        <div class="avatar-circle">AD</div>
+        <div>
+          <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Administrator</strong>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Institutional Ops</span>
+        </div>
       </div>
-      <button class="neo-btn neo-btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" (click)="logout()">
+      <button class="neo-btn neo-btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" (click)="logout()">
         Logout
       </button>
     </div>

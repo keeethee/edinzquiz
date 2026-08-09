@@ -145,57 +145,61 @@
   </div>
 </div>
 
-<!-- ==================== 2. MAIN APPLICATION PORTAL (LEFT HERO SIDEBAR LAYOUT) ==================== -->
+<!-- ==================== 2. MAIN APPLICATION PORTAL (CLEAN LIGHT-THEMED SIDEBAR LAYOUT) ==================== -->
 <div *ngIf="loggedInStudent" class="app-sidebar-layout">
   
-  <!-- LEFT-SIDE HERO SIDEBAR -->
-  <aside class="left-hero-sidebar">
+  <!-- CLEAN LIGHT-THEMED SIDEBAR -->
+  <aside class="left-sidebar-clean">
     <div>
-      <!-- Brand Logo Pill -->
-      <div class="sidebar-brand-section">
-        <div class="logo-pill" style="justify-content: center;">
-          <img src="logo.png" alt="INSPYRE" style="height: 42px; width: auto; max-width: 180px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-        </div>
+      <!-- Brand Logo Header -->
+      <div class="sidebar-brand-clean">
+        <img src="logo.png" alt="INSPYRE" style="height: 36px; width: auto; max-width: 130px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
         <div>
-          <h3 style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Student Assessment Portal</h3>
-          <span style="font-size: 0.75rem; color: rgba(255,255,255,0.75);">Real-Time Quizzes & AI Evaluation</span>
+          <strong style="font-size: 0.92rem; display: block; color: var(--text-primary); font-weight: 700; line-height: 1.2;">Student Portal</strong>
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success-color);"></span> Enrolled
+          </span>
         </div>
       </div>
 
-      <!-- Active Course Card in Sidebar -->
-      <div *ngIf="activeCourse" class="sidebar-course-card">
+      <!-- Active Course Pill in Sidebar -->
+      <div *ngIf="activeCourse" class="sidebar-course-pill">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.72rem; color: rgba(255,255,255,0.7); text-transform: uppercase; font-weight: 700;">Enrolled Course</span>
-          <button class="neo-btn" style="padding: 0.12rem 0.5rem; font-size: 0.7rem; font-weight: 600; border-radius: 3px;" (click)="exitCourse()">Change</button>
+          <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Active Track</span>
+          <button class="neo-btn" style="padding: 0.12rem 0.45rem; font-size: 0.68rem; font-weight: 600; border-radius: 3px;" (click)="exitCourse()">Change</button>
         </div>
-        <strong style="font-size: 0.92rem; color: #ffffff; line-height: 1.3;">{{ activeCourse.courseName }}</strong>
-        <span style="font-size: 0.78rem; color: rgba(255,255,255,0.85); font-weight: 600;">Code: {{ activeCourse.courseId }}</span>
+        <strong style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.25;">{{ activeCourse.courseName }}</strong>
+        <span style="font-size: 0.75rem; color: var(--blue-primary); font-weight: 700;">Code: {{ activeCourse.courseId }}</span>
       </div>
 
       <!-- Vertical Navigation Menu Links -->
-      <nav *ngIf="activeCourse" class="sidebar-nav-menu" style="margin-top: 1.5rem;">
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
-          <span style="font-size: 1.15rem;">📊</span> Student Dashboard
+      <nav *ngIf="activeCourse">
+        <span class="sidebar-section-title">Navigation</span>
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+          <span style="font-size: 1.1rem;">📊</span> Student Dashboard
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'quiz'" (click)="switchTab('quiz')">
-          <span style="font-size: 1.15rem;">🚀</span> Technical Assessments
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'quiz'" (click)="switchTab('quiz')">
+          <span style="font-size: 1.1rem;">🚀</span> Technical Assessments
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'assignment'" (click)="switchTab('assignment')">
-          <span style="font-size: 1.15rem;">📚</span> Assignments
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'assignment'" (click)="switchTab('assignment')">
+          <span style="font-size: 1.1rem;">📚</span> Assignments
         </button>
-        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'results'" (click)="switchTab('results')">
-          <span style="font-size: 1.15rem;">📈</span> Performance Telemetry
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'results'" (click)="switchTab('results')">
+          <span style="font-size: 1.1rem;">📈</span> Performance Telemetry
         </button>
       </nav>
     </div>
 
-    <!-- Student Profile Card in Sidebar Footer -->
-    <div class="sidebar-footer-profile">
-      <div>
-        <strong style="font-size: 0.88rem; color: var(--text-primary); display: block;">{{ loggedInStudent.name }}</strong>
-        <span style="font-size: 0.75rem; color: var(--text-secondary);">{{ loggedInStudent.collegeName }}</span>
+    <!-- Student Profile Box in Sidebar Footer -->
+    <div class="sidebar-profile-box">
+      <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0;">
+        <div class="avatar-circle">{{ (loggedInStudent.name || 'S').charAt(0).toUpperCase() }}</div>
+        <div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ loggedInStudent.name }}</strong>
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ loggedInStudent.collegeName }}</span>
+        </div>
       </div>
-      <button class="neo-btn neo-btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" (click)="onStudentLogout()">
+      <button class="neo-btn neo-btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; flex-shrink: 0;" (click)="onStudentLogout()">
         Logout
       </button>
     </div>
