@@ -1,65 +1,80 @@
-<!-- ==================== ADMIN PORTAL (CLEAN LIGHT-THEMED SIDEBAR LAYOUT) ==================== -->
+<!-- ==================== ADMIN PORTAL (CODINGLAB SIDEBAR TEMPLATE) ==================== -->
 <div class="app-sidebar-layout">
   
-  <!-- CLEAN LIGHT-THEMED SIDEBAR (COLLAPSIBLE) -->
-  <aside class="left-sidebar-clean" [class.collapsed]="isSidebarCollapsed">
+  <!-- CODINGLAB SIDEBAR -->
+  <aside class="codinglab-sidebar" [class.collapsed]="isSidebarCollapsed">
     <div>
-      <!-- Brand Logo Header -->
-      <div class="sidebar-brand-clean">
-        <div style="display: flex; align-items: center; gap: 0.6rem;">
-          <img src="logo.png" alt="INSPYRE" style="height: 34px; width: auto; max-width: 115px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-          <div class="sidebar-brand-text">
-            <strong style="font-size: 0.92rem; display: block; color: var(--text-primary); font-weight: 700; line-height: 1.2;">Admin Console</strong>
-            <span style="font-size: 0.72rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;">
-              <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success-color);"></span> Operations
-            </span>
-          </div>
+      <!-- Header: Logo, Title, and Floating Toggle Chevron -->
+      <div class="cl-sidebar-header">
+        <div class="cl-logo-box">
+          CL
         </div>
-        <button class="sidebar-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
-          {{ isSidebarCollapsed ? '▶' : '◀' }}
-        </button>
+        <div class="cl-header-text cl-hide-collapsed">
+          <span class="cl-title">Codinglab</span>
+          <span class="cl-subtitle">Web devloper</span>
+        </div>
+        <!-- Floating Chevron Toggle Button -->
+        <div class="cl-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
+          ➜
+        </div>
       </div>
 
-      <!-- Categorized Navigation Menu Links -->
-      <nav>
-        <span class="sidebar-section-title">Overview</span>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'dashboard'" (click)="switchTab('dashboard')" [title]="'Executive Dashboard'">
-          <span style="font-size: 1.1rem;">📊</span> <span class="sidebar-text">Executive Dashboard</span>
+      <!-- Search Input Box -->
+      <div class="cl-search-box" (click)="isSidebarCollapsed ? toggleSidebar() : null">
+        <span class="cl-search-icon">🔍</span>
+        <input type="text" placeholder="Search..." class="cl-hide-collapsed" />
+      </div>
+
+      <!-- Navigation Menu Links -->
+      <nav class="cl-menu-list">
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'dashboard'" (click)="switchTab('dashboard')" [title]="'Executive Dashboard'">
+          <span class="cl-nav-icon">🏠</span>
+          <span class="cl-hide-collapsed">Dashboard</span>
         </button>
 
-        <span class="sidebar-section-title" style="margin-top: 0.5rem;">Academic Management</span>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'courses'" (click)="switchTab('courses')" [title]="'Tracks & Modules'">
-          <span style="font-size: 1.1rem;">📁</span> <span class="sidebar-text">Tracks & Modules</span>
-        </button>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'quizzes'" (click)="switchTab('quizzes')" [title]="'Technical Assessments'">
-          <span style="font-size: 1.1rem;">📝</span> <span class="sidebar-text">Technical Assessments</span>
-        </button>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'assignments'" (click)="switchTab('assignments')" [title]="'Assignments'">
-          <span style="font-size: 1.1rem;">📚</span> <span class="sidebar-text">Assignments</span>
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'courses'" (click)="switchTab('courses')" [title]="'Tracks & Modules'">
+          <span class="cl-nav-icon">📁</span>
+          <span class="cl-hide-collapsed">Projects</span>
         </button>
 
-        <span class="sidebar-section-title" style="margin-top: 0.5rem;">Evaluation & Telemetry</span>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')" [title]="'Assessment Log'">
-          <span style="font-size: 1.1rem;">📋</span> <span class="sidebar-text">Assessment Log</span>
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'quizzes'" (click)="switchTab('quizzes')" [title]="'Technical Assessments'">
+          <span class="cl-nav-icon">📝</span>
+          <span class="cl-hide-collapsed">Assessments</span>
         </button>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')" [title]="'AI Evaluations'">
-          <span style="font-size: 1.1rem;">🤖</span> <span class="sidebar-text">AI Evaluations</span>
+
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'assignments'" (click)="switchTab('assignments')" [title]="'Assignments'">
+          <span class="cl-nav-icon">📚</span>
+          <span class="cl-hide-collapsed">Assignments</span>
+        </button>
+
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')" [title]="'Assessment Log'">
+          <span class="cl-nav-icon">📋</span>
+          <span class="cl-hide-collapsed">Telemetry</span>
+        </button>
+
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')" [title]="'AI Evaluations'">
+          <span class="cl-nav-icon">🤖</span>
+          <span class="cl-hide-collapsed">AI Center</span>
         </button>
       </nav>
     </div>
 
-    <!-- Admin Profile Box in Sidebar Footer -->
-    <div class="sidebar-profile-box">
-      <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0;">
-        <div class="avatar-circle" title="Administrator">AD</div>
-        <div class="sidebar-profile-text" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-          <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Administrator</strong>
-          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Institutional Ops</span>
+    <!-- Bottom Actions: Logout & Dark Mode Toggle Switch -->
+    <div class="cl-bottom-actions">
+      <button class="cl-logout-btn" (click)="logout()" [title]="'Logout'">
+        <span class="cl-nav-icon">🚪</span>
+        <span class="cl-hide-collapsed">Logout</span>
+      </button>
+
+      <div class="cl-theme-switch-bar" (click)="toggleTheme()" [title]="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+        <div class="cl-theme-info">
+          <span class="cl-nav-icon">{{ isDarkMode ? '☀️' : '🌙' }}</span>
+          <span class="cl-hide-collapsed">{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+        </div>
+        <div class="cl-switch-pill">
+          <div class="cl-switch-ball"></div>
         </div>
       </div>
-      <button class="neo-btn neo-btn-danger sidebar-profile-text" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; flex-shrink: 0;" (click)="logout()">
-        Logout
-      </button>
     </div>
   </aside>
 

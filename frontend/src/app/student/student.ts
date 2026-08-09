@@ -16,9 +16,19 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 export class StudentComponent implements OnInit, OnDestroy {
   activeTab: 'dashboard' | 'quiz' | 'assignment' | 'results' = 'dashboard';
   isSidebarCollapsed = false;
+  isDarkMode = false;
 
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    if (this.isDarkMode) {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
   }
 
   // Auth Screen state

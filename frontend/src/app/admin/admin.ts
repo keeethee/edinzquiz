@@ -18,9 +18,19 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   activeTab: 'dashboard' | 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' = 'dashboard';
   isSidebarCollapsed = false;
+  isDarkMode = false;
 
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    if (this.isDarkMode) {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
   }
 
   String = String;
