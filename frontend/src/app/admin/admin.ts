@@ -17,6 +17,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 })
 export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   activeTab: 'dashboard' | 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' = 'dashboard';
+  isSidebarCollapsed = false;
+
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
   String = String;
 
   // Shared state

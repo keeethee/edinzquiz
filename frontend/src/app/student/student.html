@@ -148,18 +148,23 @@
 <!-- ==================== 2. MAIN APPLICATION PORTAL (CLEAN LIGHT-THEMED SIDEBAR LAYOUT) ==================== -->
 <div *ngIf="loggedInStudent" class="app-sidebar-layout">
   
-  <!-- CLEAN LIGHT-THEMED SIDEBAR -->
-  <aside class="left-sidebar-clean">
+  <!-- CLEAN LIGHT-THEMED SIDEBAR (COLLAPSIBLE) -->
+  <aside class="left-sidebar-clean" [class.collapsed]="isSidebarCollapsed">
     <div>
       <!-- Brand Logo Header -->
       <div class="sidebar-brand-clean">
-        <img src="logo.png" alt="INSPYRE" style="height: 36px; width: auto; max-width: 130px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-        <div>
-          <strong style="font-size: 0.92rem; display: block; color: var(--text-primary); font-weight: 700; line-height: 1.2;">Student Portal</strong>
-          <span style="font-size: 0.72rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success-color);"></span> Enrolled
-          </span>
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <img src="logo.png" alt="INSPYRE" style="height: 34px; width: auto; max-width: 115px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+          <div class="sidebar-brand-text">
+            <strong style="font-size: 0.92rem; display: block; color: var(--text-primary); font-weight: 700; line-height: 1.2;">Student Portal</strong>
+            <span style="font-size: 0.72rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success-color);"></span> Enrolled
+            </span>
+          </div>
         </div>
+        <button class="sidebar-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
+          {{ isSidebarCollapsed ? '▶' : '◀' }}
+        </button>
       </div>
 
       <!-- Active Course Pill in Sidebar -->
@@ -175,17 +180,17 @@
       <!-- Vertical Navigation Menu Links -->
       <nav *ngIf="activeCourse">
         <span class="sidebar-section-title">Navigation</span>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
-          <span style="font-size: 1.1rem;">📊</span> Student Dashboard
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'dashboard'" (click)="switchTab('dashboard')" [title]="'Student Dashboard'">
+          <span style="font-size: 1.1rem;">📊</span> <span class="sidebar-text">Student Dashboard</span>
         </button>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'quiz'" (click)="switchTab('quiz')">
-          <span style="font-size: 1.1rem;">🚀</span> Technical Assessments
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'quiz'" (click)="switchTab('quiz')" [title]="'Technical Assessments'">
+          <span style="font-size: 1.1rem;">🚀</span> <span class="sidebar-text">Technical Assessments</span>
         </button>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'assignment'" (click)="switchTab('assignment')">
-          <span style="font-size: 1.1rem;">📚</span> Assignments
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'assignment'" (click)="switchTab('assignment')" [title]="'Assignments'">
+          <span style="font-size: 1.1rem;">📚</span> <span class="sidebar-text">Assignments</span>
         </button>
-        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'results'" (click)="switchTab('results')">
-          <span style="font-size: 1.1rem;">📈</span> Performance Telemetry
+        <button class="sidebar-menu-btn" [class.active-menu]="activeTab === 'results'" (click)="switchTab('results')" [title]="'Performance Telemetry'">
+          <span style="font-size: 1.1rem;">📈</span> <span class="sidebar-text">Performance Telemetry</span>
         </button>
       </nav>
     </div>
@@ -193,13 +198,13 @@
     <!-- Student Profile Box in Sidebar Footer -->
     <div class="sidebar-profile-box">
       <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0;">
-        <div class="avatar-circle">{{ (loggedInStudent.name || 'S').charAt(0).toUpperCase() }}</div>
-        <div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        <div class="avatar-circle" [title]="loggedInStudent.name">{{ (loggedInStudent.name || 'S').charAt(0).toUpperCase() }}</div>
+        <div class="sidebar-profile-text" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
           <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ loggedInStudent.name }}</strong>
           <span style="font-size: 0.72rem; color: var(--text-muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ loggedInStudent.collegeName }}</span>
         </div>
       </div>
-      <button class="neo-btn neo-btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; flex-shrink: 0;" (click)="onStudentLogout()">
+      <button class="neo-btn neo-btn-danger sidebar-profile-text" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; flex-shrink: 0;" (click)="onStudentLogout()">
         Logout
       </button>
     </div>
@@ -207,6 +212,32 @@
 
   <!-- RIGHT CONTENT WORKSPACE -->
   <div class="right-content-workspace">
+    
+    <!-- Top Workspace Navigation Bar with Toggle -->
+    <div class="workspace-topbar">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button class="workspace-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Open Sidebar' : 'Close Sidebar'">
+          ☰
+        </button>
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-primary);">
+            <span *ngIf="activeTab === 'dashboard'">📊 Student Dashboard</span>
+            <span *ngIf="activeTab === 'quiz'">🚀 Technical Assessments</span>
+            <span *ngIf="activeTab === 'assignment'">📚 Assignments & Homework</span>
+            <span *ngIf="activeTab === 'results'">📈 Performance Telemetry</span>
+          </h2>
+        </div>
+      </div>
+
+      <div *ngIf="activeCourse" style="display: flex; align-items: center; gap: 0.75rem;">
+        <span class="neo-badge" style="background: var(--blue-light-bg); color: var(--blue-primary); border-color: var(--blue-border); font-weight: 700;">
+          {{ activeCourse.courseId }}
+        </span>
+        <span style="font-size: 0.88rem; color: var(--text-secondary); font-weight: 600;">
+          {{ activeCourse.courseName }}
+        </span>
+      </div>
+    </div>
     
     <!-- Messages Banner in Workspace -->
     <div *ngIf="errorMsg" class="neo-card page-transition-enter" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">

@@ -15,6 +15,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 })
 export class StudentComponent implements OnInit, OnDestroy {
   activeTab: 'dashboard' | 'quiz' | 'assignment' | 'results' = 'dashboard';
+  isSidebarCollapsed = false;
+
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
 
   // Auth Screen state
   authMode: 'login' | 'register' = 'login';
