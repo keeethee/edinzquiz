@@ -4,25 +4,19 @@
   <!-- CODINGLAB SIDEBAR -->
   <aside class="codinglab-sidebar" [class.collapsed]="isSidebarCollapsed">
     <div>
-      <!-- Header: Logo, Title, and Floating Toggle Chevron -->
+      <!-- Header: INSPYRE Logo, Title, and Floating Toggle Chevron -->
       <div class="cl-sidebar-header">
-        <div class="cl-logo-box">
-          CL
-        </div>
-        <div class="cl-header-text cl-hide-collapsed">
-          <span class="cl-title">Codinglab</span>
-          <span class="cl-subtitle">Web devloper</span>
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <img src="logo.png" alt="INSPYRE" style="height: 36px; width: auto; max-width: 120px; object-fit: contain; flex-shrink: 0;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+          <div class="cl-header-text cl-hide-collapsed">
+            <span class="cl-title" style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); line-height: 1.2;">Admin Operations</span>
+            <span class="cl-subtitle" style="font-size: 0.72rem; color: var(--cl-text-muted);">Evaluation & Telemetry</span>
+          </div>
         </div>
         <!-- Floating Chevron Toggle Button -->
         <div class="cl-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
           ➜
         </div>
-      </div>
-
-      <!-- Search Input Box -->
-      <div class="cl-search-box" (click)="isSidebarCollapsed ? toggleSidebar() : null">
-        <span class="cl-search-icon">🔍</span>
-        <input type="text" placeholder="Search..." class="cl-hide-collapsed" />
       </div>
 
       <!-- Navigation Menu Links -->
