@@ -145,72 +145,85 @@
   </div>
 </div>
 
-<!-- ==================== 2. MAIN APPLICATION PORTAL (CODINGLAB SIDEBAR TEMPLATE) ==================== -->
+<!-- ==================== 2. MAIN APPLICATION PORTAL (CLEAN RESPONSIVE SIDEBAR) ==================== -->
+<!-- Mobile Top Navigation Header -->
+<div *ngIf="loggedInStudent" class="mobile-top-header">
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <img src="logo.png" alt="INSPYRE" style="height: 32px; width: auto; max-width: 110px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+    <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary);">Student Portal</span>
+  </div>
+  <button class="mobile-menu-toggle" (click)="toggleMobileSidebar()" aria-label="Toggle Navigation Menu">
+    ☰
+  </button>
+</div>
+
+<!-- Mobile Drawer Backdrop Overlay -->
+<div class="sidebar-backdrop" [class.active]="isMobileSidebarOpen" (click)="closeMobileSidebar()"></div>
+
 <div *ngIf="loggedInStudent" class="app-sidebar-layout">
   
-  <!-- CODINGLAB SIDEBAR -->
-  <aside class="codinglab-sidebar" [class.collapsed]="isSidebarCollapsed">
+  <!-- CLEAN SIDEBAR NAVIGATION -->
+  <aside class="codinglab-sidebar" [class.collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileSidebarOpen">
     <div>
-      <!-- Header: INSPYRE Logo, Title, and Floating Toggle Chevron -->
+      <!-- Header: INSPYRE Logo, Title, and Single Inline Toggle Button -->
       <div class="cl-sidebar-header">
-        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+        <div class="cl-brand-group">
           <img src="logo.png" alt="INSPYRE" style="height: 36px; width: auto; max-width: 120px; object-fit: contain; flex-shrink: 0;" onerror="this.onerror=null; this.src='assets/logo.png';" />
           <div class="cl-header-text cl-hide-collapsed">
-            <span class="cl-title" style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); line-height: 1.2;">Student Portal</span>
-            <span class="cl-subtitle" style="font-size: 0.72rem; color: var(--cl-text-muted);">Enrolled & Active</span>
+            <span class="cl-title">Student Portal</span>
+            <span class="cl-subtitle">Enrolled & Active</span>
           </div>
         </div>
-        <!-- Floating Chevron Toggle Button -->
-        <div class="cl-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
-          ➜
-        </div>
+        <!-- Single Clean Inline Toggle Button Inside Sidebar Header -->
+        <button class="cl-inline-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
+          <span *ngIf="!isSidebarCollapsed">◀</span>
+          <span *ngIf="isSidebarCollapsed">▶</span>
+        </button>
       </div>
 
       <!-- Active Course Pill (if selected) -->
-      <div *ngIf="activeCourse" class="sidebar-course-pill cl-hide-collapsed">
+      <div *ngIf="activeCourse" class="sidebar-course-pill cl-hide-collapsed" style="margin-top: 0.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.7rem; color: var(--cl-text-muted); text-transform: uppercase; font-weight: 700;">Track</span>
+          <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Track</span>
           <button class="neo-btn" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;" (click)="exitCourse()">Change</button>
         </div>
         <strong style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.2;">{{ activeCourse.courseName }}</strong>
       </div>
 
-      <!-- Navigation Menu List -->
+      <!-- Navigation Menu List with Well-Aligned Icons and Text -->
       <nav class="cl-menu-list">
-        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'dashboard'" (click)="switchTab('dashboard')" [title]="'Dashboard'">
-          <span class="cl-nav-icon">🏠</span>
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'dashboard'" (click)="switchTab('dashboard'); closeMobileSidebar()" [title]="'Student Dashboard'">
+          <span class="cl-nav-icon">📊</span>
           <span class="cl-hide-collapsed">Dashboard</span>
         </button>
-        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'quiz'" (click)="switchTab('quiz')" [title]="'Assessments'">
-          <span class="cl-nav-icon">📊</span>
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'quiz'" (click)="switchTab('quiz'); closeMobileSidebar()" [title]="'Technical Assessments'">
+          <span class="cl-nav-icon">🚀</span>
           <span class="cl-hide-collapsed">Assessments</span>
         </button>
-        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'assignment'" (click)="switchTab('assignment')" [title]="'Assignments'">
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'assignment'" (click)="switchTab('assignment'); closeMobileSidebar()" [title]="'Assignments'">
           <span class="cl-nav-icon">📚</span>
           <span class="cl-hide-collapsed">Assignments</span>
         </button>
-        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'results'" (click)="switchTab('results')" [title]="'Analytics & Results'">
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'results'" (click)="switchTab('results'); closeMobileSidebar()" [title]="'Performance Telemetry'">
           <span class="cl-nav-icon">📈</span>
-          <span class="cl-hide-collapsed">Analytics</span>
+          <span class="cl-hide-collapsed">Telemetry</span>
         </button>
       </nav>
     </div>
 
-    <!-- Bottom Actions: Logout & Dark Mode Toggle Switch -->
+    <!-- Bottom Actions: Profile & Logout -->
     <div class="cl-bottom-actions">
-      <button class="cl-logout-btn" (click)="onStudentLogout()" [title]="'Logout'">
-        <span class="cl-nav-icon">🚪</span>
-        <span class="cl-hide-collapsed">Logout</span>
-      </button>
-
-      <div class="cl-theme-switch-bar" (click)="toggleTheme()" [title]="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-        <div class="cl-theme-info">
-          <span class="cl-nav-icon">{{ isDarkMode ? '☀️' : '🌙' }}</span>
-          <span class="cl-hide-collapsed">{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+      <div class="cl-profile-box">
+        <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+          <div class="avatar-circle" [title]="loggedInStudent.name">{{ (loggedInStudent.name || 'S').charAt(0).toUpperCase() }}</div>
+          <div class="cl-hide-collapsed" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ loggedInStudent.name }}</strong>
+            <span style="font-size: 0.72rem; color: var(--text-muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ loggedInStudent.collegeName }}</span>
+          </div>
         </div>
-        <div class="cl-switch-pill">
-          <div class="cl-switch-ball"></div>
-        </div>
+        <button class="neo-btn neo-btn-danger cl-hide-collapsed" style="padding: 0.28rem 0.55rem; font-size: 0.75rem; flex-shrink: 0;" (click)="onStudentLogout()">
+          Logout
+        </button>
       </div>
     </div>
   </aside>
@@ -218,20 +231,15 @@
   <!-- RIGHT CONTENT WORKSPACE -->
   <div class="right-content-workspace">
     
-    <!-- Top Workspace Navigation Bar with Toggle -->
+    <!-- Workspace Title Bar -->
     <div class="workspace-topbar">
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <button class="workspace-toggle-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Open Sidebar' : 'Close Sidebar'">
-          ☰
-        </button>
-        <div>
-          <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-primary);">
-            <span *ngIf="activeTab === 'dashboard'">📊 Student Dashboard</span>
-            <span *ngIf="activeTab === 'quiz'">🚀 Technical Assessments</span>
-            <span *ngIf="activeTab === 'assignment'">📚 Assignments & Homework</span>
-            <span *ngIf="activeTab === 'results'">📈 Performance Telemetry</span>
-          </h2>
-        </div>
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-primary);">
+          <span *ngIf="activeTab === 'dashboard'">📊 Student Dashboard</span>
+          <span *ngIf="activeTab === 'quiz'">🚀 Technical Assessments</span>
+          <span *ngIf="activeTab === 'assignment'">📚 Assignments & Homework</span>
+          <span *ngIf="activeTab === 'results'">📈 Performance Telemetry</span>
+        </h2>
       </div>
 
       <div *ngIf="activeCourse" style="display: flex; align-items: center; gap: 0.75rem;">
