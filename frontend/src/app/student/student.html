@@ -1,46 +1,53 @@
-<!-- Corporate Hero Header with Overlay -->
-<div class="corporate-hero-header">
-  <div class="corporate-hero-overlay"></div>
-  <div class="corporate-hero-content">
+<!-- Modern Menu Bar Header with Smooth Glassmorphic Styling -->
+<div class="header-bar-modern">
+  <div class="menu-nav-container">
     
-    <div class="corporate-hero-top">
-      <div class="corporate-hero-brand">
-        <div class="logo-pill">
-          <img src="logo.png" alt="INSPYRE" style="height: 44px; width: auto; max-width: 200px; object-fit: contain; vertical-align: middle; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-        </div>
-        <div class="corporate-hero-title-group">
-          <h1>Student Learning & Assessment Portal</h1>
-          <p>Interactive Quizzes, Automated AI Assignment Evaluation & Telemetry</p>
-        </div>
+    <!-- Left: Brand Logo & Title -->
+    <div style="display: flex; align-items: center; gap: 1.25rem;">
+      <div class="logo-pill">
+        <img src="logo.png" alt="INSPYRE" style="height: 42px; width: auto; max-width: 190px; object-fit: contain; vertical-align: middle; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+      </div>
+      <div class="corporate-hero-title-group" style="display: none; @media(min-width: 768px) { display: block; }">
+        <h1 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Student Assessment Portal</h1>
+        <p style="font-size: 0.78rem; color: rgba(255,255,255,0.8); margin: 0;">Interactive Assessments & Telemetry</p>
+      </div>
+    </div>
+
+    <!-- Right / Center: Navigation Tabs & User Profile -->
+    <div *ngIf="loggedInStudent" style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+      <!-- Active Course Glass Indicator -->
+      <div *ngIf="activeCourse" class="glass-course-pill">
+        <span style="color: #ffffff; font-weight: 700;">{{ activeCourse.courseId }}</span>
+        <span style="color: rgba(255,255,255,0.4);">|</span>
+        <span style="color: #ffffff; font-weight: 600;">{{ activeCourse.courseName }}</span>
+        <button class="neo-btn" style="padding: 0.15rem 0.5rem; font-size: 0.72rem; font-weight: 600; border-radius: 3px;" (click)="exitCourse()">Change</button>
       </div>
 
-      <div *ngIf="loggedInStudent" style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-        <!-- Active Course Indicator -->
-        <div *ngIf="activeCourse" class="flex-center" style="gap: 0.5rem; background: rgba(255,255,255,0.18); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); padding: 0.45rem 0.9rem; border-radius: 4px; font-size: 0.88rem; color: #ffffff;">
-          <span style="color: #ffffff; font-weight: 700;">{{ activeCourse.courseId }}</span>
-          <span style="color: rgba(255,255,255,0.4);">|</span>
-          <span style="color: #ffffff; font-weight: 600;">{{ activeCourse.courseName }}</span>
-          <button class="neo-btn" style="padding: 0.18rem 0.55rem; font-size: 0.74rem; font-weight: 600;" (click)="exitCourse()">Change</button>
-        </div>
-
-        <!-- Mode Selector tabs -->
-        <div *ngIf="activeCourse" class="nav-tabs-scroll" style="display: flex; gap: 0.35rem;">
-          <button class="neo-btn" style="padding: 0.48rem 0.95rem; font-size: 0.86rem;" [class.neo-btn-toggle]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">Student Dashboard</button>
-          <button class="neo-btn" style="padding: 0.48rem 0.95rem; font-size: 0.86rem;" [class.neo-btn-toggle]="activeTab === 'quiz'" (click)="switchTab('quiz')">Technical Assessments</button>
-          <button class="neo-btn" style="padding: 0.48rem 0.95rem; font-size: 0.86rem;" [class.neo-btn-toggle]="activeTab === 'assignment'" (click)="switchTab('assignment')">Assignments</button>
-          <button class="neo-btn" style="padding: 0.48rem 0.95rem; font-size: 0.86rem;" [class.neo-btn-toggle]="activeTab === 'results'" (click)="switchTab('results')">Performance Telemetry</button>
-        </div>
-
-        <!-- Logged in identity card -->
-        <div class="flex-center" style="gap: 0.4rem; background: #ffffff; border: 1px solid var(--border-color); padding: 0.45rem 0.95rem; border-radius: 4px; font-size: 0.88rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-          <span style="color: var(--text-primary); font-weight: 700;">{{ loggedInStudent.name }}</span>
-          <span style="font-size: 0.8rem; color: var(--text-secondary);">({{ loggedInStudent.collegeName }})</span>
-        </div>
-
-        <button class="neo-btn neo-btn-danger" style="padding: 0.48rem 1rem; font-size: 0.86rem;" (click)="onStudentLogout()">
-          Logout
+      <!-- Mode Selector Menu Bar Tabs -->
+      <div *ngIf="activeCourse" class="nav-tabs-scroll menu-nav-links">
+        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+          <span>📊</span> Student Dashboard
+        </button>
+        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'quiz'" (click)="switchTab('quiz')">
+          <span>🚀</span> Technical Assessments
+        </button>
+        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'assignment'" (click)="switchTab('assignment')">
+          <span>📚</span> Assignments
+        </button>
+        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'results'" (click)="switchTab('results')">
+          <span>📈</span> Performance Telemetry
         </button>
       </div>
+
+      <!-- Student Identity Pill -->
+      <div class="student-identity-pill">
+        <span style="font-weight: 700; color: var(--text-primary);">{{ loggedInStudent.name }}</span>
+        <span style="font-size: 0.78rem; color: var(--text-secondary);">({{ loggedInStudent.collegeName }})</span>
+      </div>
+
+      <button class="neo-btn neo-btn-danger" style="padding: 0.45rem 0.95rem; font-size: 0.85rem;" (click)="onStudentLogout()">
+        Logout
+      </button>
     </div>
 
   </div>
@@ -48,15 +55,15 @@
 
 <div class="app-container">
   <!-- Messages -->
-  <div *ngIf="errorMsg" class="neo-card" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+  <div *ngIf="errorMsg" class="neo-card page-transition-enter" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
     {{ errorMsg }}
   </div>
-  <div *ngIf="successMsg" class="neo-card" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+  <div *ngIf="successMsg" class="neo-card page-transition-enter" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
     {{ successMsg }}
   </div>
 
   <!-- ==================== SECURITY SIGN-IN GATE ==================== -->
-  <div *ngIf="!loggedInStudent" class="flex-center" style="min-height: 60vh; padding: 2rem 0;">
+  <div *ngIf="!loggedInStudent" class="flex-center page-transition-enter" style="min-height: 60vh; padding: 2rem 0;">
     <div class="neo-card" style="max-width: 450px; width: 100%; padding: 2.5rem;">
       
       <!-- Login gate -->
@@ -90,13 +97,16 @@
 
           <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
             Don't have an account? 
-            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 600; text-decoration: none;" (click)="authMode = 'register'">Sign up</a>
+            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 600; text-decoration: none;" (click)="authMode = 'register'">Create one</a>
           </p>
         </form>
       </div>
 
       <!-- Register gate -->
       <div *ngIf="authMode === 'register'">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <img src="logo.png" alt="INSPYRE" style="height: 80px; width: auto; max-width: 320px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+        </div>
         <h2 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Student Signup</h2>
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Create student profile credentials</p>
         
@@ -113,7 +123,7 @@
 
           <div style="margin-bottom: 1.25rem;">
             <label for="studentRegCollege" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">College Name <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
-            <input id="studentRegCollege" type="text" class="neo-input" [(ngModel)]="regCollege" name="collegeName" placeholder="Harvard University" required />
+            <input id="studentRegCollege" type="text" class="neo-input" [(ngModel)]="regCollege" name="college" placeholder="Stanford University" required />
           </div>
 
           <div style="margin-bottom: 2rem;">
@@ -142,7 +152,7 @@
   </div>
 
   <!-- ==================== SEARCH COURSE STEP ==================== -->
-  <div *ngIf="loggedInStudent && !activeCourse" class="flex-center" style="min-height: 50vh;">
+  <div *ngIf="loggedInStudent && !activeCourse" class="flex-center page-transition-enter" style="min-height: 50vh;">
     <div class="neo-card" style="max-width: 500px; width: 100%; text-align: center; padding: 3rem 2rem;">
       <h3 style="font-size: 1.6rem; margin-bottom: 1rem;">Welcome back!</h3>
       <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5;">Enter the alphanumeric course ID code given by your coordinator to access active quizzes and upload assignments.</p>
@@ -158,19 +168,16 @@
           aria-label="Alphanumeric course ID code search"
           style="max-width: 300px;"
         />
-        <button type="submit" class="neo-btn neo-btn-primary" [disabled]="isSearchingCourse" style="padding: 0.8rem 1.5rem;">
-          <span *ngIf="isSearchingCourse" class="blink">Searching...</span>
-          <span *ngIf="!isSearchingCourse">Search</span>
-        </button>
+        <button type="submit" class="neo-btn neo-btn-primary">Unlock Portal</button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== PORTAL BODY AFTER COURSE MATED ==================== -->
+  <!-- ==================== LOGGED IN + ACTIVE COURSE WORKSPACE ==================== -->
   <div *ngIf="loggedInStudent && activeCourse">
 
     <!-- 0. STUDENT DASHBOARD TAB -->
-    <div *ngIf="activeTab === 'dashboard'">
+    <div *ngIf="activeTab === 'dashboard'" class="page-transition-enter">
       <!-- Top Welcome Card Banner -->
       <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(0, 132, 232, 0.08) 0%, rgba(255, 102, 0, 0.04) 100%); border: 1px solid rgba(0, 132, 232, 0.2);">
         <div>
@@ -188,27 +195,27 @@
         </div>
       </div>
 
-      <!-- Student Telemetry Summary Metrics Grid -->
+      <!-- Student Telemetry Summary Metrics Grid with Staggered Animations -->
       <div class="grid-4" style="margin-bottom: 2.5rem; gap: 1.25rem;">
-        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('quiz')">
+        <div class="neo-card stagger-1" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('quiz')">
           <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📝</div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Active Assessments</span>
           <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--blue-primary); margin: 0.2rem 0 0 0;">{{ quizzes.length || 0 }} Available</h3>
         </div>
 
-        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
+        <div class="neo-card stagger-2" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
           <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📖</div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Active Assignments</span>
           <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--orange-text); margin: 0.2rem 0 0 0;">{{ assignments.length || 0 }} Published</h3>
         </div>
 
-        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('results')">
+        <div class="neo-card stagger-3" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('results')">
           <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🎯</div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Quizzes Attempted</span>
           <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--success-color); margin: 0.2rem 0 0 0;">{{ allSubmissions.length || 0 }} Completed</h3>
         </div>
 
-        <div class="neo-card" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
+        <div class="neo-card stagger-4" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
           <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🤖</div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Assignment Uploads</span>
           <h3 style="font-size: 1.8rem; font-weight: 800; color: #8b5cf6; margin: 0.2rem 0 0 0;">{{ studentSubmissions.length || 0 }} Submissions</h3>
@@ -273,7 +280,7 @@
     </div>
 
     <!-- 1. QUIZ TAB -->
-    <div *ngIf="activeTab === 'quiz'">
+    <div *ngIf="activeTab === 'quiz'" class="page-transition-enter">
       
       <!-- Quiz List Dashboard -->
       <div *ngIf="quizStep === 'dashboard'">
@@ -608,7 +615,7 @@
 
 
     <!-- 2. ASSIGNMENT TAB -->
-    <div *ngIf="activeTab === 'assignment'">
+    <div *ngIf="activeTab === 'assignment'" class="page-transition-enter">
       
       <!-- Homework list dashboard -->
       <div *ngIf="assignStep === 'dashboard'">
@@ -730,7 +737,7 @@
 
 
     <!-- 3. RESULTS HISTORY TAB (Score hidden until published) -->
-    <div *ngIf="activeTab === 'results'">
+    <div *ngIf="activeTab === 'results'" class="page-transition-enter">
       
       <!-- Submission Results History List -->
       <div *ngIf="!detailedSubmission">
