@@ -1,55 +1,64 @@
-<!-- Modern Menu Bar Header with Smooth Glassmorphic Styling -->
-<div class="header-bar-modern">
-  <div class="menu-nav-container">
-    
-    <!-- Left: Brand Logo & Title -->
-    <div style="display: flex; align-items: center; gap: 1.25rem;">
-      <div class="logo-pill">
-        <img src="logo.png" alt="INSPYRE" style="height: 42px; width: auto; max-width: 190px; object-fit: contain; vertical-align: middle; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+<!-- ==================== ADMIN PORTAL (LEFT HERO SIDEBAR LAYOUT) ==================== -->
+<div class="app-sidebar-layout">
+  
+  <!-- LEFT-SIDE HERO SIDEBAR -->
+  <aside class="left-hero-sidebar">
+    <div>
+      <!-- Brand Logo Pill -->
+      <div class="sidebar-brand-section">
+        <div class="logo-pill" style="justify-content: center;">
+          <img src="logo.png" alt="INSPYRE" style="height: 42px; width: auto; max-width: 180px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+        </div>
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Admin Operations</h3>
+          <span style="font-size: 0.75rem; color: rgba(255,255,255,0.75);">Evaluation & Track Management</span>
+        </div>
       </div>
-      <div class="corporate-hero-title-group" style="display: none; @media(min-width: 768px) { display: block; }">
-        <h1 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Admin Operations Center</h1>
-        <p style="font-size: 0.78rem; color: rgba(255,255,255,0.8); margin: 0;">Enterprise Assessment Telemetry & Evaluation</p>
-      </div>
+
+      <!-- Vertical Navigation Menu Links -->
+      <nav class="sidebar-nav-menu" style="margin-top: 1.25rem;">
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+          <span style="font-size: 1.15rem;">📊</span> Executive Dashboard
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'courses'" (click)="switchTab('courses')">
+          <span style="font-size: 1.15rem;">📁</span> Tracks & Modules
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">
+          <span style="font-size: 1.15rem;">📝</span> Technical Assessments
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'assignments'" (click)="switchTab('assignments')">
+          <span style="font-size: 1.15rem;">📚</span> Assignments
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">
+          <span style="font-size: 1.15rem;">📋</span> Assessment Log
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">
+          <span style="font-size: 1.15rem;">🤖</span> AI Evaluations
+        </button>
+      </nav>
     </div>
 
-    <!-- Center / Right: Mode Selector Menu Bar Tabs -->
-    <div class="nav-tabs-scroll menu-nav-links">
-      <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
-        <span>📊</span> Executive Dashboard
-      </button>
-      <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'courses'" (click)="switchTab('courses')">
-        <span>📁</span> Tracks & Modules
-      </button>
-      <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'quizzes'" (click)="switchTab('quizzes')">
-        <span>📝</span> Technical Assessments
-      </button>
-      <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'assignments'" (click)="switchTab('assignments')">
-        <span>📚</span> Assignments
-      </button>
-      <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'quiz-sub'" (click)="switchTab('quiz-sub')">
-        <span>📋</span> Assessment Log
-      </button>
-      <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'assign-sub'" (click)="switchTab('assign-sub')">
-        <span>🤖</span> AI Evaluations
-      </button>
-      
-      <button class="neo-btn neo-btn-danger" style="padding: 0.48rem 1rem; font-size: 0.86rem;" (click)="logout()">
+    <!-- Admin Profile Card in Sidebar Footer -->
+    <div class="sidebar-footer-profile">
+      <div>
+        <strong style="font-size: 0.88rem; color: var(--text-primary); display: block;">Administrator</strong>
+        <span style="font-size: 0.75rem; color: var(--text-secondary);">Operations Center</span>
+      </div>
+      <button class="neo-btn neo-btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" (click)="logout()">
         Logout
       </button>
     </div>
+  </aside>
 
-  </div>
-</div>
-
-<div class="app-container">
-  <!-- Messages -->
-  <div *ngIf="errorMsg" class="neo-card page-transition-enter" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
-    {{ errorMsg }}
-  </div>
-  <div *ngIf="successMsg" class="neo-card page-transition-enter" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
-    {{ successMsg }}
-  </div>
+  <!-- RIGHT CONTENT WORKSPACE -->
+  <div class="right-content-workspace">
+    <!-- Messages -->
+    <div *ngIf="errorMsg" class="neo-card page-transition-enter" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+      {{ errorMsg }}
+    </div>
+    <div *ngIf="successMsg" class="neo-card page-transition-enter" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+      {{ successMsg }}
+    </div>
 
   <!-- ==================== EXECUTIVE DASHBOARD TAB ==================== -->
   <div *ngIf="activeTab === 'dashboard'" class="page-transition-enter">
@@ -1367,4 +1376,5 @@
     </div>
   </div>
 
+  </div>
 </div>

@@ -1,180 +1,242 @@
-<!-- Modern Menu Bar Header with Smooth Glassmorphic Styling -->
-<div class="header-bar-modern">
-  <div class="menu-nav-container">
-    
-    <!-- Left: Brand Logo & Title -->
-    <div style="display: flex; align-items: center; gap: 1.25rem;">
-      <div class="logo-pill">
-        <img src="logo.png" alt="INSPYRE" style="height: 42px; width: auto; max-width: 190px; object-fit: contain; vertical-align: middle; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-      </div>
-      <div class="corporate-hero-title-group" style="display: none; @media(min-width: 768px) { display: block; }">
-        <h1 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Student Assessment Portal</h1>
-        <p style="font-size: 0.78rem; color: rgba(255,255,255,0.8); margin: 0;">Interactive Assessments & Telemetry</p>
-      </div>
-    </div>
+<!-- ==================== 1. SPLIT-SCREEN AUTHENTICATION GATE ==================== -->
+<div *ngIf="!loggedInStudent" class="auth-split-wrapper page-transition-enter">
+  
+  <!-- LEFT HERO PANEL -->
+  <div class="auth-hero-left">
+    <div class="auth-hero-glow-1"></div>
+    <div class="auth-hero-glow-2"></div>
 
-    <!-- Right / Center: Navigation Tabs & User Profile -->
-    <div *ngIf="loggedInStudent" style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-      <!-- Active Course Glass Indicator -->
-      <div *ngIf="activeCourse" class="glass-course-pill">
-        <span style="color: #ffffff; font-weight: 700;">{{ activeCourse.courseId }}</span>
-        <span style="color: rgba(255,255,255,0.4);">|</span>
-        <span style="color: #ffffff; font-weight: 600;">{{ activeCourse.courseName }}</span>
-        <button class="neo-btn" style="padding: 0.15rem 0.5rem; font-size: 0.72rem; font-weight: 600; border-radius: 3px;" (click)="exitCourse()">Change</button>
+    <div style="position: relative; z-index: 2;">
+      <!-- Brand Logo Pill -->
+      <div class="logo-pill" style="display: inline-flex; margin-bottom: 2.5rem;">
+        <img src="logo.png" alt="INSPYRE" style="height: 48px; width: auto; max-width: 220px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
       </div>
 
-      <!-- Mode Selector Menu Bar Tabs -->
-      <div *ngIf="activeCourse" class="nav-tabs-scroll menu-nav-links">
-        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
-          <span>📊</span> Student Dashboard
-        </button>
-        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'quiz'" (click)="switchTab('quiz')">
-          <span>🚀</span> Technical Assessments
-        </button>
-        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'assignment'" (click)="switchTab('assignment')">
-          <span>📚</span> Assignments
-        </button>
-        <button class="menu-nav-btn" [class.active-nav-tab]="activeTab === 'results'" (click)="switchTab('results')">
-          <span>📈</span> Performance Telemetry
-        </button>
-      </div>
+      <h1 style="font-size: 2.2rem; font-weight: 800; line-height: 1.25; margin-bottom: 1rem; color: #ffffff;">
+        Student Assessment & AI Evaluation Portal
+      </h1>
+      <p style="font-size: 1.05rem; color: rgba(255, 255, 255, 0.85); line-height: 1.6; margin-bottom: 2.5rem; max-width: 520px;">
+        Empowering next-generation learners through interactive timed technical assessments, automated AI rubric evaluation, and transparent telemetry.
+      </p>
 
-      <!-- Student Identity Pill -->
-      <div class="student-identity-pill">
-        <span style="font-weight: 700; color: var(--text-primary);">{{ loggedInStudent.name }}</span>
-        <span style="font-size: 0.78rem; color: var(--text-secondary);">({{ loggedInStudent.collegeName }})</span>
-      </div>
-
-      <button class="neo-btn neo-btn-danger" style="padding: 0.45rem 0.95rem; font-size: 0.85rem;" (click)="onStudentLogout()">
-        Logout
-      </button>
-    </div>
-
-  </div>
-</div>
-
-<div class="app-container">
-  <!-- Messages -->
-  <div *ngIf="errorMsg" class="neo-card page-transition-enter" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
-    {{ errorMsg }}
-  </div>
-  <div *ngIf="successMsg" class="neo-card page-transition-enter" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
-    {{ successMsg }}
-  </div>
-
-  <!-- ==================== SECURITY SIGN-IN GATE ==================== -->
-  <div *ngIf="!loggedInStudent" class="flex-center page-transition-enter" style="min-height: 60vh; padding: 2rem 0;">
-    <div class="neo-card" style="max-width: 450px; width: 100%; padding: 2.5rem;">
-      
-      <!-- Login gate -->
-      <div *ngIf="authMode === 'login'">
-        <div style="text-align: center; margin-bottom: 1.5rem;">
-          <img src="logo.png" alt="INSPYRE" style="height: 80px; width: auto; max-width: 320px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+      <!-- Feature Highlight Cards -->
+      <div style="display: flex; flex-direction: column; gap: 0.85rem; max-width: 520px;">
+        <div class="auth-hero-feature-card">
+          <div style="font-size: 1.8rem;">🤖</div>
+          <div>
+            <h4 style="font-size: 1.02rem; font-weight: 700; margin: 0 0 0.2rem 0; color: #ffffff;">Automated AI Assignment Evaluation</h4>
+            <p style="font-size: 0.84rem; color: rgba(255,255,255,0.78); margin: 0;">Evidence-based rubric analysis and instant feedback for your submitted homework.</p>
+          </div>
         </div>
-        <h2 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Student Login</h2>
-        <p style="text-align: center; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Access quizzes and assignments portal</p>
+
+        <div class="auth-hero-feature-card">
+          <div style="font-size: 1.8rem;">📝</div>
+          <div>
+            <h4 style="font-size: 1.02rem; font-weight: 700; margin: 0 0 0.2rem 0; color: #ffffff;">Timed Technical Assessments</h4>
+            <p style="font-size: 0.84rem; color: rgba(255,255,255,0.78); margin: 0;">Live countdown timers, auto-save state recovery, and rich question formats.</p>
+          </div>
+        </div>
+
+        <div class="auth-hero-feature-card">
+          <div style="font-size: 1.8rem;">📊</div>
+          <div>
+            <h4 style="font-size: 1.02rem; font-weight: 700; margin: 0 0 0.2rem 0; color: #ffffff;">Real-Time Performance Telemetry</h4>
+            <p style="font-size: 0.84rem; color: rgba(255,255,255,0.78); margin: 0;">Track your score breakdowns, answer rationales, and semester progression.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust & Verification Footer -->
+    <div style="position: relative; z-index: 2; display: flex; align-items: center; gap: 0.6rem; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 2rem;">
+      <span>🔒</span> Verified Academic Learning & Evaluation Engine
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="auth-form-right">
+    <div class="neo-card" style="max-width: 440px; width: 100%; padding: 2.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+      
+      <!-- Messages inside form -->
+      <div *ngIf="errorMsg" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.85rem 1rem; color: var(--danger-color); margin-bottom: 1.25rem; text-align: center; border-radius: 6px; font-size: 0.88rem;">
+        {{ errorMsg }}
+      </div>
+      <div *ngIf="successMsg" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.85rem 1rem; color: var(--success-color); margin-bottom: 1.25rem; text-align: center; border-radius: 6px; font-size: 0.88rem;">
+        {{ successMsg }}
+      </div>
+
+      <!-- Login Form -->
+      <div *ngIf="authMode === 'login'">
+        <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.4rem;">Student Sign In</h2>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 1.75rem;">Access your enrolled courses and quizzes</p>
         
         <form (ngSubmit)="onStudentLogin()" (submit)="$event.preventDefault()">
           <div style="margin-bottom: 1.25rem;">
-            <label for="studentLoginEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+            <label for="studentLoginEmail" style="display: block; margin-bottom: 0.45rem; font-weight: 600; font-size: 0.88rem; color: var(--text-secondary);">Email Address <span style="color: var(--danger-color);">*</span></label>
             <input id="studentLoginEmail" type="email" class="neo-input" [(ngModel)]="loginEmail" name="email" placeholder="student@college.edu" required />
           </div>
 
-          <div style="margin-bottom: 2rem;">
-            <label for="studentLoginPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+          <div style="margin-bottom: 1.75rem;">
+            <label for="studentLoginPassword" style="display: block; margin-bottom: 0.45rem; font-weight: 600; font-size: 0.88rem; color: var(--text-secondary);">Password <span style="color: var(--danger-color);">*</span></label>
             <div style="position: relative;">
               <input id="studentLoginPassword" [type]="showLoginPassword ? 'text' : 'password'" class="neo-input" [(ngModel)]="loginPassword" name="password" placeholder="••••••••" required style="padding-right: 2.5rem;" />
-              <button type="button" (click)="showLoginPassword = !showLoginPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.15rem; padding: 0.2rem;">
+              <button type="button" (click)="showLoginPassword = !showLoginPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.1rem; padding: 0.2rem;">
                 {{ showLoginPassword ? '👁️' : '🙈' }}
               </button>
             </div>
           </div>
 
-          <button type="submit" (click)="onStudentLogin()" [disabled]="isSubmittingLogin" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1rem; margin-bottom: 1.5rem;">
+          <button type="submit" (click)="onStudentLogin()" [disabled]="isSubmittingLogin" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.98rem; margin-bottom: 1.25rem;">
             <span *ngIf="isSubmittingLogin" class="blink">Signing In...</span>
             <span *ngIf="!isSubmittingLogin">Sign In</span>
           </button>
 
-          <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+          <p style="text-align: center; color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
             Don't have an account? 
-            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 600; text-decoration: none;" (click)="authMode = 'register'">Create one</a>
+            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 700; text-decoration: none;" (click)="authMode = 'register'">Create profile</a>
           </p>
         </form>
       </div>
 
-      <!-- Register gate -->
+      <!-- Register Form -->
       <div *ngIf="authMode === 'register'">
-        <div style="text-align: center; margin-bottom: 1.5rem;">
-          <img src="logo.png" alt="INSPYRE" style="height: 80px; width: auto; max-width: 320px; object-fit: contain;" onerror="this.onerror=null; this.src='assets/logo.png';" />
-        </div>
-        <h2 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Student Signup</h2>
-        <p style="text-align: center; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Create student profile credentials</p>
+        <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.4rem;">Student Registration</h2>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 1.75rem;">Create your verified student profile</p>
         
         <form (ngSubmit)="onStudentRegister()" (submit)="$event.preventDefault()">
-          <div style="margin-bottom: 1.25rem;">
-            <label for="studentRegName" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Full Name <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+          <div style="margin-bottom: 1.15rem;">
+            <label for="studentRegName" style="display: block; margin-bottom: 0.45rem; font-weight: 600; font-size: 0.88rem; color: var(--text-secondary);">Full Name <span style="color: var(--danger-color);">*</span></label>
             <input id="studentRegName" type="text" class="neo-input" [(ngModel)]="regName" name="name" placeholder="John Doe" required />
           </div>
 
-          <div style="margin-bottom: 1.25rem;">
-            <label for="studentRegEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Email Address <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+          <div style="margin-bottom: 1.15rem;">
+            <label for="studentRegEmail" style="display: block; margin-bottom: 0.45rem; font-weight: 600; font-size: 0.88rem; color: var(--text-secondary);">Email Address <span style="color: var(--danger-color);">*</span></label>
             <input id="studentRegEmail" type="email" class="neo-input" [(ngModel)]="regEmail" name="email" placeholder="student@college.edu" required />
           </div>
 
-          <div style="margin-bottom: 1.25rem;">
-            <label for="studentRegCollege" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">College Name <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+          <div style="margin-bottom: 1.15rem;">
+            <label for="studentRegCollege" style="display: block; margin-bottom: 0.45rem; font-weight: 600; font-size: 0.88rem; color: var(--text-secondary);">College Name <span style="color: var(--danger-color);">*</span></label>
             <input id="studentRegCollege" type="text" class="neo-input" [(ngModel)]="regCollege" name="college" placeholder="Stanford University" required />
           </div>
 
-          <div style="margin-bottom: 2rem;">
-            <label for="studentRegPassword" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);">Password <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+          <div style="margin-bottom: 1.75rem;">
+            <label for="studentRegPassword" style="display: block; margin-bottom: 0.45rem; font-weight: 600; font-size: 0.88rem; color: var(--text-secondary);">Password <span style="color: var(--danger-color);">*</span></label>
             <div style="position: relative;">
               <input id="studentRegPassword" [type]="showRegisterPassword ? 'text' : 'password'" class="neo-input" [(ngModel)]="regPassword" name="password" placeholder="••••••••" required style="padding-right: 2.5rem;" />
-              <button type="button" (click)="showRegisterPassword = !showRegisterPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.15rem; padding: 0.2rem;">
+              <button type="button" (click)="showRegisterPassword = !showRegisterPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.1rem; padding: 0.2rem;">
                 {{ showRegisterPassword ? '👁️' : '🙈' }}
               </button>
             </div>
           </div>
 
-          <button type="submit" (click)="onStudentRegister()" [disabled]="isSubmittingRegister" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem; margin-bottom: 1.5rem;">
+          <button type="submit" (click)="onStudentRegister()" [disabled]="isSubmittingRegister" class="neo-btn neo-btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.98rem; margin-bottom: 1.25rem;">
             <span *ngIf="isSubmittingRegister" class="blink">Creating Profile...</span>
             <span *ngIf="!isSubmittingRegister">Create Profile</span>
           </button>
 
-          <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+          <p style="text-align: center; color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
             Already have an account? 
-            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 600; text-decoration: none;" (click)="authMode = 'login'">Sign in</a>
+            <a href="javascript:void(0)" style="color: var(--accent-color); font-weight: 700; text-decoration: none;" (click)="authMode = 'login'">Sign in</a>
           </p>
         </form>
       </div>
 
     </div>
   </div>
+</div>
 
-  <!-- ==================== SEARCH COURSE STEP ==================== -->
-  <div *ngIf="loggedInStudent && !activeCourse" class="flex-center page-transition-enter" style="min-height: 50vh;">
-    <div class="neo-card" style="max-width: 500px; width: 100%; text-align: center; padding: 3rem 2rem;">
-      <h3 style="font-size: 1.6rem; margin-bottom: 1rem;">Welcome back!</h3>
-      <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5;">Enter the alphanumeric course ID code given by your coordinator to access active quizzes and upload assignments.</p>
-      
-      <form (ngSubmit)="onCourseSearch()" (submit)="$event.preventDefault()" style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
-        <input 
-          id="courseSearchInput"
-          type="text" 
-          class="neo-input" 
-          placeholder="e.g. fe01 or devops26" 
-          [(ngModel)]="searchCourseIdCode"
-          name="searchCourseIdCode"
-          aria-label="Alphanumeric course ID code search"
-          style="max-width: 300px;"
-        />
-        <button type="submit" class="neo-btn neo-btn-primary">Unlock Portal</button>
-      </form>
+<!-- ==================== 2. MAIN APPLICATION PORTAL (LEFT HERO SIDEBAR LAYOUT) ==================== -->
+<div *ngIf="loggedInStudent" class="app-sidebar-layout">
+  
+  <!-- LEFT-SIDE HERO SIDEBAR -->
+  <aside class="left-hero-sidebar">
+    <div>
+      <!-- Brand Logo Pill -->
+      <div class="sidebar-brand-section">
+        <div class="logo-pill" style="justify-content: center;">
+          <img src="logo.png" alt="INSPYRE" style="height: 42px; width: auto; max-width: 180px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='assets/logo.png';" />
+        </div>
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Student Assessment Portal</h3>
+          <span style="font-size: 0.75rem; color: rgba(255,255,255,0.75);">Real-Time Quizzes & AI Evaluation</span>
+        </div>
+      </div>
+
+      <!-- Active Course Card in Sidebar -->
+      <div *ngIf="activeCourse" class="sidebar-course-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.72rem; color: rgba(255,255,255,0.7); text-transform: uppercase; font-weight: 700;">Enrolled Course</span>
+          <button class="neo-btn" style="padding: 0.12rem 0.5rem; font-size: 0.7rem; font-weight: 600; border-radius: 3px;" (click)="exitCourse()">Change</button>
+        </div>
+        <strong style="font-size: 0.92rem; color: #ffffff; line-height: 1.3;">{{ activeCourse.courseName }}</strong>
+        <span style="font-size: 0.78rem; color: rgba(255,255,255,0.85); font-weight: 600;">Code: {{ activeCourse.courseId }}</span>
+      </div>
+
+      <!-- Vertical Navigation Menu Links -->
+      <nav *ngIf="activeCourse" class="sidebar-nav-menu" style="margin-top: 1.5rem;">
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+          <span style="font-size: 1.15rem;">📊</span> Student Dashboard
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'quiz'" (click)="switchTab('quiz')">
+          <span style="font-size: 1.15rem;">🚀</span> Technical Assessments
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'assignment'" (click)="switchTab('assignment')">
+          <span style="font-size: 1.15rem;">📚</span> Assignments
+        </button>
+        <button class="sidebar-nav-item" [class.active-nav]="activeTab === 'results'" (click)="switchTab('results')">
+          <span style="font-size: 1.15rem;">📈</span> Performance Telemetry
+        </button>
+      </nav>
     </div>
-  </div>
 
-  <!-- ==================== LOGGED IN + ACTIVE COURSE WORKSPACE ==================== -->
-  <div *ngIf="loggedInStudent && activeCourse">
+    <!-- Student Profile Card in Sidebar Footer -->
+    <div class="sidebar-footer-profile">
+      <div>
+        <strong style="font-size: 0.88rem; color: var(--text-primary); display: block;">{{ loggedInStudent.name }}</strong>
+        <span style="font-size: 0.75rem; color: var(--text-secondary);">{{ loggedInStudent.collegeName }}</span>
+      </div>
+      <button class="neo-btn neo-btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" (click)="onStudentLogout()">
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- RIGHT CONTENT WORKSPACE -->
+  <div class="right-content-workspace">
+    
+    <!-- Messages Banner in Workspace -->
+    <div *ngIf="errorMsg" class="neo-card page-transition-enter" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); padding: 1rem; color: var(--danger-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+      {{ errorMsg }}
+    </div>
+    <div *ngIf="successMsg" class="neo-card page-transition-enter" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); padding: 1rem; color: var(--success-color); margin-bottom: 1.5rem; text-align: center; border-radius: 8px;">
+      {{ successMsg }}
+    </div>
+
+    <!-- Course Search Screen if not entered -->
+    <div *ngIf="!activeCourse" class="flex-center page-transition-enter" style="min-height: 60vh;">
+      <div class="neo-card" style="max-width: 520px; width: 100%; text-align: center; padding: 3.5rem 2.5rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🎓</div>
+        <h2 style="font-size: 1.7rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary);">Enter Course ID</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5;">Enter the alphanumeric course ID code given by your coordinator to access active quizzes and upload assignments.</p>
+        
+        <form (ngSubmit)="onCourseSearch()" (submit)="$event.preventDefault()" style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+          <input 
+            id="courseSearchInput"
+            type="text" 
+            class="neo-input" 
+            placeholder="e.g. fe01 or devops26" 
+            [(ngModel)]="searchCourseIdCode"
+            name="searchCourseIdCode"
+            aria-label="Alphanumeric course ID code search"
+            style="max-width: 320px;"
+          />
+          <button type="submit" class="neo-btn neo-btn-primary" style="padding: 0.75rem 1.4rem;">Unlock Portal</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Active Course Workspace Content -->
+    <div *ngIf="activeCourse">
 
     <!-- 0. STUDENT DASHBOARD TAB -->
     <div *ngIf="activeTab === 'dashboard'" class="page-transition-enter">
@@ -900,7 +962,6 @@
       </div>
 
     </div>
-
   </div>
 </div>
 
