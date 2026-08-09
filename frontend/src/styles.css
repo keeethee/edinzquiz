@@ -1148,12 +1148,21 @@ h1, h2, h3, h4, h5, h6 {
   display: none;
 }
 
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* ==========================================================================
+   Comprehensive Mobile & Tablet Responsiveness System
+   ========================================================================== */
+
+.table-responsive, .table-container {
+  width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
   margin-bottom: 1rem;
-  border-radius: 4px;
+  border-radius: 6px;
+}
+
+.neo-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 @media (max-width: 1024px) {
@@ -1171,101 +1180,154 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@media (max-width: 960px) {
+  /* Split Authentication Mobile Stacking */
+  .auth-split-wrapper {
+    flex-direction: column !important;
+    min-height: 100vh;
+  }
+
+  .auth-hero-left {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 2.25rem 1.25rem !important;
+    border-right: none !important;
+    border-bottom: 3.5px solid var(--orange-primary) !important;
+  }
+
+  .auth-hero-left h1 {
+    font-size: 1.55rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .auth-hero-left p {
+    font-size: 0.9rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .auth-hero-feature-card {
+    padding: 0.85rem 1rem !important;
+    gap: 0.75rem !important;
+  }
+
+  .auth-form-right {
+    width: 100% !important;
+    padding: 2rem 1.25rem 3.5rem !important;
+  }
+
+  .auth-form-right .neo-card {
+    max-width: 100% !important;
+    padding: 1.75rem 1.25rem !important;
+  }
+}
+
 @media (max-width: 768px) {
   html, body {
     font-size: 14px;
-  }
-  
-  .header-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-  }
-  
-  .header-bar h2 {
-    font-size: 0.95rem !important;
-    text-align: center;
-  }
-
-  .logo-pill {
-    justify-content: center;
-    padding: 0.4rem 1rem;
-  }
-
-  .logo-pill img {
-    height: 38px;
+    -webkit-text-size-adjust: 100%;
   }
 
   .app-container {
-    padding: 1.25rem 0.75rem;
+    padding: 1rem 0.75rem;
+  }
+
+  .right-content-workspace {
+    padding: 1rem 0.75rem !important;
+    width: 100% !important;
   }
 
   .neo-card {
-    padding: 1.25rem !important;
+    padding: 1.25rem 1rem !important;
     margin-bottom: 1.25rem !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
   }
 
   .neo-card-inset {
-    padding: 1rem !important;
+    padding: 0.9rem !important;
   }
 
+  /* Grid single-column stacking */
   .grid-2, .grid-3, .grid-4, .grid-cards {
     grid-template-columns: 1fr !important;
-    gap: 1rem !important;
+    gap: 0.9rem !important;
   }
 
-  /* Touch targets & anti-auto-zoom on iOS */
-  .neo-input, .neo-select, textarea {
-    font-size: 16px !important;
-    min-height: 44px;
-  }
-
-  .neo-btn {
-    min-height: 44px;
-    padding: 0.65rem 1rem;
-    font-size: 0.9rem;
-  }
-
+  /* Flex containers stack vertically on mobile */
   .flex-between {
-    flex-direction: column;
+    flex-direction: column !important;
     align-items: stretch !important;
-    gap: 0.75rem;
+    gap: 0.75rem !important;
   }
 
-  .corporate-hero-header {
-    padding: 1rem 1rem !important;
+  /* Form & Input Touch Optimization (Prevents auto-zoom on iOS) */
+  .neo-input, .neo-select, textarea, input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
+    font-size: 16px !important;
+    min-height: 44px !important;
+    padding: 0.65rem 0.85rem !important;
   }
 
-  .corporate-hero-top {
-    flex-direction: column;
-    align-items: stretch;
+  /* Touch buttons minimum target */
+  .neo-btn {
+    min-height: 44px !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.92rem !important;
+    touch-action: manipulation;
   }
 
-  .corporate-stats-row {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+  /* Tables force smooth scroll without layout breakage */
+  .neo-table {
+    min-width: 540px;
+    font-size: 0.84rem;
   }
 
-  .corporate-stat-card {
-    padding: 0.75rem 1rem;
+  .neo-table th, .neo-table td {
+    padding: 0.65rem 0.75rem !important;
   }
 
-  .corporate-stat-number {
-    font-size: 1.35rem;
+  /* Quiz Attempt Mobile Ergonomics */
+  .quiz-timer-box, .quiz-top-banner {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.6rem !important;
+    padding: 0.85rem 1rem !important;
   }
 
-  /* Modals on mobile */
-  [style*="max-width: 600px"], [style*="max-width: 700px"], [style*="max-width: 800px"], [style*="max-width: 900px"], [style*="max-width: 500px"], [style*="max-width: 450px"] {
+  .option-card-label {
+    min-height: 48px !important;
+    padding: 0.75rem 0.85rem !important;
+  }
+
+  /* Full Screen Mobile Modals */
+  [style*="position: fixed; inset: 0"], .modal-overlay {
+    padding: 0.75rem !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+
+  [style*="max-width: 600px"], [style*="max-width: 700px"], [style*="max-width: 800px"], [style*="max-width: 900px"], [style*="max-width: 500px"], [style*="max-width: 450px"], [style*="max-width: 520px"] {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 1.25rem !important;
+    padding: 1.5rem 1rem !important;
+    margin: 1rem auto !important;
   }
 
+  /* Sticky headers on mobile */
   [style*="position: sticky"] {
-    padding: 0.75rem 1rem !important;
-    margin-bottom: 1rem !important;
+    padding: 0.75rem 0.85rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  /* Action button rows wrap cleanly */
+  .button-group-responsive {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.6rem !important;
+    width: 100% !important;
+  }
+
+  .button-group-responsive .neo-btn {
+    width: 100% !important;
   }
 }
 
@@ -1278,4 +1340,9 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
   }
+
+  .cl-inline-toggle-btn {
+    display: none !important;
+  }
 }
+
