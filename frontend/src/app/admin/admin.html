@@ -1084,97 +1084,6 @@
         </table>
       </div>
     </div>
-
-    <!-- Detailed Submission answers MODAL OVERLAY (includes manual evaluation panel for subjective) -->
-    <div *ngIf="detailedSubmission" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; backdrop-filter: blur(6px); padding: 1.5rem;">
-      <div class="neo-card" style="max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
-        
-        <!-- Header -->
-        <div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
-          <div>
-            <span class="biz-overline">SUBMISSION AUDIT & GRADING</span>
-            <h2 style="font-size: 1.35rem; margin: 0; color: var(--text-primary);">
-              {{ detailedSubmission.studentName }}
-            </h2>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
-              Quiz: <strong>{{ detailedSubmission.quiz?.quizTitle }}</strong> | Score: <strong style="color: var(--text-primary);">{{ detailedSubmission.score }} / {{ detailedSubmission.totalMarks }}</strong> ({{ detailedSubmission.percentage | number:'1.0-1' }}%)
-            </p>
-          </div>
-          <button class="neo-btn" style="padding: 0.35rem 0.75rem;" (click)="detailedSubmission = null">✕ Close</button>
-        </div>
-
-        <!-- Question breakdown lists -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <div *ngFor="let sa of detailedSubmission.studentAnswers; let idx = index" class="neo-card-inset">
-            
-            <div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
-              <h4 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary);">
-                Q{{ idx + 1 }}. [{{ sa.question.questionType }}] - {{ sa.question.questionText }}
-              </h4>
-              
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <span style="font-size: 0.85rem; color: var(--text-secondary);">Points: {{ sa.awardedMarks !== null ? sa.awardedMarks : 'Pending' }}/{{ sa.question.mark }}</span>
-                <!-- Auto correct status badges -->
-                <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks > 0" class="badge badge-completed">Correct</span>
-                <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks <= 0" class="badge badge-overdue">Incorrect</span>
-                <span *ngIf="sa.awardedMarks === null" class="badge badge-pending">Pending Grade</span>
-              </div>
-            </div>
-
-            <!-- MCQ/TF choice highlights -->
-            <div *ngIf="sa.question.questionType === 'MCQ' || sa.question.questionType === 'TF' || sa.question.questionType === 'MCQ_SINGLE' || sa.question.questionType === 'MCQ_MULTIPLE'" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-              <div 
-                *ngFor="let opt of sa.question.options" 
-                style="padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.9rem;"
-                [style.background]="opt.isCorrect ? 'rgba(16,185,129,0.06)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'rgba(239,68,68,0.06)' : 'var(--bg-inset)')"
-                [style.border]="opt.isCorrect ? '1px solid var(--success-color)' : (isOptionSelectedInSubmission(sa, opt.id) ? '1px solid var(--danger-color)' : '1px solid var(--border-color)')">
-                
-                <span>{{ opt.optionText }}</span>
-                <span *ngIf="opt.isCorrect" style="color: var(--success-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Correct key</span>
-                <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && !opt.isCorrect" style="color: var(--danger-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Student Answer</span>
-                <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && opt.isCorrect" style="color: var(--success-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Student Answer (Correct)</span>
-              </div>
-            </div>
-
-            <!-- Fill in the blank typed response review -->
-            <div *ngIf="sa.question.questionType === 'FillBlank' || sa.question.questionType === 'FILL_BLANK' || sa.question.questionType === 'SHORT_ANSWER'" style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <p style="font-size: 0.9rem;">Student typed answer: <strong style="font-style: italic; color: var(--text-primary);">"{{ sa.typedAnswer || sa.typedAnswerText || '[Empty]' }}"</strong></p>
-              <p style="font-size: 0.85rem; color: var(--text-secondary);" *ngIf="sa.question.correctAnswerText">Correct answer pattern: <strong style="color: var(--success-color);">{{ sa.question.correctAnswerText }}</strong></p>
-            </div>
-
-            <!-- Subjective typed response manual grading panel -->
-            <div *ngIf="sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY'" style="display: flex; flex-direction: column; gap: 0.75rem;">
-              <div style="background: var(--bg-inset); border: 1px solid var(--border-color); padding: 1rem 1.5rem; border-radius: 10px; font-style: italic; white-space: pre-wrap; font-size: 0.95rem; color: var(--text-primary);">
-                "{{ sa.typedAnswer || sa.typedAnswerText || '[No Answer Submitted]' }}"
-              </div>
-            </div>
-
-            <!-- Grade adjustment input for question -->
-            <div class="flex-center" style="justify-content: flex-start; gap: 1rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Award / Adjust Marks (0 - {{ sa.question.mark }}):</span>
-              <input 
-                type="number" 
-                class="neo-input" 
-                style="max-width: 100px; padding: 0.4rem 0.8rem;" 
-                min="0" 
-                [max]="sa.question.mark" 
-                step="0.5" 
-                [(ngModel)]="subjectiveGrades[sa.question.id]" 
-              />
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Save evaluations button & modal footer -->
-        <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-          <button class="neo-btn" (click)="detailedSubmission = null">Cancel</button>
-          <button class="neo-btn neo-btn-primary" style="padding: 0.75rem 2rem;" (click)="saveSubjectiveGrades()">
-            Save Evaluated Grades & Update Score
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- ==================== HOMEWORK GRADING TAB ==================== -->
@@ -1375,8 +1284,8 @@
   </div>
 
   <!-- AI Evaluation Detail Modal Overlay (Global Scope) -->
-  <div *ngIf="showAiEvalModal" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; backdrop-filter: blur(6px); padding: 1.5rem;">
-    <div class="neo-card" style="max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
+  <div *ngIf="showAiEvalModal" class="global-modal-overlay">
+    <div class="global-modal-card" style="max-width: 900px; padding: 2rem;">
       
       <!-- Header -->
       <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
@@ -1504,8 +1413,8 @@
   </div>
 
   <!-- Homework Grade Modal Overlay (Global Scope) -->
-  <div *ngIf="selectedSubToGrade" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; backdrop-filter: blur(4px);">
-    <div class="neo-card" style="max-width: 500px; width: 100%; padding: 2.5rem;">
+  <div *ngIf="selectedSubToGrade" class="global-modal-overlay">
+    <div class="global-modal-card" style="max-width: 500px; padding: 2.5rem;">
       <h3 style="margin-bottom: 1rem; font-size: 1.3rem;">Evaluate Homework Submission</h3>
       <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Student: <strong>{{ selectedSubToGrade.studentName }}</strong> | File: {{ selectedSubToGrade.fileName }}</p>
       
@@ -1523,6 +1432,97 @@
           <button class="neo-btn" style="flex: 1;" (click)="selectedSubToGrade = null">Cancel</button>
           <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="submitGrade()">Save Grade</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Quiz Submission Audit & Grading Modal Overlay (Global Scope) -->
+  <div *ngIf="detailedSubmission" class="global-modal-overlay">
+    <div class="global-modal-card" style="max-width: 900px; padding: 2rem;">
+      
+      <!-- Header -->
+      <div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <span class="biz-overline">SUBMISSION AUDIT & GRADING</span>
+          <h2 style="font-size: 1.35rem; margin: 0; color: var(--text-primary);">
+            {{ detailedSubmission.studentName }}
+          </h2>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+            Quiz: <strong>{{ detailedSubmission.quiz?.quizTitle }}</strong> | Score: <strong style="color: var(--text-primary);">{{ detailedSubmission.score }} / {{ detailedSubmission.totalMarks }}</strong> ({{ detailedSubmission.percentage | number:'1.0-1' }}%)
+          </p>
+        </div>
+        <button class="neo-btn" style="padding: 0.35rem 0.75rem;" (click)="detailedSubmission = null">✕ Close</button>
+      </div>
+
+      <!-- Question breakdown lists -->
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div *ngFor="let sa of detailedSubmission.studentAnswers; let idx = index" class="neo-card-inset">
+          
+          <div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary);">
+              Q{{ idx + 1 }}. [{{ sa.question.questionType }}] - {{ sa.question.questionText }}
+            </h4>
+            
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span style="font-size: 0.85rem; color: var(--text-secondary);">Points: {{ sa.awardedMarks !== null ? sa.awardedMarks : 'Pending' }}/{{ sa.question.mark }}</span>
+              <!-- Auto correct status badges -->
+              <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks > 0" class="badge badge-completed">Correct</span>
+              <span *ngIf="sa.awardedMarks !== null && sa.awardedMarks <= 0" class="badge badge-overdue">Incorrect</span>
+              <span *ngIf="sa.awardedMarks === null" class="badge badge-pending">Pending Grade</span>
+            </div>
+          </div>
+
+          <!-- MCQ/TF choice highlights -->
+          <div *ngIf="sa.question.questionType === 'MCQ' || sa.question.questionType === 'TF' || sa.question.questionType === 'MCQ_SINGLE' || sa.question.questionType === 'MCQ_MULTIPLE'" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+            <div 
+              *ngFor="let opt of sa.question.options" 
+              style="padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.9rem;"
+              [style.background]="opt.isCorrect ? 'rgba(16,185,129,0.06)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'rgba(239,68,68,0.06)' : 'var(--bg-inset)')"
+              [style.border]="opt.isCorrect ? '1px solid var(--success-color)' : (isOptionSelectedInSubmission(sa, opt.id) ? '1px solid var(--danger-color)' : '1px solid var(--border-color)')">
+              
+              <span>{{ opt.optionText }}</span>
+              <span *ngIf="opt.isCorrect" style="color: var(--success-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Correct key</span>
+              <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && !opt.isCorrect" style="color: var(--danger-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Student Answer</span>
+              <span *ngIf="isOptionSelectedInSubmission(sa, opt.id) && opt.isCorrect" style="color: var(--success-color); font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem; text-transform: uppercase;">Student Answer (Correct)</span>
+            </div>
+          </div>
+
+          <!-- Fill in the blank typed response review -->
+          <div *ngIf="sa.question.questionType === 'FillBlank' || sa.question.questionType === 'FILL_BLANK' || sa.question.questionType === 'SHORT_ANSWER'" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <p style="font-size: 0.9rem;">Student typed answer: <strong style="font-style: italic; color: var(--text-primary);">"{{ sa.typedAnswer || sa.typedAnswerText || '[Empty]' }}"</strong></p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);" *ngIf="sa.question.correctAnswerText">Correct answer pattern: <strong style="color: var(--success-color);">{{ sa.question.correctAnswerText }}</strong></p>
+          </div>
+
+          <!-- Subjective typed response manual grading panel -->
+          <div *ngIf="sa.question.questionType === 'Subjective' || sa.question.questionType === 'ESSAY'" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="background: var(--bg-inset); border: 1px solid var(--border-color); padding: 1rem 1.5rem; border-radius: 10px; font-style: italic; white-space: pre-wrap; font-size: 0.95rem; color: var(--text-primary);">
+              "{{ sa.typedAnswer || sa.typedAnswerText || '[No Answer Submitted]' }}"
+            </div>
+          </div>
+
+          <!-- Grade adjustment input for question -->
+          <div class="flex-center" style="justify-content: flex-start; gap: 1rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Award / Adjust Marks (0 - {{ sa.question.mark }}):</span>
+            <input 
+              type="number" 
+              class="neo-input" 
+              style="max-width: 100px; padding: 0.4rem 0.8rem;" 
+              min="0" 
+              [max]="sa.question.mark" 
+              step="0.5" 
+              [(ngModel)]="subjectiveGrades[sa.question.id]" 
+            />
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Save evaluations button & modal footer -->
+      <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+        <button class="neo-btn" (click)="detailedSubmission = null">Cancel</button>
+        <button class="neo-btn neo-btn-primary" style="padding: 0.75rem 2rem;" (click)="saveSubjectiveGrades()">
+          Save Evaluated Grades & Update Score
+        </button>
       </div>
     </div>
   </div>
