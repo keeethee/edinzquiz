@@ -882,18 +882,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cl-nav-icon {
-  font-size: 1.2rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
   flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: color 0.18s ease;
+}
+
+.cl-nav-icon svg {
+  width: 19px;
+  height: 19px;
+  stroke: currentColor;
 }
 
 .cl-nav-link:hover {
   background: var(--blue-light-bg);
   color: var(--blue-primary);
   transform: translateX(2px);
+}
+
+.cl-nav-link:hover .cl-nav-icon {
+  color: var(--blue-primary);
 }
 
 .cl-nav-link.active-cl-link {
