@@ -122,6 +122,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   subFilterDate: string = '';
   daysList: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
   detailedSubmission: QuizSubmission | null = null;
+  isLoadingSubmissionDetail: boolean = false;
   
   // Subjective grading helper
   subjectiveGrades: Record<string, number> = {};
@@ -1684,17 +1685,28 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   viewQuizSubmissionDetail(id: string) {
+    this.isLoadingSubmissionDetail = true;
+    this.errorMsg = '';
+    this.cdr.markForCheck();
+
     this.apiService.getQuizSubmissionDetail(id).subscribe({
       next: (res) => {
         this.detailedSubmission = res;
         this.subjectiveGrades = {};
+        this.isLoadingSubmissionDetail = false;
         
         res.studentAnswers?.forEach(sa => {
-          this.subjectiveGrades[sa.question.id] = sa.awardedMarks !== null ? sa.awardedMarks : 0;
+          const qId = sa.question?.id || (sa as any).questionId;
+          if (qId) {
+            this.subjectiveGrades[qId] = sa.awardedMarks !== null && sa.awardedMarks !== undefined ? sa.awardedMarks : 0;
+          }
         });
+        this.cdr.markForCheck();
       },
-      error: () => {
-        this.errorMsg = 'Failed to load submission detail.';
+      error: (err) => {
+        this.isLoadingSubmissionDetail = false;
+        this.errorMsg = err?.error?.message || 'Failed to load submission details.';
+        this.cdr.markForCheck();
       }
     });
   }
