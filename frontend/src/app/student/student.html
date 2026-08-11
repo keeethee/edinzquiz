@@ -272,27 +272,27 @@
       <!-- Top Welcome Card Banner -->
       <div class="neo-card flex-between" style="padding: 1.5rem 2rem; margin-bottom: 2rem; background: #ffffff; border: 1px solid var(--border-color);">
         <div>
-          <span class="biz-overline" style="color: var(--blue-primary);">VERIFIED STUDENT SESSION</span>
+          <span class="biz-overline">VERIFIED STUDENT SESSION</span>
           <h2 style="font-size: 1.45rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">
             Welcome, {{ loggedInStudent?.name }}
           </h2>
           <p style="color: var(--text-secondary); margin: 0; font-size: 0.92rem;">
-            Institution: <strong>{{ loggedInStudent?.collegeName }}</strong> | Enrolled Track: <strong style="color: var(--blue-primary);">({{ activeCourse?.courseId }}) {{ activeCourse?.courseName }}</strong>
+            Institution: <strong style="color: var(--text-primary);">{{ loggedInStudent?.collegeName }}</strong> | Enrolled Track: <strong style="color: var(--text-primary);">({{ activeCourse?.courseId }}) {{ activeCourse?.courseName }}</strong>
           </p>
         </div>
         <div style="display: flex; gap: 0.75rem; align-items: center;">
-          <span class="biz-badge biz-badge-success" style="font-size: 0.8rem; padding: 0.4rem 0.85rem;">
+          <span class="biz-badge" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; font-weight: 600; color: var(--text-primary);">
             ONLINE • ACTIVE
           </span>
         </div>
       </div>
 
-      <!-- Student Summary Metrics Grid with Clean Business Typography -->
+      <!-- Student Summary Metrics Grid with Clean Monochrome Business Typography -->
       <div class="grid-4" style="margin-bottom: 2.5rem; gap: 1.25rem;">
         <div class="neo-card stagger-1" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('quiz')">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
             <span class="biz-overline">EXAMINATIONS</span>
-            <span class="cl-nav-icon" style="color: var(--blue-primary);">
+            <span class="cl-nav-icon" style="color: var(--text-secondary);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
                 <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
@@ -301,13 +301,13 @@
             </span>
           </div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Active Assessments</span>
-          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--blue-primary); margin: 0.2rem 0 0 0;">{{ quizzes.length || 0 }} Scheduled</h3>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin: 0.2rem 0 0 0;">{{ quizzes.length || 0 }} Scheduled</h3>
         </div>
 
         <div class="neo-card stagger-2" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
             <span class="biz-overline">COURSEWORK</span>
-            <span class="cl-nav-icon" style="color: var(--orange-primary);">
+            <span class="cl-nav-icon" style="color: var(--text-secondary);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
@@ -315,13 +315,13 @@
             </span>
           </div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Active Deliverables</span>
-          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--orange-text); margin: 0.2rem 0 0 0;">{{ assignments.length || 0 }} Published</h3>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin: 0.2rem 0 0 0;">{{ assignments.length || 0 }} Published</h3>
         </div>
 
         <div class="neo-card stagger-3" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('results')">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
             <span class="biz-overline">RECORDS</span>
-            <span class="cl-nav-icon" style="color: var(--success-color);">
+            <span class="cl-nav-icon" style="color: var(--text-secondary);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
                 <polyline points="16 7 22 7 22 13"></polyline>
@@ -329,13 +329,13 @@
             </span>
           </div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Completed Attempts</span>
-          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--success-color); margin: 0.2rem 0 0 0;">{{ allSubmissions.length || 0 }} Evaluated</h3>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin: 0.2rem 0 0 0;">{{ allSubmissions.length || 0 }} Evaluated</h3>
         </div>
 
         <div class="neo-card stagger-4" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignment')">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
             <span class="biz-overline">SUBMISSIONS</span>
-            <span class="cl-nav-icon" style="color: var(--blue-primary);">
+            <span class="cl-nav-icon" style="color: var(--text-secondary);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
@@ -343,7 +343,7 @@
             </span>
           </div>
           <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Coursework Uploads</span>
-          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--blue-primary); margin: 0.2rem 0 0 0;">{{ studentSubmissions.length || 0 }} Uploaded</h3>
+          <h3 style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); margin: 0.2rem 0 0 0;">{{ studentSubmissions.length || 0 }} Uploaded</h3>
         </div>
       </div>
 

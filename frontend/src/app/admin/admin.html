@@ -158,32 +158,69 @@
 
   <!-- ==================== EXECUTIVE DASHBOARD TAB ==================== -->
   <div *ngIf="activeTab === 'dashboard'" class="page-transition-enter">
-    <!-- Quick Action Launchpad Cards with Staggered Animations -->
-    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary); border-left: 4px solid var(--blue-primary); padding-left: 0.75rem;">
-      🚀 Operations Launchpad
+    <!-- Quick Action Launchpad Cards with Clean Monochrome Styling -->
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary);">
+      Operations Launchpad
     </h3>
     <div class="grid-4" style="margin-bottom: 2.5rem; gap: 1.25rem;">
       <div class="neo-card stagger-1" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('quizzes');">
-        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📝</div>
-        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Create Technical Quiz</h4>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+          <span class="biz-overline">ASSESSMENTS</span>
+          <span class="cl-nav-icon" style="color: var(--text-secondary);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              <path d="m9 14 2 2 4-4"></path>
+            </svg>
+          </span>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">Create Technical Assessment</h4>
         <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Configure questions, timing parameters, and passing marks.</p>
       </div>
 
       <div class="neo-card stagger-2" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assignments');">
-        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📚</div>
-        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Publish Assignment</h4>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+          <span class="biz-overline">DELIVERABLES</span>
+          <span class="cl-nav-icon" style="color: var(--text-secondary);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </span>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">Publish Assignment</h4>
         <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Upload problem statements, rubrics, and deadlines for students.</p>
       </div>
 
       <div class="neo-card stagger-3" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('assign-sub');">
-        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🤖</div>
-        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">AI Evaluation Center</h4>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+          <span class="biz-overline">AI CENTER</span>
+          <span class="cl-nav-icon" style="color: var(--text-secondary);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+              <path d="M5 3v4"></path>
+              <path d="M19 17v4"></path>
+              <path d="M3 5h4"></path>
+              <path d="M17 19h4"></path>
+            </svg>
+          </span>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">AI Evaluation Center</h4>
         <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Review automated AI code evaluations and grade student submissions.</p>
       </div>
 
       <div class="neo-card stagger-4" style="padding: 1.5rem; cursor: pointer;" (click)="switchTab('courses');">
-        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🎯</div>
-        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Add Track Module</h4>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+          <span class="biz-overline">CURRICULUM</span>
+          <span class="cl-nav-icon" style="color: var(--text-secondary);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </span>
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-primary);">Add Track Module</h4>
         <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Register new academic curriculum courses and track codes.</p>
       </div>
     </div>
@@ -193,7 +230,7 @@
       <!-- Active Tracks Summary -->
       <div class="neo-card">
         <div class="flex-between" style="margin-bottom: 1.25rem;">
-          <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0;">📚 Active Track Modules</h3>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-primary);">Active Track Modules</h3>
           <button class="neo-btn" style="padding: 0.35rem 0.85rem; font-size: 0.8rem;" (click)="switchTab('courses')">View All ({{ courses.length }})</button>
         </div>
         
@@ -202,8 +239,8 @@
         <div *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 0.85rem;">
           <div *ngFor="let c of courses.slice(0, 5); trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1rem 1.25rem;">
             <div>
-              <strong style="color: var(--accent-color); font-weight: 700; margin-right: 0.5rem;">{{ c.courseId }}</strong>
-              <span style="font-weight: 600; font-size: 0.95rem;">{{ c.courseName }}</span>
+              <strong style="color: var(--text-primary); font-weight: 700; margin-right: 0.5rem;">{{ c.courseId }}</strong>
+              <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">{{ c.courseName }}</span>
               <span style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;" *ngIf="c.duration">Duration: {{ c.duration }}</span>
             </div>
             <span class="badge badge-completed" style="font-size: 0.78rem;">{{ c.status }}</span>
@@ -214,7 +251,7 @@
       <!-- Recent Quiz & Assignment Activity Feed -->
       <div class="neo-card">
         <div class="flex-between" style="margin-bottom: 1.25rem;">
-          <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0;">⚡ Recent Student Submissions</h3>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-primary);">Recent Student Submissions</h3>
           <button class="neo-btn" style="padding: 0.35rem 0.85rem; font-size: 0.8rem;" (click)="switchTab('assign-sub')">All Submissions</button>
         </div>
 
