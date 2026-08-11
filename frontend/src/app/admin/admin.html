@@ -314,23 +314,33 @@
 
       <!-- Course List -->
       <div class="neo-card">
-        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Active Courses</h3>
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem; color: var(--text-primary);">Active Courses</h3>
         <div *ngIf="courses.length === 0" style="color: var(--text-muted); text-align: center; padding: 2rem;">No courses created yet.</div>
         
-        <div *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 1rem; max-height: 520px; overflow-y: auto; padding-right: 0.5rem;">
-          <div *ngFor="let c of courses; trackBy: trackById" class="neo-card-inset flex-between" style="padding: 1rem 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
-            <div>
-              <h4 style="font-size: 1.05rem;">
-                <span style="color: var(--accent-color); font-weight: 700; margin-right: 0.5rem;">{{ c.courseId }}</span>
-                {{ c.courseName }}
-              </h4>
-              <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 1.5rem;" *ngIf="c.duration">⏳ {{ c.duration }}</span>
-              <span class="badge" [class.badge-completed]="c.status === 'Active'" [class.badge-overdue]="c.status === 'Inactive'">{{ c.status }}</span>
+        <div *ngIf="courses.length > 0" style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 520px; overflow-y: auto; padding-right: 0.25rem;">
+          <div *ngFor="let c of courses; trackBy: trackById" class="neo-card-inset" style="padding: 1.15rem 1.4rem; display: flex; justify-content: space-between; align-items: center; gap: 1.25rem;">
+            <div style="min-width: 0; flex: 1;">
+              <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                <span class="biz-badge" style="font-weight: 700; color: var(--text-primary);">{{ c.courseId }}</span>
+                <strong style="font-size: 1rem; color: var(--text-primary);">{{ c.courseName }}</strong>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.85rem; font-size: 0.8rem; color: var(--text-secondary);">
+                <span *ngIf="c.duration" style="display: inline-flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  {{ c.duration }}
+                </span>
+                <span class="badge" [class.badge-completed]="c.status === 'Active'" [class.badge-overdue]="c.status === 'Inactive'" style="font-size: 0.72rem; padding: 0.15rem 0.55rem;">
+                  {{ c.status }}
+                </span>
+              </div>
             </div>
             
-            <div style="display: flex; gap: 0.5rem;">
-              <button class="neo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="editCourse(c)">Edit</button>
-              <button class="neo-btn neo-btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="deleteCourse(c.id)">Delete</button>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+              <button class="neo-btn" style="padding: 0.45rem 0.85rem; font-size: 0.82rem; font-weight: 600;" (click)="editCourse(c)">Edit</button>
+              <button class="neo-btn neo-btn-danger" style="padding: 0.45rem 0.85rem; font-size: 0.82rem; font-weight: 600;" (click)="deleteCourse(c.id)">Delete</button>
             </div>
           </div>
         </div>
