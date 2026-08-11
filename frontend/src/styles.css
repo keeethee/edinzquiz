@@ -763,6 +763,60 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
 }
 
+/* ==========================================================================
+   Business-Grade Enterprise Typography & Layout Tokens
+   ========================================================================== */
+
+.biz-overline {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.biz-heading {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.biz-subheading {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.biz-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+
+.biz-badge-primary {
+  background: var(--blue-light-bg);
+  border-color: var(--blue-border);
+  color: var(--blue-primary);
+}
+
+.biz-badge-success {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-color);
+}
+
 /* Sidebar Container (Desktop) */
 .codinglab-sidebar {
   width: 260px;
