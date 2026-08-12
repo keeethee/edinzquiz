@@ -5,13 +5,15 @@ services:
     env: node
     plan: free
     rootDir: backend
-    buildCommand: npm install --production=false && npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm run start:prod
     envVars:
       - key: PORT
         value: 10000
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=450
       - key: DATABASE_URL
         value: postgresql://postgres.hrjusuvhekpnctcewmzs:Keeethee%402006@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=10&pool_timeout=15&sslmode=require
       - key: DIRECT_URL
