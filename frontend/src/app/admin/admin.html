@@ -106,6 +106,18 @@
           </span>
           <span class="cl-hide-collapsed">AI Center</span>
         </button>
+
+        <button class="cl-nav-link" [class.active-cl-link]="activeTab === 'student-activity'" (click)="switchTab('student-activity'); closeMobileSidebar()" [title]="'Student Login & Activity Tracker'">
+          <span class="cl-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </span>
+          <span class="cl-hide-collapsed">Student Activity</span>
+        </button>
       </nav>
     </div>
 
@@ -139,6 +151,7 @@
           <span *ngIf="activeTab === 'assignments'">Assignment Specifications & Rubrics</span>
           <span *ngIf="activeTab === 'quiz-sub'">Assessment Telemetry & Audit Log</span>
           <span *ngIf="activeTab === 'assign-sub'">AI Evaluation Center</span>
+          <span *ngIf="activeTab === 'student-activity'">Student Login & Access Activity Tracker</span>
         </h2>
       </div>
 
@@ -1142,8 +1155,9 @@
             </button>
           </div>
         </div>
-      </div>
     </div>
+  </div>
+  </div>
 
   <!-- ==================== LEADERBOARD MODAL OVERLAY ==================== -->
   <div *ngIf="showLeaderboardModal" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; backdrop-filter: blur(4px);">
@@ -1249,42 +1263,144 @@
       </div>
     </div>
   </div>
-  <!-- EDIT ASSIGNMENT MODAL OVERLAY -->
-  <div *ngIf="showAssignmentEditModal && editingAssignment" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; backdrop-filter: blur(6px); padding: 1.5rem;">
-    <div class="neo-card" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
-      <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
-        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Edit Assignment</h3>
-        <button class="modal-close" (click)="showAssignmentEditModal = false; editingAssignment = null;">×</button>
+
+  <!-- ==================== STUDENT ACTIVITY TRACKER TAB ==================== -->
+  <div *ngIf="activeTab === 'student-activity'" class="page-transition-enter">
+    
+    <!-- Executive KPI Metric Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="neo-card" style="padding: 1.25rem;">
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 0.35rem;">Registered Students</div>
+        <div style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">{{ activitySummary?.totalStudents || 0 }}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Total student accounts</div>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div class="neo-card" style="padding: 1.25rem;">
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 0.35rem;">Logins Today</div>
+        <div style="font-size: 1.75rem; font-weight: 800; color: var(--success-color, #10b981);">{{ activitySummary?.loginsToday || 0 }}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Student logins past 24 hours</div>
+      </div>
+
+      <div class="neo-card" style="padding: 1.25rem;">
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 0.35rem;">Logins This Month</div>
+        <div style="font-size: 1.75rem; font-weight: 800; color: var(--primary-color, #3b82f6);">{{ activitySummary?.loginsThisMonth || 0 }}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Total logins current month</div>
+      </div>
+
+      <div class="neo-card" style="padding: 1.25rem;">
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 0.35rem;">Active Students (Month)</div>
+        <div style="font-size: 1.75rem; font-weight: 800; color: var(--accent-color, #8b5cf6);">{{ activitySummary?.uniqueStudentsThisMonth || 0 }}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Unique active learners</div>
+      </div>
+    </div>
+
+    <!-- Activity Log Filters & Table Card -->
+    <div class="neo-card" style="padding: 1.5rem;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
         <div>
-          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Homework Title</label>
-          <input type="text" class="neo-input" [(ngModel)]="editAssignTitle" placeholder="e.g. Worksheet 5: Functions" />
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Description / Guidelines</label>
-          <textarea class="neo-textarea" [(ngModel)]="editAssignDesc" rows="3" placeholder="e.g. Upload PDF. Include calculations step-by-step."></textarea>
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Due Date & Time</label>
-          <input type="datetime-local" class="neo-input" [(ngModel)]="editAssignDeadline" />
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">AI Evaluation Criteria <span style="font-size: 0.78rem; color: var(--accent-color); font-weight: 500;">(Example format in box below)</span></label>
-          <textarea class="neo-textarea" [(ngModel)]="editAssignRubric" rows="5" placeholder="Minimum words: 500&#10;Maximum words: 1000&#10;Assignment should mainly cover:&#10;- Angular Components&#10;- Services&#10;- Dependency Injection&#10;- Routing&#10;&#10;Pass if topic coverage is at least 70%."></textarea>
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary);">Student Access & Activity Log</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">View student registration dates, login timestamps, and course access logs.</p>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
-          <button class="neo-btn" (click)="showAssignmentEditModal = false; editingAssignment = null;">Cancel</button>
-          <button class="neo-btn neo-btn-primary" (click)="saveEditedAssignment()">Save Changes</button>
+        <!-- Interactive Filters -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;">
+          <!-- Filter Period Type -->
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Period:</label>
+            <select class="neo-input" style="padding: 0.4rem 0.75rem; font-size: 0.82rem; min-width: 100px;" [(ngModel)]="activityFilterType" (change)="onActivityFilterTypeChange()">
+              <option value="day">Day</option>
+              <option value="month">Month</option>
+              <option value="year">Year</option>
+            </select>
+          </div>
+
+          <!-- Filter Value Date Picker -->
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Select:</label>
+            <input *ngIf="activityFilterType === 'day'" type="date" class="neo-input" style="padding: 0.4rem 0.75rem; font-size: 0.82rem;" [(ngModel)]="activityFilterValue" (change)="onActivityFilterChange()" />
+            <input *ngIf="activityFilterType === 'month'" type="month" class="neo-input" style="padding: 0.4rem 0.75rem; font-size: 0.82rem;" [(ngModel)]="activityFilterValue" (change)="onActivityFilterChange()" />
+            <select *ngIf="activityFilterType === 'year'" class="neo-input" style="padding: 0.4rem 0.75rem; font-size: 0.82rem; min-width: 100px;" [(ngModel)]="activityFilterValue" (change)="onActivityFilterChange()">
+              <option *ngFor="let yr of availableYears" [value]="yr">{{ yr }}</option>
+            </select>
+          </div>
+
+          <!-- Course Filter Dropdown -->
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Course:</label>
+            <select class="neo-input" style="padding: 0.4rem 0.75rem; font-size: 0.82rem; max-width: 220px;" [(ngModel)]="activityCourseFilter" (change)="onActivityFilterChange()">
+              <option value="">All Courses</option>
+              <option *ngFor="let c of courses" [value]="c.id">{{ c.courseName }} ({{ c.courseId }})</option>
+            </select>
+          </div>
+
+          <!-- Refresh Button -->
+          <button class="neo-btn" style="padding: 0.4rem 0.75rem; font-size: 0.82rem;" (click)="loadStudentActivityData()" [disabled]="isLoadingActivity">
+            <span *ngIf="!isLoadingActivity">🔄 Refresh</span>
+            <span *ngIf="isLoadingActivity">Loading...</span>
+          </button>
         </div>
+      </div>
+
+      <!-- Activity Data Table -->
+      <div style="overflow-x: auto;">
+        <table class="neo-table" style="width: 100%; font-size: 0.85rem;">
+          <thead>
+            <tr>
+              <th style="padding: 0.75rem 1rem; text-align: left;">#</th>
+              <th style="padding: 0.75rem 1rem; text-align: left;">Student Name</th>
+              <th style="padding: 0.75rem 1rem; text-align: left;">Email</th>
+              <th style="padding: 0.75rem 1rem; text-align: left;">College</th>
+              <th style="padding: 0.75rem 1rem; text-align: left;">Event</th>
+              <th style="padding: 0.75rem 1rem; text-align: left;">Course Accessed</th>
+              <th style="padding: 0.75rem 1rem; text-align: left;">Date & Time</th>
+              <th style="padding: 0.75rem 1rem; text-align: left;">IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoadingActivity">
+              <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                Fetching activity logs...
+              </td>
+            </tr>
+            <tr *ngIf="!isLoadingActivity && activityLogs.length === 0">
+              <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No student activity logs found matching the selected filters.
+              </td>
+            </tr>
+            <tr *ngFor="let log of activityLogs; let idx = index" style="border-bottom: 1px solid var(--glass-border);">
+              <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-muted);">{{ idx + 1 }}</td>
+              <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-primary);">{{ log.studentName }}</td>
+              <td style="padding: 0.75rem 1rem; color: var(--text-secondary);">{{ log.studentEmail }}</td>
+              <td style="padding: 0.75rem 1rem; color: var(--text-muted);">{{ log.collegeName }}</td>
+              <td style="padding: 0.75rem 1rem;">
+                <span *ngIf="log.eventType === 'REGISTER'" class="biz-badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 600;">Registered</span>
+                <span *ngIf="log.eventType === 'LOGIN'" class="biz-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600;">Logged In</span>
+                <span *ngIf="log.eventType === 'COURSE_ACCESS'" class="biz-badge" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); font-weight: 600;">Course Selected</span>
+              </td>
+              <td style="padding: 0.75rem 1rem;">
+                <span *ngIf="log.courseName && log.courseName !== '-'" style="font-weight: 500; color: var(--text-primary);">
+                  {{ log.courseName }} <span style="font-size: 0.75rem; color: var(--text-muted);">({{ log.courseDisplayId }})</span>
+                </span>
+                <span *ngIf="!log.courseName || log.courseName === '-'" style="color: var(--text-muted); font-style: italic;">
+                  -
+                </span>
+              </td>
+              <td style="padding: 0.75rem 1rem; color: var(--text-secondary);">
+                {{ log.loggedInAt | date:'medium' }}
+              </td>
+              <td style="padding: 0.75rem 1rem; color: var(--text-muted); font-family: monospace; font-size: 0.78rem;">
+                {{ log.ipAddress || '-' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+  </div>
 
-  <!-- AI Evaluation Detail Modal Overlay (Global Scope) -->
-  <div *ngIf="showAiEvalModal" class="global-modal-overlay">
+  <!-- ==================== LEADERBOARD MODAL OVERLAY ==================== -->
+  <div *ngIf="showLeaderboardModal" class="flex-center" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; backdrop-filter: blur(4px);">
     <div class="global-modal-card" style="max-width: 900px; padding: 2rem;">
       
       <!-- Header -->
@@ -1525,7 +1641,5 @@
         </button>
       </div>
     </div>
-  </div>
-
   </div>
 </div>

@@ -8,6 +8,7 @@ import { QuizModule } from './modules/quiz/quiz.module';
 import { AssignmentModule } from './modules/assignment/assignment.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AiEvaluationModule } from './modules/ai-evaluation/ai-evaluation.module';
+import { StudentActivityModule } from './modules/student-activity/student-activity.module';
 
 @Module({
   imports: [
@@ -22,6 +23,8 @@ import { AiEvaluationModule } from './modules/ai-evaluation/ai-evaluation.module
     AssignmentModule,
     AuthModule,
     AiEvaluationModule,
+    StudentActivityModule,
   ],
 })
 export class AppModule {}
+

@@ -30,6 +30,7 @@ model Student {
   registeredAt          DateTime               @default(now())
   submissions           QuizSubmission[]
   assignmentSubmissions AssignmentSubmission[]
+  loginLogs             StudentLoginLog[]
 
   @@map("students")
 }
@@ -43,6 +44,7 @@ model Course {
   quizzes    Quiz[]
   questions  QuestionBank[]
   assignments Assignment[]
+  loginLogs  StudentLoginLog[]
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
@@ -254,4 +256,22 @@ model MediaAttachment {
   uploadedAt DateTime @default(now())
 
   @@map("media_attachments")
+}
+
+model StudentLoginLog {
+  id         String   @id @default(uuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId   String?
+  course     Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  eventType  String   @default("LOGIN") // "LOGIN" | "REGISTER" | "COURSE_ACCESS"
+  ipAddress  String?
+  userAgent  String?
+  loggedInAt DateTime @default(now())
+
+  @@index([studentId])
+  @@index([courseId])
+  @@index([loggedInAt])
+  @@index([eventType])
+  @@map("student_login_logs")
 }

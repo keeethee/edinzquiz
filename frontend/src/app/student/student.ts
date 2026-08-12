@@ -252,6 +252,9 @@ export class StudentComponent implements OnInit, OnDestroy {
         this.isSearchingCourse = false;
         this.activeCourse = course;
         localStorage.setItem('edinz_active_course', JSON.stringify(course));
+        if (course?.id) {
+          this.apiService.recordCourseAccess(course.id).subscribe({ error: () => {} });
+        }
         this.resetState();
         this.cdr.detectChanges();
       },

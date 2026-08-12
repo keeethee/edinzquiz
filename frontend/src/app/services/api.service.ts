@@ -697,4 +697,25 @@ export class ApiService {
       studentAnswers: mappedAnswers
     };
   }
+
+  // --- Student Activity Methods ---
+  getStudentActivityLogs(filterType?: string, filterValue?: string, courseId?: string): Observable<any[]> {
+    let params: string[] = [];
+    if (filterType) params.push(`filterType=${encodeURIComponent(filterType)}`);
+    if (filterValue) params.push(`filterValue=${encodeURIComponent(filterValue)}`);
+    if (courseId) params.push(`courseId=${encodeURIComponent(courseId)}`);
+
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    return this.http.get<any[]>(`${this.baseUrl}/student-activity/logs${query}`, this.getHeaders());
+  }
+
+  getStudentActivitySummary(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/student-activity/summary`, this.getHeaders());
+  }
+
+  recordCourseAccess(courseId: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/student-activity/course-access`, { courseId }, this.getHeaders());
+  }
 }
+
+

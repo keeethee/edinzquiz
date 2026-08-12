@@ -16,7 +16,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   styleUrls: ['./admin.css']
 })
 export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate {
-  activeTab: 'dashboard' | 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub' = 'dashboard';
+  activeTab: string = 'dashboard';
   isSidebarCollapsed = false;
   isMobileSidebarOpen = false;
 
@@ -42,6 +42,15 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   selectedCourseId: string = '';
   errorMsg: string = '';
   successMsg: string = '';
+
+  // Student Activity State
+  activityLogs: any[] = [];
+  activitySummary: any = null;
+  activityFilterType: 'day' | 'month' | 'year' = 'month';
+  activityFilterValue: string = new Date().toISOString().slice(0, 7); // e.g. "2026-08"
+  activityCourseFilter: string = '';
+  isLoadingActivity: boolean = false;
+  availableYears: number[] = [2024, 2025, 2026, 2027];
 
   // --- Courses Tab State ---
   newCourseIdCode: string = '';
@@ -169,7 +178,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.router.navigate(['/admin/login']);
   }
 
-  switchTab(tab: 'dashboard' | 'courses' | 'quizzes' | 'assignments' | 'quiz-sub' | 'assign-sub') {
+  switchTab(tab: string) {
     if (this.isQuizEditorOpen) {
       if (!this.canDeactivate()) return;
       this.stopAutosaveLoop();
@@ -206,11 +215,75 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       this.loadQuizSubmissions();
     } else if (tab === 'assign-sub') {
       this.loadAssignmentSubmissions();
+    } else if (tab === 'student-activity') {
+      this.loadCourses();
+      this.loadStudentActivityData();
     }
 
     try {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {}
+  }
+
+  // --- Student Activity Methods ---
+  loadStudentActivityData() {
+    this.isLoadingActivity = true;
+    this.cdr.markForCheck();
+
+    forkJoin({
+      summary: this.apiService.getStudentActivitySummary(),
+      logs: this.apiService.getStudentActivityLogs(
+        this.activityFilterType,
+        this.activityFilterValue,
+        this.activityCourseFilter
+      )
+    }).subscribe({
+      next: (res) => {
+        this.activitySummary = res.summary;
+        this.activityLogs = res.logs;
+        this.isLoadingActivity = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isLoadingActivity = false;
+        this.errorMsg = 'Failed to load student activity data.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  onActivityFilterTypeChange() {
+    const now = new Date();
+    if (this.activityFilterType === 'day') {
+      this.activityFilterValue = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    } else if (this.activityFilterType === 'month') {
+      this.activityFilterValue = now.toISOString().slice(0, 7); // "YYYY-MM"
+    } else if (this.activityFilterType === 'year') {
+      this.activityFilterValue = String(now.getFullYear());
+    }
+    this.onActivityFilterChange();
+  }
+
+  onActivityFilterChange() {
+    this.isLoadingActivity = true;
+    this.cdr.markForCheck();
+
+    this.apiService.getStudentActivityLogs(
+      this.activityFilterType,
+      this.activityFilterValue,
+      this.activityCourseFilter
+    ).subscribe({
+      next: (logs) => {
+        this.activityLogs = logs;
+        this.isLoadingActivity = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isLoadingActivity = false;
+        this.errorMsg = 'Failed to filter activity logs.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   closeModals() {

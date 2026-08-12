@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantManagerService } from '../../prisma/tenant-manager.service';
+import { StudentActivityService } from '../student-activity/student-activity.service';
 
 @Injectable()
 export class AuthService implements OnApplicationBootstrap {
@@ -10,6 +11,7 @@ export class AuthService implements OnApplicationBootstrap {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private tenantManagerService: TenantManagerService,
+    private studentActivityService: StudentActivityService,
   ) {}
 
   // Seed default admin on startup if not present
@@ -51,7 +53,7 @@ export class AuthService implements OnApplicationBootstrap {
   }
 
   // Student Auth methods
-  async registerStudent(email: string, pass: string, name: string, collegeName: string): Promise<any> {
+  async registerStudent(email: string, pass: string, name: string, collegeName: string, ipAddress?: string, userAgent?: string): Promise<any> {
     const existing = await this.prisma.student.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException(`Student with email "${email}" already registered.`);
@@ -72,6 +74,11 @@ export class AuthService implements OnApplicationBootstrap {
       console.error(`Background schema creation failed for ${student.id}:`, err.message);
     });
 
+    // Record student registration activity in background
+    this.studentActivityService.recordRegistration(student.id, ipAddress, userAgent).catch(err => {
+      console.error(`Activity logging failed for student registration ${student.id}:`, err.message);
+    });
+
     const payload = { sub: student.id, email: student.email, role: 'student' };
     const token = await this.jwtService.signAsync(payload);
 
@@ -87,7 +94,7 @@ export class AuthService implements OnApplicationBootstrap {
     };
   }
 
-  async loginStudent(email: string, pass: string): Promise<{ token: string; student: { id: string; name: string; email: string; collegeName: string } }> {
+  async loginStudent(email: string, pass: string, ipAddress?: string, userAgent?: string): Promise<{ token: string; student: { id: string; name: string; email: string; collegeName: string } }> {
     const student = await this.prisma.student.findUnique({ where: { email } });
     if (!student) {
       throw new UnauthorizedException('Invalid email or password');
@@ -101,6 +108,11 @@ export class AuthService implements OnApplicationBootstrap {
     // Ensure isolated database schema in background
     this.tenantManagerService.ensureStudentSchema(this.prisma, student.id).catch(err => {
       console.error(`Background schema check failed for ${student.id}:`, err.message);
+    });
+
+    // Record student login activity in background
+    this.studentActivityService.recordLogin(student.id, undefined, ipAddress, userAgent).catch(err => {
+      console.error(`Activity logging failed for student login ${student.id}:`, err.message);
     });
 
     const payload = { sub: student.id, email: student.email, role: 'student' };

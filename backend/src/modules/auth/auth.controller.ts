@@ -18,16 +18,22 @@ export class AuthController {
     @Body('password') password: string,
     @Body('name') name: string,
     @Body('collegeName') collegeName: string,
+    @Request() req: any,
   ) {
-    return this.authService.registerStudent(email, password, name, collegeName);
+    const ip = req.headers?.['x-forwarded-for'] || req.ip || null;
+    const ua = req.headers?.['user-agent'] || null;
+    return this.authService.registerStudent(email, password, name, collegeName, ip, ua);
   }
 
   @Post('student/login')
   async loginStudent(
     @Body('email') email: string,
     @Body('password') password: string,
+    @Request() req: any,
   ) {
-    return this.authService.loginStudent(email, password);
+    const ip = req.headers?.['x-forwarded-for'] || req.ip || null;
+    const ua = req.headers?.['user-agent'] || null;
+    return this.authService.loginStudent(email, password, ip, ua);
   }
 
   @UseGuards(AuthGuard)
