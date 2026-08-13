@@ -18,6 +18,8 @@ services:
         value: postgresql://postgres.hrjusuvhekpnctcewmzs:Keeethee%402006@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=10&pool_timeout=15&sslmode=require
       - key: DIRECT_URL
         value: postgresql://postgres.hrjusuvhekpnctcewmzs:Keeethee%402006@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require
+      - key: JWT_SECRET
+        value: SECRET_JWT_KEY_EDINZ
 
   # 2. Angular Frontend Static Site
   - type: web
