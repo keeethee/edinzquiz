@@ -6,7 +6,7 @@
       "destination": "https://edinz-quiz-backend.onrender.com/api/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
