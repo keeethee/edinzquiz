@@ -1,25 +1,15 @@
 {
   "version": 2,
-  "builds": [
+  "outputDirectory": "frontend/dist/frontend",
+  "cleanUrls": true,
+  "rewrites": [
     {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/frontend"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "https://edinz-quiz-backend.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://edinz-quiz-backend.onrender.com/api/:path*"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ]
 }
