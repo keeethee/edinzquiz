@@ -1,11 +1,29 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CourseEntity } from '../../entities/course.entity';
 import { AuthGuard } from '../auth/auth.guard';
+import { StudentActivityService } from '../student-activity/student-activity.service';
 
 @Controller('courses')
 export class CourseController {
-  constructor(private readonly courseService: CourseService) {}
+  constructor(
+    private readonly courseService: CourseService,
+    private readonly studentActivityService: StudentActivityService,
+  ) {}
+
+  @Get('activity/summary')
+  getActivitySummary() {
+    return this.studentActivityService.getActivitySummary();
+  }
+
+  @Get('activity/logs')
+  getActivityLogs(
+    @Query('filterType') filterType?: string,
+    @Query('filterValue') filterValue?: string,
+    @Query('courseId') courseId?: string,
+  ) {
+    return this.studentActivityService.getActivityLogs(filterType, filterValue, courseId);
+  }
 
   @UseGuards(AuthGuard)
   @Post()

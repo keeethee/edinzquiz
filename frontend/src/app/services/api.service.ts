@@ -710,11 +710,11 @@ export class ApiService {
     if (courseId) params.push(`courseId=${encodeURIComponent(courseId)}`);
 
     const query = params.length > 0 ? `?${params.join('&')}` : '';
-    return this.http.get<any[]>(`${this.baseUrl}/student-activity/logs${query}`, this.getHeaders());
+    return this.http.get<any[]>(`${this.baseUrl}/courses/activity/logs${query}`, this.getHeaders());
   }
 
   getStudentActivitySummary(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/student-activity/summary`, this.getHeaders());
+    return this.http.get<any>(`${this.baseUrl}/courses/activity/summary`, this.getHeaders());
   }
 
   recordCourseAccess(courseId: string): Observable<any> {
