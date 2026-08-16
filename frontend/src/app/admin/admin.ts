@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { ApiService, Course, Quiz, Question, Option, QuizSubmission, AssignmentSubmission, Assignment } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { Subscription, interval, forkJoin } from 'rxjs';
+import { Subscription, interval, forkJoin, catchError, of } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-admin',
@@ -148,6 +148,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   selectedAiEvalDetail: any = null;
   isLoadingAiDetail: boolean = false;
 
+
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
@@ -230,12 +231,26 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.isLoadingActivity = true;
     this.cdr.markForCheck();
 
+    if (!this.activityFilterValue) {
+      this.activityFilterValue = new Date().toISOString().slice(0, 7);
+    }
+
     forkJoin({
-      summary: this.apiService.getStudentActivitySummary(),
+      summary: this.apiService.getStudentActivitySummary().pipe(
+        catchError((err) => {
+          console.error('Error loading activity summary:', err);
+          return of({ totalStudents: 0, loginsToday: 0, loginsThisMonth: 0, uniqueStudentsThisMonth: 0, courseAccessBreakdown: [] });
+        })
+      ),
       logs: this.apiService.getStudentActivityLogs(
         this.activityFilterType,
         this.activityFilterValue,
         this.activityCourseFilter
+      ).pipe(
+        catchError((err) => {
+          console.error('Error loading activity logs:', err);
+          return of([]);
+        })
       )
     }).subscribe({
       next: (res) => {
@@ -246,7 +261,6 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       },
       error: (err) => {
         this.isLoadingActivity = false;
-        this.errorMsg = 'Failed to load student activity data.';
         this.cdr.markForCheck();
       }
     });
