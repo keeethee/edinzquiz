@@ -718,7 +718,7 @@ export class ApiService {
   }
 
   recordCourseAccess(courseId: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/student-activity/course-access`, { courseId }, this.getHeaders());
+    return this.http.post<any>(`${this.baseUrl}/courses/activity/course-access`, { courseId }, this.getHeaders());
   }
 }
 

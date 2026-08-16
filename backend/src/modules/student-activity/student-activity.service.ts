@@ -6,14 +6,35 @@ export class StudentActivityService {
   constructor(private prisma: PrismaService) {}
 
   /**
+   * Helper to resolve course UUID from either internal ID or display code (e.g. 'fe01')
+   */
+  private async resolveCourseId(courseIdInput?: string): Promise<string | null> {
+    if (!courseIdInput) return null;
+    try {
+      const course = await this.prisma.course.findFirst({
+        where: {
+          OR: [
+            { id: courseIdInput },
+            { courseId: courseIdInput },
+          ],
+        },
+      });
+      return course ? course.id : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Record a student login event
    */
-  async recordLogin(studentId: string, courseId?: string, ipAddress?: string, userAgent?: string) {
+  async recordLogin(studentId: string, courseIdInput?: string, ipAddress?: string, userAgent?: string) {
     try {
+      const resolvedCourseId = await this.resolveCourseId(courseIdInput);
       await this.prisma.studentLoginLog.create({
         data: {
           studentId,
-          courseId: courseId || null,
+          courseId: resolvedCourseId,
           eventType: 'LOGIN',
           ipAddress: ipAddress || null,
           userAgent: userAgent || null,
@@ -27,11 +48,13 @@ export class StudentActivityService {
   /**
    * Record a student registration event
    */
-  async recordRegistration(studentId: string, ipAddress?: string, userAgent?: string) {
+  async recordRegistration(studentId: string, courseIdInput?: string, ipAddress?: string, userAgent?: string) {
     try {
+      const resolvedCourseId = await this.resolveCourseId(courseIdInput);
       await this.prisma.studentLoginLog.create({
         data: {
           studentId,
+          courseId: resolvedCourseId,
           eventType: 'REGISTER',
           ipAddress: ipAddress || null,
           userAgent: userAgent || null,
@@ -45,12 +68,19 @@ export class StudentActivityService {
   /**
    * Record a course-access event (when student selects/switches a course)
    */
-  async recordCourseAccess(studentId: string, courseId: string, ipAddress?: string, userAgent?: string) {
+  async recordCourseAccess(studentId: string, courseIdInput: string, ipAddress?: string, userAgent?: string) {
     try {
+      let resolvedCourseId = await this.resolveCourseId(courseIdInput);
+
+      if (!resolvedCourseId) {
+        const defaultCourse = await this.prisma.course.findFirst({ where: { courseId: 'fe01' } });
+        resolvedCourseId = defaultCourse ? defaultCourse.id : null;
+      }
+
       await this.prisma.studentLoginLog.create({
         data: {
           studentId,
-          courseId,
+          courseId: resolvedCourseId,
           eventType: 'COURSE_ACCESS',
           ipAddress: ipAddress || null,
           userAgent: userAgent || null,
@@ -62,10 +92,13 @@ export class StudentActivityService {
   }
 
   /**
-   * Ensure all registered students have a REGISTER log entry
+   * Ensure all registered students have a REGISTER log entry with a default course if unspecified
    */
   async ensureRegisteredStudentsLogged() {
     try {
+      const defaultCourse = await this.prisma.course.findFirst({ where: { courseId: 'fe01' } });
+      const defaultCourseId = defaultCourse ? defaultCourse.id : null;
+
       const students = await this.prisma.student.findMany({
         select: { id: true, createdAt: true },
       });
@@ -78,6 +111,7 @@ export class StudentActivityService {
           await this.prisma.studentLoginLog.create({
             data: {
               studentId: s.id,
+              courseId: defaultCourseId,
               eventType: 'REGISTER',
               loggedInAt: s.createdAt || new Date(),
             },

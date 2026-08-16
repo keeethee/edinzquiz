@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CourseEntity } from '../../entities/course.entity';
 import { AuthGuard } from '../auth/auth.guard';
@@ -23,6 +23,22 @@ export class CourseController {
     @Query('courseId') courseId?: string,
   ) {
     return this.studentActivityService.getActivityLogs(filterType, filterValue, courseId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('activity/course-access')
+  async recordCourseAccess(
+    @Body('courseId') courseId: string,
+    @Req() req: any,
+  ) {
+    const studentId = req.user?.sub;
+    if (!studentId || !courseId) {
+      return { message: 'Missing studentId or courseId' };
+    }
+    const ip = req.headers?.['x-forwarded-for'] || req.ip || null;
+    const ua = req.headers?.['user-agent'] || null;
+    await this.studentActivityService.recordCourseAccess(studentId, courseId, ip, ua);
+    return { message: 'Course access recorded' };
   }
 
   @UseGuards(AuthGuard)
