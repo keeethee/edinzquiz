@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -9,10 +9,10 @@ import { StudentActivityModule } from '../student-activity/student-activity.modu
   imports: [
     JwtModule.register({
       global: true,
-      secret: 'SECRET_JWT_KEY_EDINZ', // Simple key for quiz portal
+      secret: process.env.JWT_SECRET || 'SECRET_JWT_KEY_EDINZ',
       signOptions: { expiresIn: '1d' },
     }),
-    forwardRef(() => StudentActivityModule),
+    StudentActivityModule,
   ],
   providers: [AuthService, AuthGuard],
   controllers: [AuthController],
