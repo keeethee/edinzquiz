@@ -201,7 +201,8 @@ export class ApiService {
     if (typeof window !== 'undefined') {
       const studentToken = localStorage.getItem('edinz_student_token');
       const adminToken = localStorage.getItem('edinz_admin_token');
-      const token = studentToken || adminToken;
+      const isAdminContext = window.location.pathname.includes('/admin');
+      const token = isAdminContext ? (adminToken || studentToken) : (studentToken || adminToken);
       if (token) {
         headersConfig['Authorization'] = `Bearer ${token}`;
       }
