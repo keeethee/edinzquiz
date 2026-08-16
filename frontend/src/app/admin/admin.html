@@ -1308,6 +1308,7 @@
           <div style="display: flex; align-items: center; gap: 0.4rem;">
             <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Period:</label>
             <select class="neo-input" style="padding: 0.4rem 0.75rem; font-size: 0.82rem; min-width: 100px;" [(ngModel)]="activityFilterType" (change)="onActivityFilterTypeChange()">
+              <option value="all">All Time</option>
               <option value="day">Day</option>
               <option value="month">Month</option>
               <option value="year">Year</option>

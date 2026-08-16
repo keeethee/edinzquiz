@@ -268,12 +268,14 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   onActivityFilterTypeChange() {
     const now = new Date();
-    if (this.activityFilterType === 'day') {
+    if ((this.activityFilterType as string) === 'all') {
+      this.activityFilterValue = 'all';
+    } else if (this.activityFilterType === 'day') {
       this.activityFilterValue = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
     } else if (this.activityFilterType === 'month') {
       this.activityFilterValue = now.toISOString().slice(0, 7); // "YYYY-MM"
     } else if (this.activityFilterType === 'year') {
-      this.activityFilterValue = String(now.getFullYear());
+      this.activityFilterValue = now.getFullYear().toString();
     }
     this.onActivityFilterChange();
   }

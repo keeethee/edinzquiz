@@ -62,14 +62,44 @@ export class StudentActivityService {
   }
 
   /**
+   * Ensure all registered students have a REGISTER log entry
+   */
+  async ensureRegisteredStudentsLogged() {
+    try {
+      const students = await this.prisma.student.findMany({
+        select: { id: true, createdAt: true },
+      });
+
+      for (const s of students) {
+        const count = await this.prisma.studentLoginLog.count({
+          where: { studentId: s.id, eventType: 'REGISTER' },
+        });
+        if (count === 0) {
+          await this.prisma.studentLoginLog.create({
+            data: {
+              studentId: s.id,
+              eventType: 'REGISTER',
+              loggedInAt: s.createdAt || new Date(),
+            },
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error backfilling registered student logs:', err);
+    }
+  }
+
+  /**
    * Get filtered activity logs for admin view
    */
   async getActivityLogs(filterType?: string, filterValue?: string, courseId?: string) {
     try {
+      await this.ensureRegisteredStudentsLogged();
+
       const where: any = {};
 
-      // Date filtering
-      if (filterType && filterValue) {
+      // Date filtering (Skip if filterType === 'all' or filterValue === 'all' or empty)
+      if (filterType && filterType !== 'all' && filterValue && filterValue !== 'all') {
         let startDate: Date | undefined;
         let endDate: Date | undefined;
 
@@ -80,15 +110,19 @@ export class StudentActivityService {
           endDate.setHours(23, 59, 59, 999);
         } else if (filterType === 'month') {
           const [year, month] = filterValue.split('-').map(Number);
-          startDate = new Date(year, month - 1, 1);
-          endDate = new Date(year, month, 0, 23, 59, 59, 999);
+          if (year && month) {
+            startDate = new Date(year, month - 1, 1);
+            endDate = new Date(year, month, 0, 23, 59, 59, 999);
+          }
         } else if (filterType === 'year') {
           const year = parseInt(filterValue, 10);
-          startDate = new Date(year, 0, 1);
-          endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+          if (year) {
+            startDate = new Date(year, 0, 1);
+            endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+          }
         }
 
-        if (startDate && endDate) {
+        if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
           where.loggedInAt = {
             gte: startDate,
             lte: endDate,
@@ -138,6 +172,10 @@ export class StudentActivityService {
         loggedInAt: log.loggedInAt,
       }));
     } catch (err) {
+      console.error('Error fetching activity logs:', err);
+      return [];
+    }
+  }
       console.error('Error fetching activity logs:', err);
       return [];
     }
