@@ -10,6 +10,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AiEvaluationModule } from './modules/ai-evaluation/ai-evaluation.module';
 import { StudentActivityModule } from './modules/student-activity/student-activity.module';
 
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +28,8 @@ import { StudentActivityModule } from './modules/student-activity/student-activi
     AiEvaluationModule,
     StudentActivityModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
 
