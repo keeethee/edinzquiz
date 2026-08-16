@@ -133,7 +133,7 @@ export class StudentComponent implements OnInit, OnDestroy {
           this.loadAssignments(targetCourseId);
         }
       }
-    }, 3000);
+    }, 30000);
   }
 
   stopLivePolling() {
@@ -893,6 +893,11 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.errorMsg = '';
     if (!this.loggedInStudent || !this.selectedFile || !this.activeCourse || !this.selectedAssignment) {
       this.errorMsg = 'Please select a file to submit.';
+      return;
+    }
+
+    if (this.selectedAssignment.deadline && this.isDeadlinePassed(this.selectedAssignment.deadline)) {
+      this.errorMsg = 'Submission rejected: The deadline for this assignment has passed.';
       return;
     }
 

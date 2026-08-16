@@ -92,6 +92,9 @@ export class AssignmentService {
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
+    if (assignment.deadline && new Date() > new Date(assignment.deadline)) {
+      throw new BadRequestException('Submission rejected: The deadline for this assignment has passed.');
+    }
 
     const submission = await this.prisma.assignmentSubmission.create({
       data: {

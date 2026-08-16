@@ -394,7 +394,13 @@
                 <span style="font-size: 0.8rem; color: var(--text-secondary);" *ngIf="a.deadline">Deadline: {{ a.deadline | date:'short' }}</span>
               </div>
               <div>
-                <button class="neo-btn neo-btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('assignment'); selectAssignmentForUpload(a)">
+                <span *ngIf="getSubmissionForAssignment(a.id)" class="badge badge-completed" style="padding: 0.4rem 0.8rem;">Submitted</span>
+                <span *ngIf="!getSubmissionForAssignment(a.id) && isDeadlinePassed(a.deadline)" class="badge badge-overdue" style="padding: 0.4rem 0.8rem;">Closed</span>
+                <button 
+                  *ngIf="!getSubmissionForAssignment(a.id) && !isDeadlinePassed(a.deadline)" 
+                  class="neo-btn neo-btn-primary" 
+                  style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" 
+                  (click)="switchTab('assignment'); selectAssignmentForUpload(a)">
                   Upload Homework
                 </button>
               </div>
@@ -837,9 +843,13 @@
             <p style="font-size: 0.95rem; color: var(--success-color); font-weight: 600;" *ngIf="fileName">Selected: {{ fileName }}</p>
           </div>
 
+          <div *ngIf="selectedAssignment?.deadline && isDeadlinePassed(selectedAssignment!.deadline)" class="badge badge-overdue" style="width: 100%; margin-bottom: 1.5rem; padding: 0.75rem; text-align: center; font-size: 0.9rem;">
+            🚫 Submission Closed: The deadline for this assignment has passed.
+          </div>
+
           <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button class="neo-btn" style="flex: 1;" (click)="assignStep = 'dashboard'">Cancel</button>
-            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="submitAssignment()" [disabled]="!selectedFile">Submit Homework</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="submitAssignment()" [disabled]="!selectedFile || (selectedAssignment?.deadline && isDeadlinePassed(selectedAssignment!.deadline))">Submit Homework</button>
           </div>
         </div>
       </div>
