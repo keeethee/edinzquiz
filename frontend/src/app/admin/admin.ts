@@ -1714,9 +1714,9 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
   // ==================== SUBMISSIONS & GRADING ====================
 
   loadQuizSubmissions() {
-    this.apiService.getQuizSubmissions().subscribe({
-      next: (list) => {
-        this.quizSubmissions = list;
+    this.apiService.getQuizSubmissions(undefined, 1, 500).subscribe({
+      next: (res) => {
+        this.quizSubmissions = (res && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
       },
       error: () => {
         this.errorMsg = 'Failed to load quiz submissions.';

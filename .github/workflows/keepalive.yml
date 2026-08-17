@@ -1,0 +1,20 @@
+name: Render Backend Keep-Alive Ping
+
+on:
+  schedule:
+    # Run every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend Health Endpoint
+        run: |
+          echo "Pinging Render backend health endpoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://edinz-quiz-backend.onrender.com/api/health)
+          echo "Render Backend Health Status Code: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Warning: Health endpoint returned HTTP $STATUS"
+          fi

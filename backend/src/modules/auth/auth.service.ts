@@ -2,7 +2,6 @@ import { Injectable, OnApplicationBootstrap, UnauthorizedException, ConflictExce
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TenantManagerService } from '../../prisma/tenant-manager.service';
 import { StudentActivityService } from '../student-activity/student-activity.service';
 
 @Injectable()
@@ -10,7 +9,6 @@ export class AuthService implements OnApplicationBootstrap {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private tenantManagerService: TenantManagerService,
     private studentActivityService: StudentActivityService,
   ) {}
 
@@ -69,11 +67,6 @@ export class AuthService implements OnApplicationBootstrap {
       },
     });
 
-    // Provision isolated database schema asynchronously in background for instant HTTP response (<30ms)
-    this.tenantManagerService.ensureStudentSchema(this.prisma, student.id).catch(err => {
-      console.error(`Background schema creation failed for ${student.id}:`, err.message);
-    });
-
     // Record student registration activity in background
     this.studentActivityService.recordRegistration(student.id, ipAddress, userAgent).catch(err => {
       console.error(`Activity logging failed for student registration ${student.id}:`, err.message);
@@ -104,11 +97,6 @@ export class AuthService implements OnApplicationBootstrap {
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
-
-    // Ensure isolated database schema in background
-    this.tenantManagerService.ensureStudentSchema(this.prisma, student.id).catch(err => {
-      console.error(`Background schema check failed for ${student.id}:`, err.message);
-    });
 
     // Record student login activity in background
     this.studentActivityService.recordLogin(student.id, undefined, ipAddress, userAgent).catch(err => {

@@ -14,6 +14,11 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('health')
+  getHealth(): { status: string } {
+    return { status: 'ok' };
+  }
+
   @Get('student-activity/summary')
   async getActivitySummary() {
     return this.studentActivityService.getActivitySummary();

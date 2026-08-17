@@ -925,7 +925,8 @@ export class StudentComponent implements OnInit, OnDestroy {
   loadHistoricalResults() {
     const studentIdParam = this.loggedInStudent ? String(this.loggedInStudent.id || '') : undefined;
     this.apiService.getQuizSubmissions(studentIdParam).subscribe({
-      next: (list) => {
+      next: (res) => {
+        const list = (res && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
         if (!list || list.length === 0) {
           this.allSubmissions = [];
           this.cdr.markForCheck();
@@ -936,7 +937,7 @@ export class StudentComponent implements OnInit, OnDestroy {
           const sId = String(this.loggedInStudent.id || '');
           const sName = (this.loggedInStudent.name || '').toLowerCase().trim();
           
-          const filtered = list.filter(sub => {
+          const filtered = list.filter((sub: any) => {
             const subStudentId = String((sub as any).studentId || sub.student?.id || '');
             if (sId && subStudentId && subStudentId === sId) return true;
             if (sName && ((sub.studentName || '').toLowerCase().trim() === sName || (sub.student?.name || '').toLowerCase().trim() === sName)) return true;

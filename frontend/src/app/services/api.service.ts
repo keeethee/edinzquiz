@@ -184,7 +184,7 @@ export class ApiService {
 
   private pingWarmupBackend(): void {
     if (typeof window !== 'undefined') {
-      this.http.get(`${this.baseUrl}/courses`).subscribe({ error: () => {} });
+      this.http.get(`${this.baseUrl}/health`).subscribe({ error: () => {} });
     }
   }
 
@@ -405,10 +405,28 @@ export class ApiService {
     return this.http.get<any>(`${this.baseUrl}/quizzes/submissions/student-result/${id}`, this.getHeaders());
   }
 
-  getQuizSubmissions(studentId?: string): Observable<QuizSubmission[]> {
-    const url = studentId ? `${this.baseUrl}/quizzes/submissions/list?studentId=${encodeURIComponent(studentId)}` : `${this.baseUrl}/quizzes/submissions/list`;
-    return this.http.get<any[]>(url, this.getHeaders()).pipe(
-      map(list => (list || []).map(sub => this.mapQuizSubmission(sub)))
+  getQuizSubmissions(studentId?: string, page?: number, limit?: number): Observable<any> {
+    const params: string[] = [];
+    if (studentId) params.push(`studentId=${encodeURIComponent(studentId)}`);
+    if (page) params.push(`page=${page}`);
+    if (limit) params.push(`limit=${limit}`);
+
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    const url = `${this.baseUrl}/quizzes/submissions/list${query}`;
+
+    return this.http.get<any>(url, this.getHeaders()).pipe(
+      map(res => {
+        if (res && Array.isArray(res.data)) {
+          return {
+            ...res,
+            data: res.data.map((sub: any) => this.mapQuizSubmission(sub))
+          };
+        }
+        if (Array.isArray(res)) {
+          return res.map((sub: any) => this.mapQuizSubmission(sub));
+        }
+        return { data: [], total: 0, page: 1, limit: 25, totalPages: 0 };
+      })
     );
   }
 

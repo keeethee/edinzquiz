@@ -45,8 +45,14 @@ export class QuizController {
 
   @UseGuards(AuthGuard)
   @Get('submissions/list')
-  getSubmissionsList(@Query('studentId') studentId?: string) {
-    return this.quizService.getSubmissionsList(studentId);
+  getSubmissionsList(
+    @Query('studentId') studentId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.quizService.getSubmissionsList(studentId, pageNum, limitNum);
   }
 
   @UseGuards(AuthGuard)

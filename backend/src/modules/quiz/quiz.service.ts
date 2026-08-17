@@ -800,32 +800,127 @@ export class QuizService {
     return this.formatSubmissionResult(sub);
   }
 
-  async getSubmissionsList(studentId?: string) {
+  private async getAllSubmissionsForExport() {
+    const list = await this.prisma.quizSubmission.findMany({
+      select: {
+        id: true,
+        studentName: true,
+        collegeName: true,
+        score: true,
+        passed: true,
+        submittedAt: true,
+        createdAt: true,
+        quiz: {
+          select: {
+            title: true,
+            passingMarks: true,
+            course: {
+              select: {
+                courseName: true,
+              },
+            },
+            questions: {
+              select: {
+                marks: true,
+              },
+            },
+          },
+        },
+        student: {
+          select: {
+            name: true,
+            collegeName: true,
+          },
+        },
+      },
+      orderBy: { submittedAt: 'desc' },
+    });
+    return list.map((sub: any) => this.formatSubmissionResult(sub));
+  }
+
+  async getSubmissionsList(studentId?: string, page: number = 1, limit: number = 25) {
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.max(1, Number(limit) || 25);
+    const skip = (pageNum - 1) * limitNum;
+
     const where: any = {};
     if (studentId) {
       where.studentId = studentId;
     }
 
-    const list = await this.prisma.quizSubmission.findMany({
-      where,
-      include: {
-        quiz: {
-          include: {
-            course: true,
-            questions: true,
+    const [list, total] = await this.prisma.$transaction([
+      this.prisma.quizSubmission.findMany({
+        where,
+        select: {
+          id: true,
+          quizId: true,
+          studentId: true,
+          studentName: true,
+          collegeName: true,
+          startedAt: true,
+          submittedAt: true,
+          score: true,
+          passed: true,
+          timeTakenSeconds: true,
+          createdAt: true,
+          quiz: {
+            select: {
+              id: true,
+              title: true,
+              passingMarks: true,
+              course: {
+                select: {
+                  id: true,
+                  courseId: true,
+                  courseName: true,
+                },
+              },
+              questions: {
+                select: {
+                  marks: true,
+                },
+              },
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              collegeName: true,
+            },
+          },
+          answers: {
+            select: {
+              id: true,
+              marksAwarded: true,
+              isEvaluated: true,
+              selectedOptionIds: true,
+              typedAnswerText: true,
+            },
           },
         },
-        student: true,
-        answers: true,
-      },
-      orderBy: { submittedAt: 'desc' },
-    });
+        orderBy: { submittedAt: 'desc' },
+        skip,
+        take: limitNum,
+      }),
+      this.prisma.quizSubmission.count({ where }),
+    ]);
 
-    return list.map((sub: any) => this.formatSubmissionResult(sub));
+    const formattedData = list.map((sub: any) => this.formatSubmissionResult(sub));
+    const totalPages = Math.ceil(total / limitNum);
+
+    return {
+      data: formattedData,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
+    };
   }
 
   async exportSubmissionsCsv(): Promise<string> {
-    const list = await this.getSubmissionsList();
+    const list = await this.getAllSubmissionsForExport();
     const headers = ['Student Name', 'College Name', 'Course Name', 'Quiz Title', 'Score', 'Total Marks', 'Percentage', 'Status', 'Submitted At'];
     const rows = list.map((sub: any) => [
       `"${(sub.student?.name || sub.studentName || '').replace(/"/g, '""')}"`,

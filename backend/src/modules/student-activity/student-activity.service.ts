@@ -100,7 +100,7 @@ export class StudentActivityService {
       const defaultCourseId = defaultCourse ? defaultCourse.id : null;
 
       const students = await this.prisma.student.findMany({
-        select: { id: true, createdAt: true },
+        select: { id: true, registeredAt: true },
       });
 
       for (const s of students) {
@@ -113,7 +113,7 @@ export class StudentActivityService {
               studentId: s.id,
               courseId: defaultCourseId,
               eventType: 'REGISTER',
-              loggedInAt: s.createdAt || new Date(),
+              loggedInAt: s.registeredAt || new Date(),
             },
           });
         }
@@ -206,10 +206,6 @@ export class StudentActivityService {
         loggedInAt: log.loggedInAt,
       }));
     } catch (err) {
-      console.error('Error fetching activity logs:', err);
-      return [];
-    }
-  }
       console.error('Error fetching activity logs:', err);
       return [];
     }

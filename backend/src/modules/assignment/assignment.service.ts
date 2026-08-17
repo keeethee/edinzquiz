@@ -132,12 +132,47 @@ export class AssignmentService {
 
     return this.prisma.assignmentSubmission.findMany({
       where: whereCondition,
-      include: {
+      select: {
+        id: true,
+        assignmentId: true,
+        studentId: true,
+        studentName: true,
+        collegeName: true,
+        fileName: true,
+        fileUrl: true,
+        fileType: true,
+        currentStatus: true,
+        submittedAt: true,
+        marks: true,
+        feedback: true,
+        publishedAt: true,
         assignment: {
-          include: { course: true },
+          select: {
+            id: true,
+            title: true,
+            maxMarks: true,
+            deadline: true,
+            course: {
+              select: {
+                id: true,
+                courseId: true,
+                courseName: true,
+              },
+            },
+          },
         },
         evaluations: {
+          select: {
+            id: true,
+            version: true,
+            status: true,
+            completionStatus: true,
+            recommendedMarks: true,
+            confidenceScore: true,
+            evaluatedAt: true,
+          },
           orderBy: { version: 'desc' },
+          take: 1,
         },
       },
       orderBy: { submittedAt: 'desc' },
