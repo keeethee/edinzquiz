@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -154,12 +154,15 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     private authService: AuthService,
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.switchTab('dashboard');
+    const urlTab = this.route.snapshot.queryParams['tab'];
+    const savedTab = urlTab || localStorage.getItem('edinz_admin_active_tab') || 'dashboard';
+    this.switchTab(savedTab);
     this.loadCategories();
   }
 
@@ -187,6 +190,15 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
 
     this.activeTab = tab;
+    try {
+      localStorage.setItem('edinz_admin_active_tab', tab);
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { tab },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+    } catch (e) {}
     this.errorMsg = '';
     this.successMsg = '';
     this.editingCourse = null;

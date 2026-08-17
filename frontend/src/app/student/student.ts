@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { ApiService, Course, Question, Option, Quiz, Assignment, QuizSubmission, StudentAnswer, AssignmentSubmission } from '../services/api.service';
 import { AuthService, StudentDetails } from '../services/auth.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -90,7 +90,9 @@ export class StudentComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -105,7 +107,9 @@ export class StudentComponent implements OnInit, OnDestroy {
             this.activeCourse = null;
           }
         }
-        this.resetState();
+        const urlTab = this.route.snapshot.queryParams['tab'];
+        const savedTab = (urlTab || localStorage.getItem('edinz_student_active_tab') || 'dashboard') as any;
+        this.switchTab(savedTab);
         this.loadHistoricalResults();
       } else {
         this.activeCourse = null;
@@ -145,6 +149,15 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   switchTab(tab: 'dashboard' | 'quiz' | 'assignment' | 'results') {
     this.activeTab = tab;
+    try {
+      localStorage.setItem('edinz_student_active_tab', tab);
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { tab },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+    } catch (e) {}
     this.errorMsg = '';
     this.successMsg = '';
     this.detailedSubmission = null;
