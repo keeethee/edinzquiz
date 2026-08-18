@@ -92,44 +92,45 @@ export class StudentActivityService {
   }
 
   /**
-   * Ensure all registered students have a REGISTER log entry with a default course if unspecified
+   * Ensure all registered students have a REGISTER log entry with a default course if unspecified.
+   * Uses a single bulk query to find missing students and batch creates REGISTER logs.
    */
   async ensureRegisteredStudentsLogged() {
     try {
       const defaultCourse = await this.prisma.course.findFirst({ where: { courseId: 'fe01' } });
       const defaultCourseId = defaultCourse ? defaultCourse.id : null;
 
-      const students = await this.prisma.student.findMany({
+      const unloggedStudents = await this.prisma.student.findMany({
+        where: {
+          loginLogs: {
+            none: { eventType: 'REGISTER' },
+          },
+        },
         select: { id: true, registeredAt: true },
       });
 
-      for (const s of students) {
-        const count = await this.prisma.studentLoginLog.count({
-          where: { studentId: s.id, eventType: 'REGISTER' },
+      if (unloggedStudents.length > 0) {
+        await this.prisma.studentLoginLog.createMany({
+          data: unloggedStudents.map((s) => ({
+            studentId: s.id,
+            courseId: defaultCourseId,
+            eventType: 'REGISTER',
+            loggedInAt: s.registeredAt || new Date(),
+          })),
         });
-        if (count === 0) {
-          await this.prisma.studentLoginLog.create({
-            data: {
-              studentId: s.id,
-              courseId: defaultCourseId,
-              eventType: 'REGISTER',
-              loggedInAt: s.registeredAt || new Date(),
-            },
-          });
-        }
       }
+      return { count: unloggedStudents.length };
     } catch (err) {
       console.error('Error backfilling registered student logs:', err);
+      return { count: 0, error: err.message };
     }
   }
 
   /**
-   * Get filtered activity logs for admin view
+   * Get filtered activity logs for admin view (Read-only)
    */
   async getActivityLogs(filterType?: string, filterValue?: string, courseId?: string) {
     try {
-      await this.ensureRegisteredStudentsLogged();
-
       const where: any = {};
 
       // Date filtering (Skip if filterType === 'all' or filterValue === 'all' or empty)

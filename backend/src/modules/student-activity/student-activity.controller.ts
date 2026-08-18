@@ -30,6 +30,15 @@ export class StudentActivityController {
   }
 
   /**
+   * Admin-only: Manually trigger backfill for registered students missing REGISTER log
+   */
+  @UseGuards(AuthGuard)
+  @Post('backfill-registered')
+  async backfillRegisteredStudents() {
+    return this.studentActivityService.ensureRegisteredStudentsLogged();
+  }
+
+  /**
    * Student-facing: Record course access event
    * Called when a student selects/switches a course
    */
