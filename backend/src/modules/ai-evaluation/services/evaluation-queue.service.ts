@@ -33,41 +33,17 @@ export class EvaluationQueueService implements OnModuleInit {
         }
       }
 
-      // 2. Clean up legacy false 0/100 evaluations caused by file extraction failures
-      const misgradedSubmissions = await this.prisma.assignmentSubmission.findMany({
+      // 2. Re-enqueue any submissions that failed extraction previously so pdf2json can re-extract them
+      const placeholderSubmissions = await this.prisma.assignmentSubmission.findMany({
         where: {
-          extractedText: { not: null },
           marks: null, // Not manually graded by admin yet
-        },
-        include: {
-          evaluations: {
-            orderBy: { version: 'desc' },
-            take: 1,
-          },
         },
       });
 
-      for (const sub of misgradedSubmissions) {
-        if (sub.extractedText && this.fileProcessingService.isExtractionPlaceholder(sub.extractedText)) {
-          const latestEval = sub.evaluations && sub.evaluations.length > 0 ? sub.evaluations[0] : null;
-          if (latestEval && latestEval.completionStatus !== 'EXTRACTION_FAILED') {
-            this.logger.warn(`Cleaning up false 0/100 extraction failure for submission ${sub.id} (${sub.fileName})`);
-            await this.prisma.assignmentAiEvaluation.update({
-              where: { id: latestEval.id },
-              data: {
-                status: 'REVIEW_REQUIRED',
-                completionStatus: 'EXTRACTION_FAILED',
-                recommendedMarks: null,
-                confidenceScore: null,
-                completionPercentage: null,
-                errorMessage: `Could not read file content automatically for ${sub.fileName} (possibly a scanned PDF or unreadable format). Manual review required.`,
-              },
-            });
-            await this.prisma.assignmentSubmission.update({
-              where: { id: sub.id },
-              data: { currentStatus: 'REVIEW_REQUIRED' },
-            });
-          }
+      for (const sub of placeholderSubmissions) {
+        if (!sub.extractedText || this.fileProcessingService.isExtractionPlaceholder(sub.extractedText)) {
+          this.logger.log(`Re-enqueuing submission ${sub.id} (${sub.fileName}) for pdf2json re-extraction...`);
+          this.enqueueSubmission(sub.id);
         }
       }
     } catch (e: any) {
@@ -187,7 +163,8 @@ export class EvaluationQueueService implements OnModuleInit {
       let fileType = submission.fileType;
       let extractionFailed = false;
 
-      if (!extractedText) {
+      // Force re-extraction if text is missing OR if cached text is an extraction placeholder
+      if (!extractedText || this.fileProcessingService.isExtractionPlaceholder(extractedText)) {
         this.logger.log(`Extracting content for file: ${submission.fileName}`);
         const extracted = await this.fileProcessingService.extractContent(
           submission.fileUrl,
@@ -204,7 +181,7 @@ export class EvaluationQueueService implements OnModuleInit {
           data: { extractedText, fileType },
         });
       } else {
-        extractionFailed = this.fileProcessingService.isExtractionPlaceholder(extractedText);
+        extractionFailed = false;
       }
 
       // SHORT-CIRCUIT IF EXTRACTION FAILED: Never call LLM on unreadable/empty content!

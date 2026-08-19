@@ -148,18 +148,43 @@ export class FileProcessingService {
   }
 
   private async extractPdfText(filePath: string): Promise<string> {
+    // 1. Primary PDF parser: pdf2json (handles complex font encodings & Jupyter notebook exports)
     try {
-      // Dynamic import for pdf-parse
+      const PDFParser = require('pdf2json');
+      const text = await new Promise<string>((resolve, reject) => {
+        const pdfParser = new PDFParser(null, 1);
+        pdfParser.on('pdfParser_dataError', (errData: any) => reject(errData?.parserError || errData));
+        pdfParser.on('pdfParser_dataReady', () => {
+          try {
+            const rawText = pdfParser.getRawTextContent();
+            resolve(rawText || '');
+          } catch (err) {
+            reject(err);
+          }
+        });
+        pdfParser.loadPDF(filePath);
+      });
+
+      if (text && text.trim().length > 30) {
+        return text;
+      }
+    } catch (err: any) {
+      this.logger.warn(`pdf2json extraction warning for ${filePath}: ${err.message || err}`);
+    }
+
+    // 2. Secondary fallback: pdf-parse
+    try {
       const pdfParse = require('pdf-parse');
       const dataBuffer = fs.readFileSync(filePath);
       const data = await pdfParse(dataBuffer);
-      if (data && data.text && data.text.trim().length > 0) {
+      if (data && data.text && data.text.trim().length > 30) {
         return data.text;
       }
-      return `[PDF file ${path.basename(filePath)} contained no readable text or is scanned]`;
     } catch (e: any) {
-      return `[PDF extraction notice: ${e.message}]`;
+      this.logger.warn(`pdf-parse fallback warning for ${filePath}: ${e.message || e}`);
     }
+
+    return `[PDF file ${path.basename(filePath)} contained no readable text or is scanned]`;
   }
 
   private async extractDocxText(filePath: string): Promise<string> {
