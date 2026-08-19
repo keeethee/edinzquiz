@@ -20,7 +20,7 @@ export class EvaluationQueueService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Automatically recover and process any stuck PENDING, QUEUED, or PROCESSING submissions on server startup
+    // 1. Recover and process any stuck PENDING, QUEUED, or PROCESSING submissions on server startup
     try {
       const stuckSubmissions = await this.prisma.assignmentSubmission.findMany({
         where: { currentStatus: { in: ['PENDING', 'QUEUED', 'PROCESSING'] } },
@@ -32,9 +32,84 @@ export class EvaluationQueueService implements OnModuleInit {
           this.enqueueSubmission(sub.id);
         }
       }
+
+      // 2. Clean up legacy false 0/100 evaluations caused by file extraction failures
+      const misgradedSubmissions = await this.prisma.assignmentSubmission.findMany({
+        where: {
+          extractedText: { not: null },
+          marks: null, // Not manually graded by admin yet
+        },
+        include: {
+          evaluations: {
+            orderBy: { version: 'desc' },
+            take: 1,
+          },
+        },
+      });
+
+      for (const sub of misgradedSubmissions) {
+        if (sub.extractedText && this.fileProcessingService.isExtractionPlaceholder(sub.extractedText)) {
+          const latestEval = sub.evaluations && sub.evaluations.length > 0 ? sub.evaluations[0] : null;
+          if (latestEval && latestEval.completionStatus !== 'EXTRACTION_FAILED') {
+            this.logger.warn(`Cleaning up false 0/100 extraction failure for submission ${sub.id} (${sub.fileName})`);
+            await this.prisma.assignmentAiEvaluation.update({
+              where: { id: latestEval.id },
+              data: {
+                status: 'REVIEW_REQUIRED',
+                completionStatus: 'EXTRACTION_FAILED',
+                recommendedMarks: null,
+                confidenceScore: null,
+                completionPercentage: null,
+                errorMessage: `Could not read file content automatically for ${sub.fileName} (possibly a scanned PDF or unreadable format). Manual review required.`,
+              },
+            });
+            await this.prisma.assignmentSubmission.update({
+              where: { id: sub.id },
+              data: { currentStatus: 'REVIEW_REQUIRED' },
+            });
+          }
+        }
+      }
     } catch (e: any) {
-      this.logger.warn(`Queue recovery note: ${e.message}`);
+      this.logger.warn(`Queue recovery/cleanup note: ${e.message}`);
     }
+  }
+
+  /**
+   * Helper to record an extraction failure without calling LLM
+   */
+  private async handleExtractionFailure(
+    submissionId: string,
+    fileName: string,
+    extractedText: string,
+  ): Promise<any> {
+    const existingCount = await this.prisma.assignmentAiEvaluation.count({
+      where: { submissionId },
+    });
+    const newVersion = existingCount + 1;
+
+    const evalRecord = await this.prisma.assignmentAiEvaluation.create({
+      data: {
+        submissionId,
+        version: newVersion,
+        aiModel: this.ollamaService.model,
+        promptVersion: this.promptBuilderService.PROMPT_VERSION,
+        status: 'REVIEW_REQUIRED',
+        completionStatus: 'EXTRACTION_FAILED',
+        completionPercentage: null,
+        recommendedMarks: null,
+        confidenceScore: null,
+        errorMessage: `Could not read file content automatically for ${fileName} (possibly a scanned PDF or unreadable format). Manual review required.`,
+        rawAiOutput: extractedText,
+      },
+    });
+
+    await this.prisma.assignmentSubmission.update({
+      where: { id: submissionId },
+      data: { currentStatus: 'REVIEW_REQUIRED' },
+    });
+
+    return evalRecord;
   }
 
   /**
@@ -110,6 +185,7 @@ export class EvaluationQueueService implements OnModuleInit {
       let extractedText = submission.extractedText;
       let imageBase64List: string[] | undefined = undefined;
       let fileType = submission.fileType;
+      let extractionFailed = false;
 
       if (!extractedText) {
         this.logger.log(`Extracting content for file: ${submission.fileName}`);
@@ -120,12 +196,21 @@ export class EvaluationQueueService implements OnModuleInit {
         extractedText = extracted.extractedText;
         fileType = extracted.fileType;
         imageBase64List = extracted.imageBase64List;
+        extractionFailed = extracted.extractionFailed;
 
         // Cache extracted text in DB for fast retries!
         await this.prisma.assignmentSubmission.update({
           where: { id: submissionId },
           data: { extractedText, fileType },
         });
+      } else {
+        extractionFailed = this.fileProcessingService.isExtractionPlaceholder(extractedText);
+      }
+
+      // SHORT-CIRCUIT IF EXTRACTION FAILED: Never call LLM on unreadable/empty content!
+      if (extractionFailed && (!imageBase64List || imageBase64List.length === 0)) {
+        this.logger.warn(`Extraction failed for submission ${submissionId} (${submission.fileName}). Flagging for manual review.`);
+        return await this.handleExtractionFailure(submissionId, submission.fileName, extractedText || '');
       }
 
       // 3. Plagiarism Check Slot (Future Integration Hook)

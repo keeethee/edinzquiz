@@ -8,13 +8,31 @@ export class FileProcessingService {
   private readonly logger = new Logger(FileProcessingService.name);
 
   /**
+   * Helper to detect placeholder strings produced on extraction failure/empty text.
+   */
+  isExtractionPlaceholder(text: string | null | undefined): boolean {
+    if (!text || text.trim().length === 0) return true;
+    const lower = text.toLowerCase();
+    return (
+      lower.includes('contained no readable text') ||
+      lower.includes('contained no text') ||
+      lower.includes('contained no data') ||
+      lower.includes('extraction notice:') ||
+      lower.includes('file missing at path') ||
+      lower.includes('error extracting file contents') ||
+      lower.includes('contained no readable text or is scanned')
+    );
+  }
+
+  /**
    * Main entry point to detect file type and extract readable normalized content.
-   * Returns text string and optional base64 image strings for multimodal vision models.
+   * Returns text string, extractionFailed status, and optional base64 image strings for vision models.
    */
   async extractContent(filePath: string, originalName?: string): Promise<{
     fileType: string;
     extractedText: string;
     imageBase64List?: string[];
+    extractionFailed: boolean;
   }> {
     const resolvedPath = path.resolve(filePath);
     const fileName = originalName || path.basename(resolvedPath);
@@ -25,16 +43,19 @@ export class FileProcessingService {
       return {
         fileType: ext || 'unknown',
         extractedText: `[File missing at path: ${fileName}]`,
+        extractionFailed: true,
       };
     }
 
     try {
       // 1. Plain text & Source code files
       if (this.isSourceCodeOrText(ext)) {
-        const text = fs.readFileSync(resolvedPath, 'utf8');
+        const text = this.sanitizeText(fs.readFileSync(resolvedPath, 'utf8'));
+        const failed = this.isExtractionPlaceholder(text);
         return {
           fileType: ext || '.txt',
-          extractedText: this.sanitizeText(text),
+          extractedText: text,
+          extractionFailed: failed,
         };
       }
 
@@ -46,56 +67,72 @@ export class FileProcessingService {
           fileType: ext,
           extractedText: `[Uploaded File is an Image asset: ${fileName}]`,
           imageBase64List: [base64],
+          extractionFailed: false,
         };
       }
 
       // 3. PDF & Scanned PDFs
       if (ext === '.pdf') {
-        const text = await this.extractPdfText(resolvedPath);
+        const rawText = await this.extractPdfText(resolvedPath);
+        const text = this.sanitizeText(rawText);
+        const failed = this.isExtractionPlaceholder(text);
         return {
           fileType: '.pdf',
-          extractedText: this.sanitizeText(text),
+          extractedText: text,
+          extractionFailed: failed,
         };
       }
 
       // 4. DOCX Documents
       if (ext === '.docx') {
-        const text = await this.extractDocxText(resolvedPath);
+        const rawText = await this.extractDocxText(resolvedPath);
+        const text = this.sanitizeText(rawText);
+        const failed = this.isExtractionPlaceholder(text);
         return {
           fileType: '.docx',
-          extractedText: this.sanitizeText(text),
+          extractedText: text,
+          extractionFailed: failed,
         };
       }
 
       // 5. Excel Spreadsheets (XLSX, XLS, CSV)
       if (['.xlsx', '.xls', '.csv'].includes(ext)) {
-        const text = this.extractSpreadsheetText(resolvedPath);
+        const rawText = this.extractSpreadsheetText(resolvedPath);
+        const text = this.sanitizeText(rawText);
+        const failed = this.isExtractionPlaceholder(text);
         return {
           fileType: ext,
-          extractedText: this.sanitizeText(text),
+          extractedText: text,
+          extractionFailed: failed,
         };
       }
 
       // 6. ZIP Archive Projects
       if (ext === '.zip') {
-        const text = await this.extractZipContent(resolvedPath);
+        const rawText = await this.extractZipContent(resolvedPath);
+        const text = this.sanitizeText(rawText);
+        const failed = this.isExtractionPlaceholder(text);
         return {
           fileType: '.zip',
-          extractedText: this.sanitizeText(text),
+          extractedText: text,
+          extractionFailed: failed,
         };
       }
 
       // Fallback: Read as utf8 string if possible
-      const fallbackText = fs.readFileSync(resolvedPath, 'utf8');
+      const fallbackText = this.sanitizeText(fs.readFileSync(resolvedPath, 'utf8'));
+      const failed = this.isExtractionPlaceholder(fallbackText);
       return {
         fileType: ext || 'generic',
-        extractedText: this.sanitizeText(fallbackText),
+        extractedText: fallbackText,
+        extractionFailed: failed,
       };
     } catch (err: any) {
       this.logger.error(`Error processing file ${fileName}: ${err.message}`, err.stack);
       return {
         fileType: ext || 'unknown',
         extractedText: `[Error extracting file contents: ${err.message}]`,
+        extractionFailed: true,
       };
     }
   }
