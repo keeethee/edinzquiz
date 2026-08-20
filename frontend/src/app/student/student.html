@@ -811,9 +811,15 @@
                 <button 
                   *ngIf="!isDeadlinePassed(a.deadline) && !getSubmissionForAssignment(a.id)" 
                   class="neo-btn neo-btn-primary" 
-                  (click)="selectAssignmentForUpload(a)">
+                  (click)="selectAssignmentForUpload(a, directFileInput)">
                   Upload Assignment
                 </button>
+                <input 
+                  type="file" 
+                  #directFileInput 
+                  style="display: none;" 
+                  (change)="onCardFileSelected($event, a)" 
+                />
               </div>
             </div>
           </div>
@@ -822,7 +828,7 @@
 
       <!-- File upload gate -->
       <div *ngIf="assignStep === 'upload'" class="flex-center">
-        <div class="neo-card" style="max-width: 550px; width: 100%; padding: 2.5rem;">
+        <div class="neo-card" style="max-width: 550px; width: 100%; padding: 2.5rem; text-align: center;">
           <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;">Submit: {{ selectedAssignment?.title }}</h3>
           <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem;">Upload your document file (PDF, DOCX, ZIP, or Image format only, maximum 10MB)</p>
           
@@ -830,26 +836,44 @@
             class="neo-file-drop" 
             (dragover)="onDragOver($event)" 
             (drop)="onFileDropped($event)" 
-            (click)="fileInput.click()">
+            (click)="!isSubmittingAssignment && fileInput.click()"
+            [style.pointer-events]="isSubmittingAssignment ? 'none' : 'auto'"
+            [style.opacity]="isSubmittingAssignment ? '0.7' : '1'">
             <input 
               type="file" 
               #fileInput 
               style="display: none;" 
               (change)="onFileSelected($event)" 
             />
-            <div style="font-size: 2.5rem; color: var(--accent-color); margin-bottom: 1rem;">📁</div>
-            <p style="font-size: 1rem; margin-bottom: 0.5rem; font-weight: 550;">Drag and drop your file here, or click to browse</p>
-            <p style="font-size: 0.85rem; color: var(--text-muted);" *ngIf="!fileName">Supports PDF, DOC, PNG, JPG, ZIP</p>
-            <p style="font-size: 0.95rem; color: var(--success-color); font-weight: 600;" *ngIf="fileName">Selected: {{ fileName }}</p>
+            <div *ngIf="!isSubmittingAssignment">
+              <div style="font-size: 2.5rem; color: var(--accent-color); margin-bottom: 1rem;">📁</div>
+              <p style="font-size: 1rem; margin-bottom: 0.5rem; font-weight: 550;">Drag and drop your file here, or click to browse</p>
+              <p style="font-size: 0.85rem; color: var(--text-muted);" *ngIf="!fileName">Supports PDF, DOC, PNG, JPG, ZIP</p>
+              <p style="font-size: 0.95rem; color: var(--success-color); font-weight: 600;" *ngIf="fileName">Selected: {{ fileName }}</p>
+            </div>
+
+            <!-- Uploading Spinner -->
+            <div *ngIf="isSubmittingAssignment" style="padding: 1.5rem 0;">
+              <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 1rem; border: 3px solid rgba(0,132,232,0.2); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+              <p style="font-size: 1rem; color: var(--accent-color); font-weight: 600; margin-bottom: 0.3rem;">Uploading Assignment...</p>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">Submitting {{ fileName }} and starting automated AI evaluation.</p>
+            </div>
           </div>
 
-          <div *ngIf="selectedAssignment?.deadline && isDeadlinePassed(selectedAssignment!.deadline)" class="badge badge-overdue" style="width: 100%; margin-bottom: 1.5rem; padding: 0.75rem; text-align: center; font-size: 0.9rem;">
+          <div *ngIf="errorMsg" style="color: var(--danger-color); font-size: 0.9rem; margin-top: 1rem;">
+            {{ errorMsg }}
+          </div>
+
+          <div *ngIf="selectedAssignment?.deadline && isDeadlinePassed(selectedAssignment!.deadline)" class="badge badge-overdue" style="width: 100%; margin-top: 1.5rem; padding: 0.75rem; text-align: center; font-size: 0.9rem;">
             🚫 Submission Closed: The deadline for this assignment has passed.
           </div>
 
           <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button class="neo-btn" style="flex: 1;" (click)="assignStep = 'dashboard'">Cancel</button>
-            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="submitAssignment()" [disabled]="!selectedFile || (selectedAssignment?.deadline && isDeadlinePassed(selectedAssignment!.deadline))">Submit Assignment</button>
+            <button class="neo-btn" style="flex: 1;" (click)="assignStep = 'dashboard'" [disabled]="isSubmittingAssignment">Cancel</button>
+            <button class="neo-btn neo-btn-primary" style="flex: 1;" (click)="submitAssignment()" [disabled]="!selectedFile || isSubmittingAssignment || (selectedAssignment?.deadline && isDeadlinePassed(selectedAssignment!.deadline))">
+              <span *ngIf="!isSubmittingAssignment">Submit Assignment</span>
+              <span *ngIf="isSubmittingAssignment">Submitting...</span>
+            </button>
           </div>
         </div>
       </div>

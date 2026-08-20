@@ -872,13 +872,29 @@ export class StudentComponent implements OnInit, OnDestroy {
     return new Date() > deadline;
   }
 
-  selectAssignmentForUpload(assignment: Assignment) {
-    if (this.isDeadlinePassed(assignment.deadline)) {
-      alert('This assignment has closed.');
-      return;
-    }
+  isSubmittingAssignment = false;
+
+  selectAssignmentForUpload(assignment: Assignment, fileInputRef?: HTMLInputElement) {
     this.selectedAssignment = assignment;
+    this.selectedFile = null;
+    this.fileName = '';
+    this.errorMsg = '';
     this.assignStep = 'upload';
+
+    if (fileInputRef) {
+      fileInputRef.click();
+    }
+  }
+
+  onCardFileSelected(event: any, assignment: Assignment) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.selectedAssignment = assignment;
+      this.selectedFile = file;
+      this.fileName = file.name;
+      this.assignStep = 'upload';
+      this.submitAssignment();
+    }
   }
 
   onFileSelected(event: any) {
@@ -886,6 +902,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (file) {
       this.selectedFile = file;
       this.fileName = file.name;
+      this.submitAssignment();
     }
   }
 
@@ -895,6 +912,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       const file: File = event.dataTransfer.files[0];
       this.selectedFile = file;
       this.fileName = file.name;
+      this.submitAssignment();
     }
   }
 
@@ -914,6 +932,8 @@ export class StudentComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isSubmittingAssignment = true;
+
     const formData = new FormData();
     formData.append('courseId', this.activeCourse.id.toString());
     formData.append('assignmentId', this.selectedAssignment.id.toString());
@@ -923,11 +943,13 @@ export class StudentComponent implements OnInit, OnDestroy {
 
     this.apiService.submitAssignment(formData).subscribe({
       next: () => {
+        this.isSubmittingAssignment = false;
         this.successMsg = 'Your homework assignment has been uploaded successfully.';
         this.assignStep = 'success';
         this.loadStudentSubmissions();
       },
       error: () => {
+        this.isSubmittingAssignment = false;
         this.errorMsg = 'Failed to upload homework file.';
       }
     });
