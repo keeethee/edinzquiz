@@ -382,16 +382,28 @@ export class StudentComponent implements OnInit, OnDestroy {
     return true;
   }
 
+  getSubmissionForQuiz(quizId: string): any {
+    return this.allSubmissions.find(s => s.quiz?.id === quizId || (s as any).quizId === quizId);
+  }
+
   hasSubmittedQuiz(quizId: string): boolean {
-    return this.allSubmissions.some(s => s.quiz?.id === quizId);
+    return this.allSubmissions.some(s => s.quiz?.id === quizId || (s as any).quizId === quizId);
   }
 
   preloadedQuizData: any = null;
 
   openQuizDetails(quiz: any) {
     this.errorMsg = '';
+
+    // If student has already submitted this quiz, show their results instead of displaying an error alert!
+    const existingSub = this.getSubmissionForQuiz(quiz.id);
+    if (existingSub) {
+      this.activeTab = 'results';
+      this.viewDetailedSubmissionBreakdown(existingSub);
+      return;
+    }
+
     if (!this.isQuizAttemptable(quiz)) {
-      this.errorMsg = 'This quiz has expired or is not currently open for attempt.';
       return;
     }
     this.selectedQuiz = quiz;
@@ -404,8 +416,14 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.errorMsg = '';
     if (!this.loggedInStudent || !this.selectedQuiz) return;
 
+    const existingSub = this.getSubmissionForQuiz(this.selectedQuiz.id);
+    if (existingSub) {
+      this.activeTab = 'results';
+      this.viewDetailedSubmissionBreakdown(existingSub);
+      return;
+    }
+
     if (!this.isQuizAttemptable(this.selectedQuiz)) {
-      this.errorMsg = 'This quiz has expired or is not currently open for attempt.';
       return;
     }
 
@@ -443,8 +461,17 @@ export class StudentComponent implements OnInit, OnDestroy {
           this.currentSubmissionId = attempt.submissionId;
         },
         error: (err) => {
-          if (err.error?.message) {
-            this.errorMsg = err.error.message;
+          const msg = err.error?.message;
+          if (msg && msg.includes('Maximum attempts limit')) {
+            // Silently redirect to results view if max attempts limit reached
+            this.quizStep = 'dashboard';
+            this.activeTab = 'results';
+            const sub = this.getSubmissionForQuiz(this.selectedQuiz.id);
+            if (sub) {
+              this.viewDetailedSubmissionBreakdown(sub);
+            }
+          } else if (msg) {
+            this.errorMsg = msg;
           }
         }
       });
@@ -455,8 +482,11 @@ export class StudentComponent implements OnInit, OnDestroy {
     } else {
       this.apiService.getQuizForStudent(this.selectedQuiz.id).subscribe({
         next: (res) => startAttemptCall(res),
-        error: () => {
-          this.errorMsg = 'Failed to load quiz attempt. Please try again.';
+        error: (err) => {
+          const msg = err.error?.message;
+          if (!msg || !msg.includes('Maximum attempts limit')) {
+            this.errorMsg = 'Failed to load quiz attempt. Please try again.';
+          }
         }
       });
     }
