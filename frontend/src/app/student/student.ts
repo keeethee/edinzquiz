@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
@@ -92,7 +92,8 @@ export class StudentComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private sanitizer: DomSanitizer,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
@@ -127,17 +128,19 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   startLivePolling() {
     this.stopLivePolling();
-    this.livePollInterval = setInterval(() => {
-      if (this.loggedInStudent && this.activeCourse && this.quizStep === 'dashboard') {
-        const targetCourseId = this.activeCourse.id;
-        if (this.activeTab === 'dashboard' || this.activeTab === 'quiz') {
-          this.loadQuizzes(targetCourseId);
+    this.ngZone.runOutsideAngular(() => {
+      this.livePollInterval = setInterval(() => {
+        if (this.loggedInStudent && this.activeCourse && this.quizStep === 'dashboard') {
+          const targetCourseId = this.activeCourse.id;
+          if (this.activeTab === 'dashboard' || this.activeTab === 'quiz') {
+            this.ngZone.run(() => this.loadQuizzes(targetCourseId));
+          }
+          if (this.activeTab === 'dashboard' || (this.activeTab === 'assignment' && this.assignStep === 'dashboard')) {
+            this.ngZone.run(() => this.loadAssignments(targetCourseId));
+          }
         }
-        if (this.activeTab === 'dashboard' || (this.activeTab === 'assignment' && this.assignStep === 'dashboard')) {
-          this.loadAssignments(targetCourseId);
-        }
-      }
-    }, 30000);
+      }, 30000);
+    });
   }
 
   stopLivePolling() {
@@ -538,9 +541,11 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   startAutoSave() {
     this.clearAutoSave();
-    this.autoSaveInterval = setInterval(() => {
-      this.saveAttemptDraft();
-    }, 5000); // Auto-save every 5 seconds
+    this.ngZone.runOutsideAngular(() => {
+      this.autoSaveInterval = setInterval(() => {
+        this.saveAttemptDraft();
+      }, 5000);
+    });
   }
 
   clearAutoSave() {
@@ -555,16 +560,23 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.clearTimer();
     this.updateTimerDisplay();
 
-    this.timerInterval = setInterval(() => {
-      if (this.countdownSeconds > 0) {
-        this.countdownSeconds--;
-        this.updateTimerDisplay();
-      } else {
-        this.clearTimer();
-        alert('Time expired! Submitting your answers automatically.');
-        this.submitQuiz();
-      }
-    }, 1000);
+    this.ngZone.runOutsideAngular(() => {
+      this.timerInterval = setInterval(() => {
+        if (this.countdownSeconds > 0) {
+          this.countdownSeconds--;
+          this.ngZone.run(() => {
+            this.updateTimerDisplay();
+            this.cdr.markForCheck();
+          });
+        } else {
+          this.clearTimer();
+          this.ngZone.run(() => {
+            alert('Time expired! Submitting your answers automatically.');
+            this.submitQuiz();
+          });
+        }
+      }, 1000);
+    });
   }
 
   clearTimer() {
@@ -1091,6 +1103,10 @@ export class StudentComponent implements OnInit, OnDestroy {
 
   trackById(index: number, item: any): any {
     return item?.id || index;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
   }
 }
 

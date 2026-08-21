@@ -515,7 +515,7 @@
 
         <!-- Question List -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2.5rem;">
-          <div *ngFor="let q of quizQuestions; let i = index" class="neo-card">
+          <div *ngFor="let q of quizQuestions; let i = index; trackBy: trackById" class="neo-card">
             <div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
               <h4 style="font-size: 1.15rem; color: var(--text-primary); font-weight: 700;">Question {{ i + 1 }}</h4>
               <span class="badge badge-course">{{ q.mark }} mark(s)</span>
@@ -526,7 +526,7 @@
             <!-- Render MCQ_SINGLE/TF/MCQ options -->
             <div *ngIf="q.questionType === 'MCQ' || q.questionType === 'MCQ_SINGLE' || q.questionType === 'TF'" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div 
-                *ngFor="let opt of q.options" 
+                *ngFor="let opt of q.options; trackBy: trackById" 
                 class="neo-card-inset flex-between option-card-selectable" 
                 style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 10px; transition: all 0.15s ease;"
                 [class.neo-btn-toggle]="selectedOptions[q.id!] === opt.id"
@@ -541,7 +541,7 @@
             <!-- Render MCQ_MULTIPLE options (Checkboxes) -->
             <div *ngIf="q.questionType === 'MCQ_MULTIPLE'" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div 
-                *ngFor="let opt of q.options" 
+                *ngFor="let opt of q.options; trackBy: trackById" 
                 class="neo-card-inset flex-between option-card-selectable" 
                 style="padding: 1rem 1.5rem; cursor: pointer; border-radius: 10px; transition: all 0.15s ease;"
                 [class.neo-btn-toggle]="isOptionSelected(q.id!, opt.id)"
@@ -663,7 +663,7 @@
               <!-- Attempt Trend list -->
               <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase;">Score Trend Across Attempts</span>
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <div *ngFor="let entry of attemptStats.scoreHistory" class="flex-between" style="font-size: 0.85rem; padding: 0.4rem 1rem; background: rgba(0,0,0,0.15); border-radius: 4px;">
+                <div *ngFor="let entry of attemptStats.scoreHistory; trackBy: trackByIndex" class="flex-between" style="font-size: 0.85rem; padding: 0.4rem 1rem; background: rgba(0,0,0,0.15); border-radius: 4px;">
                   <span>Attempt #{{ entry.attemptNumber }}</span>
                   <span>Score: <strong>{{ entry.score }}</strong> ({{ entry.percentage | number:'1.0-0' }}%)</span>
                   <span class="badge" [ngClass]="getGradeClass(entry.grade)" style="font-size: 0.75rem; padding: 0.1rem 0.5rem;">{{ entry.grade || 'Graded' }}</span>
@@ -677,7 +677,7 @@
           <div *ngIf="resultSubmission.studentAnswers && resultSubmission.studentAnswers.length > 0">
             <h3 style="font-size: 1.2rem; margin-bottom: 1.2rem; border-left: 3px solid var(--accent-color); padding-left: 0.75rem;">Question Review</h3>
             <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-              <div *ngFor="let sa of resultSubmission.studentAnswers; let idx = index" class="neo-card-inset" style="padding: 1.25rem; border-radius: 8px;">
+              <div *ngFor="let sa of resultSubmission.studentAnswers; let idx = index; trackBy: trackById" class="neo-card-inset" style="padding: 1.25rem; border-radius: 8px;">
                 <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 1rem;">
                   <strong style="color: var(--text-secondary);">Question {{ idx + 1 }}</strong>
                   <div class="flex-center" style="gap: 0.8rem;">
@@ -692,7 +692,7 @@
 
                 <!-- Options list for Objective -->
                 <div *ngIf="sa.question.options && sa.question.options.length > 0" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.8rem;">
-                  <div *ngFor="let opt of sa.question.options" class="flex-between" style="padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.9rem; border: 1px solid var(--glass-border);"
+                  <div *ngFor="let opt of sa.question.options; trackBy: trackById" class="flex-between" style="padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.9rem; border: 1px solid var(--glass-border);"
                     [style.border-color]="opt.isCorrect ? 'var(--success-color)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'var(--danger-color)' : 'var(--glass-border)')"
                     [style.background]="opt.isCorrect ? 'rgba(16,185,129,0.06)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.15)')">
                     <span>{{ opt.optionText }}</span>
@@ -795,7 +795,7 @@
                     <div *ngIf="sub.evaluations && sub.evaluations[0] && sub.evaluations[0].requirementsChecklist" style="margin-top: 0.75rem;">
                       <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 0.35rem;">AI Requirement Evaluation:</span>
                       <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                        <div *ngFor="let req of sub.evaluations[0].requirementsChecklist" style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;" [style.color]="req.satisfied ? 'var(--success-color)' : 'var(--danger-color)'">
+                        <div *ngFor="let req of sub.evaluations[0].requirementsChecklist; trackBy: trackByIndex" style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;" [style.color]="req.satisfied ? 'var(--success-color)' : 'var(--danger-color)'">
                           <span>{{ req.satisfied ? '✓' : '✕' }}</span>
                           <span>{{ req.requirement }} — {{ req.explanation }}</span>
                         </div>
@@ -1003,7 +1003,7 @@
 
         <!-- Question Breakdown analysis details -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <div *ngFor="let sa of detailedSubmission.studentAnswers; let i = index" class="neo-card">
+          <div *ngFor="let sa of detailedSubmission.studentAnswers; let i = index; trackBy: trackById" class="neo-card">
             
             <div class="flex-between" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
               <h4 style="font-size: 1.1rem; color: var(--text-secondary);">Question {{ i + 1 }}</h4>
@@ -1023,7 +1023,7 @@
             <!-- Choice listing for MCQ/TF -->
             <div *ngIf="sa.question.questionType === 'MCQ' || sa.question.questionType === 'MCQ_SINGLE' || sa.question.questionType === 'MCQ_MULTIPLE' || sa.question.questionType === 'TF'" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div 
-                *ngFor="let opt of sa.question.options" 
+                *ngFor="let opt of sa.question.options; trackBy: trackById" 
                 class="neo-card-inset flex-between" 
                 style="padding: 0.8rem 1.2rem; border-radius: 6px; font-size: 0.95rem;"
                 [style.border-color]="opt.isCorrect ? 'var(--success-color)' : (isOptionSelectedInSubmission(sa, opt.id) ? 'var(--danger-color)' : 'var(--glass-border)')"

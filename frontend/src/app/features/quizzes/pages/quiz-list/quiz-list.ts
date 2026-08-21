@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -23,6 +23,7 @@ import { PublishDialogComponent } from '../../components/publish-dialog/publish-
     MatDialogModule,
     MatIconModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './quiz-list.html',
   styleUrls: ['./quiz-list.scss']
 })

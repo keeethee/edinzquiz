@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
@@ -12,6 +12,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   selector: 'app-admin',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, DragDropModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin.html',
   styleUrls: ['./admin.css']
 })
@@ -156,7 +157,8 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
@@ -1936,14 +1938,16 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
         // Check if any submission is QUEUED, PENDING or PROCESSING
         const hasPendingJobs = list.some(s => ['QUEUED', 'PENDING', 'PROCESSING'].includes(s.currentStatus || ''));
         if (hasPendingJobs && !this.assignPollInterval) {
-          this.assignPollInterval = setInterval(() => {
-            if (this.activeTab === 'assign-sub') {
-              this.loadAssignmentSubmissions();
-            } else {
-              clearInterval(this.assignPollInterval);
-              this.assignPollInterval = null;
-            }
-          }, 3000);
+          this.ngZone.runOutsideAngular(() => {
+            this.assignPollInterval = setInterval(() => {
+              if (this.activeTab === 'assign-sub') {
+                this.ngZone.run(() => this.loadAssignmentSubmissions());
+              } else {
+                clearInterval(this.assignPollInterval);
+                this.assignPollInterval = null;
+              }
+            }, 3000);
+          });
         } else if (!hasPendingJobs && this.assignPollInterval) {
           clearInterval(this.assignPollInterval);
           this.assignPollInterval = null;

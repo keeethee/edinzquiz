@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, signal, computed, NgZone, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-quiz-timer',
   standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="timer-badge" [class.danger]="isTimeLow()">
       <span class="timer-icon">⏰</span>
@@ -48,6 +49,8 @@ export class QuizTimerComponent implements OnInit, OnDestroy {
 
   private timerInterval: any;
 
+  constructor(private ngZone: NgZone) {}
+
   formattedTime = computed(() => {
     const total = this.secondsLeft();
     if (total <= 0) return '00:00';
@@ -66,9 +69,11 @@ export class QuizTimerComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.calculateRemaining();
-    this.timerInterval = setInterval(() => {
-      this.tick();
-    }, 1000);
+    this.ngZone.runOutsideAngular(() => {
+      this.timerInterval = setInterval(() => {
+        this.tick();
+      }, 1000);
+    });
   }
 
   ngOnDestroy() {
@@ -85,7 +90,7 @@ export class QuizTimerComponent implements OnInit, OnDestroy {
     this.secondsLeft.set(diffSeconds);
 
     if (diffSeconds <= 0) {
-      this.timeout.emit();
+      this.ngZone.run(() => this.timeout.emit());
     }
   }
 
@@ -93,7 +98,7 @@ export class QuizTimerComponent implements OnInit, OnDestroy {
     this.secondsLeft.update((val) => {
       if (val <= 1) {
         clearInterval(this.timerInterval);
-        this.timeout.emit();
+        this.ngZone.run(() => this.timeout.emit());
         return 0;
       }
       return val - 1;
