@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
@@ -67,6 +67,11 @@ export class StudentComponent implements OnInit, OnDestroy {
   resultSubmission: QuizSubmission | null = null;
   attemptStats: any = null;
 
+  // Shared Ticking Signal for All Quizzes (One interval for entire app)
+  nowTick = signal<number>(Date.now());
+  private serverClockOffset = 0;
+  private nowTickInterval: any = null;
+
   // Timing & Auto-save & Live Sync
   countdownSeconds = 0;
   countdownDisplay = '';
@@ -118,9 +123,20 @@ export class StudentComponent implements OnInit, OnDestroy {
       }
     });
     this.startLivePolling();
+    this.startNowTickInterval();
+  }
+
+  startNowTickInterval() {
+    if (this.nowTickInterval) clearInterval(this.nowTickInterval);
+    this.ngZone.runOutsideAngular(() => {
+      this.nowTickInterval = setInterval(() => {
+        this.nowTick.set(Date.now() + this.serverClockOffset);
+      }, 1000);
+    });
   }
 
   ngOnDestroy(): void {
+    if (this.nowTickInterval) clearInterval(this.nowTickInterval);
     this.clearTimer();
     this.clearAutoSave();
     this.stopLivePolling();
@@ -344,7 +360,13 @@ export class StudentComponent implements OnInit, OnDestroy {
   loadQuizzes(courseId: string) {
     if (!courseId) return;
     this.apiService.getQuizzes(courseId).subscribe({
-      next: (list) => {
+      next: (list: any[]) => {
+        if (list && list.length > 0 && list[0].serverTime) {
+          const serverTimeMs = new Date(list[0].serverTime).getTime();
+          if (!isNaN(serverTimeMs)) {
+            this.serverClockOffset = serverTimeMs - Date.now();
+          }
+        }
         this.quizzes = list.filter(q => q.status !== 'Draft');
         this.cdr.markForCheck();
         this.cdr.detectChanges();
@@ -353,19 +375,73 @@ export class StudentComponent implements OnInit, OnDestroy {
     });
   }
 
+  getQuizTimingStatus(quiz: any): 'UPCOMING' | 'OPEN' | 'EXPIRED' {
+    if (!quiz) return 'EXPIRED';
+    if (quiz.status !== 'Published') return 'EXPIRED';
+    if (this.hasSubmittedQuiz(quiz.id)) return 'EXPIRED';
+
+    const publishAtStr = quiz.publishAt || quiz.startTime;
+    if (!publishAtStr) return 'OPEN';
+
+    const publishAt = new Date(publishAtStr).getTime();
+    if (isNaN(publishAt)) return 'OPEN';
+
+    const now = this.nowTick();
+    const joinWindowMinutes = quiz.joinWindowMinutes ?? 2;
+    const joinDeadline = publishAt + joinWindowMinutes * 60 * 1000;
+
+    if (now < publishAt) return 'UPCOMING';
+    if (now > joinDeadline) return 'EXPIRED';
+
+    // Also check expireAt / endTime
+    const endStr = quiz.endTime || quiz.expireAt;
+    if (endStr) {
+      const end = new Date(endStr).getTime();
+      if (!isNaN(end) && now > end) return 'EXPIRED';
+    }
+
+    return 'OPEN';
+  }
+
+  getQuizUnlockCountdown(quiz: any): string {
+    const publishAtStr = quiz.publishAt || quiz.startTime;
+    if (!publishAtStr) return '00:00';
+    const publishAt = new Date(publishAtStr).getTime();
+    const now = this.nowTick();
+    const diff = Math.max(0, publishAt - now);
+    return this.formatDuration(diff);
+  }
+
+  getQuizJoinWindowRemaining(quiz: any): string {
+    const publishAtStr = quiz.publishAt || quiz.startTime;
+    if (!publishAtStr) return '00:00';
+    const publishAt = new Date(publishAtStr).getTime();
+    const joinWindowMinutes = quiz.joinWindowMinutes ?? 2;
+    const joinDeadline = publishAt + joinWindowMinutes * 60 * 1000;
+    const now = this.nowTick();
+    const diff = Math.max(0, joinDeadline - now);
+    return this.formatDuration(diff);
+  }
+
+  private formatDuration(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    return `${pad(m)}:${pad(s)}`;
+  }
+
   getQuizStatusLabel(q: Quiz): string {
     if (q.status === 'Draft') return 'Draft';
     if (q.status === 'Force stopped') return 'Force Stopped';
     if (q.status === 'Closed') return 'Closed';
     if (q.status === 'Archived') return 'Archived';
 
-    const now = new Date();
-    const endStr = q.endTime || (q as any).expireAt;
-
-    if (endStr) {
-      const end = new Date(endStr);
-      if (!isNaN(end.getTime()) && now > end) return 'Expired / Time Exceeded';
-    }
+    const status = this.getQuizTimingStatus(q);
+    if (status === 'UPCOMING') return `Unlocks in ${this.getQuizUnlockCountdown(q)}`;
+    if (status === 'EXPIRED') return 'Expired / Window Closed';
     return 'Active';
   }
 
@@ -374,15 +450,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     if (q.status !== 'Published') return false;
     if (this.hasSubmittedQuiz(q.id)) return false;
 
-    const now = new Date();
-    const endStr = q.endTime || (q as any).expireAt;
-
-    if (endStr) {
-      const end = new Date(endStr);
-      if (!isNaN(end.getTime()) && now > end) return false;
-    }
-
-    return true;
+    return this.getQuizTimingStatus(q) === 'OPEN';
   }
 
   getSubmissionForQuiz(quizId: string): any {

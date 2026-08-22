@@ -56,6 +56,8 @@ export interface Quiz {
   category?: { id: string; name: string } | null;
   publishAt?: string;
   expireAt?: string;
+  joinWindowMinutes?: number;
+  serverTime?: string;
   createdAt?: string;
 }
 

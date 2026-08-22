@@ -367,10 +367,24 @@
                 <span style="font-size: 0.8rem; color: var(--text-secondary);">Duration: {{ q.duration }} mins | Passing Score: {{ q.passingMarks }} pts</span>
               </div>
               <div>
-                <button *ngIf="isQuizAttemptable(q)" class="neo-btn neo-btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('quiz'); openQuizDetails(q)">
-                  🚀 Start Assessment
-                </button>
-                <span *ngIf="hasSubmittedQuiz(q.id)" class="badge badge-completed" style="font-size: 0.8rem;">Submitted</span>
+                <button *ngIf="hasSubmittedQuiz(q.id)" class="neo-btn" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('quiz'); openQuizDetails(q)">View Result</button>
+
+                <span *ngIf="!hasSubmittedQuiz(q.id) && getQuizTimingStatus(q) === 'UPCOMING'" class="badge badge-pending" style="font-size: 0.8rem;">
+                  🔒 Unlocks in {{ getQuizUnlockCountdown(q) }}
+                </span>
+
+                <div *ngIf="!hasSubmittedQuiz(q.id) && getQuizTimingStatus(q) === 'OPEN'" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem;">
+                  <button class="neo-btn neo-btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" (click)="switchTab('quiz'); openQuizDetails(q)">
+                    🚀 Start Assessment
+                  </button>
+                  <span *ngIf="q.publishAt || q.startTime" style="font-size: 0.7rem; color: #f59e0b; font-weight: 600;">
+                    ⚡ Closes in {{ getQuizJoinWindowRemaining(q) }}
+                  </span>
+                </div>
+
+                <span *ngIf="!hasSubmittedQuiz(q.id) && getQuizTimingStatus(q) === 'EXPIRED'" class="badge badge-overdue" style="font-size: 0.8rem;">
+                  ⚠️ Window Closed
+                </span>
               </div>
             </div>
           </div>
@@ -441,23 +455,33 @@
 
               <div>
                 <!-- Already Submitted badge -->
-                <span *ngIf="hasSubmittedQuiz(q.id)" class="badge badge-completed" style="padding: 0.5rem 1rem;">Submitted</span>
+                <button *ngIf="hasSubmittedQuiz(q.id)" class="neo-btn" style="padding: 0.5rem 1rem;" (click)="openQuizDetails(q)">View Result</button>
 
-                <!-- Active and attemptable -->
-                <button 
-                  *ngIf="!hasSubmittedQuiz(q.id) && isQuizAttemptable(q)" 
-                  class="neo-btn neo-btn-primary" 
-                  (click)="openQuizDetails(q)">
-                  Start Attempt
-                </button>
+                <!-- Upcoming: Pre-start Unlock Countdown -->
+                <div *ngIf="!hasSubmittedQuiz(q.id) && getQuizTimingStatus(q) === 'UPCOMING'" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                  <span class="badge badge-pending" style="padding: 0.5rem 1rem; font-weight: 700; font-size: 0.9rem;">
+                    🔒 Unlocks in {{ getQuizUnlockCountdown(q) }}
+                  </span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">Scheduled for {{ (q.publishAt || q.startTime) | date:'shortTime' }}</span>
+                </div>
 
-                <!-- Stopped or Expired -->
-                <span 
-                  *ngIf="!hasSubmittedQuiz(q.id) && !isQuizAttemptable(q)" 
-                  class="badge badge-overdue" 
-                  style="padding: 0.5rem 1rem;">
-                  {{ getQuizStatusLabel(q) }}
-                </span>
+                <!-- Open: Strict 2-Minute Join Window -->
+                <div *ngIf="!hasSubmittedQuiz(q.id) && getQuizTimingStatus(q) === 'OPEN'" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                  <button class="neo-btn neo-btn-primary" style="padding: 0.5rem 1.25rem;" (click)="openQuizDetails(q)">
+                    🚀 Start Attempt
+                  </button>
+                  <span *ngIf="q.publishAt || q.startTime" style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;">
+                    ⚡ Entry Window Closes in {{ getQuizJoinWindowRemaining(q) }}
+                  </span>
+                </div>
+
+                <!-- Expired Join Window -->
+                <div *ngIf="!hasSubmittedQuiz(q.id) && getQuizTimingStatus(q) === 'EXPIRED'" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                  <span class="badge badge-overdue" style="padding: 0.5rem 1rem;">
+                    ⚠️ Access Window Expired
+                  </span>
+                  <span style="font-size: 0.75rem; color: var(--danger-color);">Must join on time within entry window</span>
+                </div>
               </div>
             </div>
           </div>

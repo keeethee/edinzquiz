@@ -39,6 +39,7 @@ export class QuizService {
     categoryId?: string;
     publishAt?: string;
     expireAt?: string;
+    joinWindowMinutes?: number;
   }) {
     if (data.courseId) {
       const course = await this.prisma.course.findUnique({ where: { id: data.courseId } });
@@ -64,6 +65,7 @@ export class QuizService {
         status: 'Draft',
         publishAt: (data.publishAt || (data as any).startTime) ? new Date(data.publishAt || (data as any).startTime) : null,
         expireAt: (data.expireAt || (data as any).endTime) ? new Date(data.expireAt || (data as any).endTime) : null,
+        joinWindowMinutes: data.joinWindowMinutes !== undefined ? Number(data.joinWindowMinutes) : 2,
       },
       include: {
         course: true,
@@ -95,11 +97,13 @@ export class QuizService {
       orderBy: { createdAt: 'desc' },
     });
 
+    const serverTime = new Date().toISOString();
     return quizzes.map((q: any) => {
       const qSum = (q.questions || []).reduce((sum: number, item: any) => sum + (item.marks || 0), 0);
       return {
         ...q,
         totalMarks: q.totalMarks && q.totalMarks > 0 ? q.totalMarks : qSum,
+        serverTime,
       };
     });
   }
@@ -502,8 +506,29 @@ export class QuizService {
     }
 
     const now = new Date();
-    const endTime = quiz.expireAt || (quiz as any).endTime;
 
+    // NEW: Start-time gate (scheduledAt / publishAt)
+    if (quiz.publishAt) {
+      const publishAt = new Date(quiz.publishAt);
+      if (!isNaN(publishAt.getTime())) {
+        if (now < publishAt) {
+          throw new BadRequestException(
+            `This quiz has not started yet. Scheduled for ${publishAt.toLocaleString()}.`
+          );
+        }
+
+        // NEW: Strict join window gate (default 2 minutes)
+        const joinWindowMinutes = (quiz as any).joinWindowMinutes ?? 2;
+        const joinDeadline = new Date(publishAt.getTime() + joinWindowMinutes * 60 * 1000);
+        if (now > joinDeadline) {
+          throw new BadRequestException(
+            `The ${joinWindowMinutes}-minute entry window for starting this quiz has expired.`
+          );
+        }
+      }
+    }
+
+    const endTime = quiz.expireAt || (quiz as any).endTime;
     if (endTime) {
       const end = new Date(endTime);
       if (!isNaN(end.getTime()) && now > end) {

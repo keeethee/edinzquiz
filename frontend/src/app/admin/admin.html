@@ -671,16 +671,23 @@
               </div>
             </div>
 
-            <div class="grid-3">
+            <div class="grid-4" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Duration (Minutes) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Quiz Duration (Mins) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
                 <input type="number" class="neo-input" formControlName="duration" min="1" />
               </div>
               <div>
-                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Passing Score (points) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Entry Join Window (Mins) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
+                <input type="number" class="neo-input" formControlName="joinWindowMinutes" min="1" placeholder="default 2" />
+                <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                  Access window after start time (default: 2 mins).
+                </span>
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">Passing Score (pts) <span style="color: var(--danger-color); font-weight: 700;">*</span></label>
                 <input type="number" class="neo-input" formControlName="passingMarks" min="0" placeholder="e.g. 2 or 3" />
                 <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
-                  Required score to pass (out of {{ totalQuizMarks }} total marks).
+                  Required score to pass (out of {{ totalQuizMarks }} marks).
                 </span>
               </div>
               <div>

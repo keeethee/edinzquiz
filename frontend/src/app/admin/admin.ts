@@ -613,6 +613,7 @@ export class AdminComponent implements OnInit, OnDestroy, CanComponentDeactivate
       startTime: [start, Validators.required],
       endTime: [end, Validators.required],
       duration: [quiz?.duration || 60, [Validators.required, Validators.min(1)]],
+      joinWindowMinutes: [quiz?.joinWindowMinutes ?? 2, [Validators.required, Validators.min(1)]],
       passingMarks: [passingMarksVal, [Validators.required, Validators.min(0)]],
       maxAttempts: [quiz?.maxAttempts || 1, [Validators.required, Validators.min(1)]],
       shuffleQuestions: [quiz?.shuffleQuestions || false],
